@@ -91,6 +91,10 @@ public class IMService {
         this.uid = uid;
     }
 
+    public String getHostIP() {
+        return this.hostIP;
+    }
+
     public void setPeerMessageHandler(IMPeerMessageHandler handler) {
         this.peerMessageHandler = handler;
     }

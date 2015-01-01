@@ -1,6 +1,7 @@
 package com.beetle.face.activity;
 
 import android.content.Intent;
+import android.media.AudioManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,6 +10,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.beetle.NativeWebRtcContextRegistry;
+import com.beetle.VOIP;
 import com.beetle.face.R;
 import com.beetle.face.Token;
 import com.beetle.face.VOIPState;
@@ -49,6 +52,8 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
     private Button handUpButton;
     private Button refuseButton;
     private Button acceptButton;
+
+    private VOIP voip;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,8 +173,7 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
         } else if (state.state == VOIPState.VOIP_CONNECTED) {
             sendHangUp();
             state.state = VOIPState.VOIP_HANGED_UP;
-            //todo stop stream
-
+            stopStream();
             dismiss();
         } else {
             Log.i(TAG, "invalid voip state:" + state.state);
@@ -243,7 +247,7 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
 
 
                 Log.i(TAG, "voip connected");
-                //todo start stream
+                startStream();
 
             } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_REFUSE) {
                 state.state = VOIPState.VOIP_REFUSED;
@@ -287,7 +291,7 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
 
                 state.state = VOIPState.VOIP_CONNECTED;
 
-                //todo start stream
+                startStream();
 
                 this.handUpButton.setVisibility(View.VISIBLE);
                 this.acceptButton.setVisibility(View.GONE);
@@ -298,7 +302,7 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
                 this.acceptTimer = null;
                 state.state = VOIPState.VOIP_CONNECTED;
 
-                //todo start stream
+                startStream();
 
                 this.handUpButton.setVisibility(View.VISIBLE);
                 this.acceptButton.setVisibility(View.GONE);
@@ -308,12 +312,14 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
             if (ctl.cmd == VOIPControl.VOIP_COMMAND_HANG_UP) {
                 state.state = VOIPState.VOIP_HANGED_UP;
 
-                //todo stop stream
+                stopStream();
+
                 dismiss();
             } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_RESET) {
                 state.state = VOIPState.VOIP_RESETED;
 
-                //todo stop stream
+                stopStream();
+
                 dismiss();
             } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT) {
                 sendConnected();
@@ -329,6 +335,39 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
                 dismiss();
             }
         }
+    }
+
+    private boolean getHeadphoneStatus() {
+        AudioManager audioManager = (AudioManager)getSystemService(AUDIO_SERVICE);
+        boolean headphone = audioManager.isWiredHeadsetOn() || audioManager.isBluetoothA2dpOn();
+        return headphone;
+    }
+
+    private void startStream() {
+        if (this.voip != null) {
+            Log.w(TAG, "voip is active");
+            return;
+        }
+
+        Log.i(TAG, "start stream");
+
+        this.voip = new VOIP();
+        long selfUID = Token.getInstance().uid;
+        String hostIP = IMService.getInstance().getHostIP();
+        boolean headphone = getHeadphoneStatus();
+        this.voip.initNative(selfUID, this.peer.uid, hostIP, headphone);
+        this.voip.start();
+    }
+
+    private void stopStream() {
+        if (this.voip == null) {
+            Log.w(TAG, "voip is inactive");
+            return;
+        }
+        Log.i(TAG, "stop stream");
+        this.voip.stop();
+        this.voip.destroyNative();
+        this.voip = null;
     }
 
     public static int getNow() {

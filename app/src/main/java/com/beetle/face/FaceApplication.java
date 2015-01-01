@@ -3,6 +3,7 @@ package com.beetle.face;
 import android.app.Application;
 import android.util.Log;
 
+import com.beetle.NativeWebRtcContextRegistry;
 import com.beetle.face.model.ContactDB;
 import com.beetle.im.IMService;
 
@@ -30,6 +31,8 @@ public class FaceApplication  extends Application {
         ContactDB cdb = ContactDB.getInstance();
         cdb.setContentResolver(getApplicationContext().getContentResolver());
         cdb.monitorConctat(getApplicationContext());
+
+        new NativeWebRtcContextRegistry().register(this);
 
         IMService im =  IMService.getInstance();
         im.setHost(Config.HOST);
