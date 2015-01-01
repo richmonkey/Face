@@ -3,6 +3,7 @@ package com.beetle.face;
 import android.app.Application;
 import android.util.Log;
 
+import com.beetle.face.model.ContactDB;
 import com.beetle.im.IMService;
 
 import com.google.code.p.leveldb.LevelDB;
@@ -26,9 +27,18 @@ public class FaceApplication  extends Application {
         Log.i(TAG, "dir:" + dir);
         ldb.open(dir);
 
+        ContactDB cdb = ContactDB.getInstance();
+        cdb.setContentResolver(getApplicationContext().getContentResolver());
+        cdb.monitorConctat(getApplicationContext());
+
         IMService im =  IMService.getInstance();
         im.setHost(Config.HOST);
         im.setPort(Config.PORT);
 
+        //already login
+        if (Token.getInstance().uid > 0) {
+            im.setUid(Token.getInstance().uid);
+            im.start();
+        }
     }
 }

@@ -30,7 +30,11 @@ class Command{
     public static final int MSG_INPUTTING = 10;
     public static final int MSG_SUBSCRIBE_ONLINE_STATE = 11;
     public static final int MSG_ONLINE_STATE = 12;
+
+    public static final int MSG_VOIP_CONTROL = 64;
+    public static final int MSG_VOIP_DATA = 65;
 }
+
 
 
 class MessagePeerACK {
@@ -52,6 +56,8 @@ class MessageOnlineState {
 class MessageSubscribe {
     public ArrayList<Long> uids;
 }
+
+
 
 class Message {
 
@@ -112,6 +118,22 @@ class Message {
             pos += 8;
             BytePacket.writeInt64(in.receiver, buf, pos);
             return Arrays.copyOf(buf, HEAD_SIZE + 16);
+        } else if (cmd == Command.MSG_VOIP_CONTROL) {
+            VOIPControl ctl = (VOIPControl)body;
+            BytePacket.writeInt64(ctl.sender, buf, pos);
+            pos += 8;
+            BytePacket.writeInt64(ctl.receiver, buf, pos);
+            pos += 8;
+            BytePacket.writeInt32(ctl.cmd, buf, pos);
+            pos += 4;
+
+            if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
+                BytePacket.writeInt32(ctl.dialCount, buf, pos);
+                pos += 4;
+                return Arrays.copyOf(buf, HEAD_SIZE + 24);
+            } else {
+                return Arrays.copyOf(buf, HEAD_SIZE + 20);
+            }
         }
         return null;
     }
@@ -169,6 +191,19 @@ class Message {
             pos += 8;
             state.online = BytePacket.readInt32(data, pos);
             this.body = state;
+            return true;
+        } else if (cmd == Command.MSG_VOIP_CONTROL) {
+            VOIPControl ctl = new VOIPControl();
+            ctl.sender = BytePacket.readInt64(data, pos);
+            pos += 8;
+            ctl.receiver = BytePacket.readInt64(data, pos);
+            pos += 8;
+            ctl.cmd = BytePacket.readInt32(data, pos);
+            pos += 4;
+            if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
+                ctl.dialCount = BytePacket.readInt32(data, pos);
+            }
+            this.body = ctl;
             return true;
         } else {
             return false;

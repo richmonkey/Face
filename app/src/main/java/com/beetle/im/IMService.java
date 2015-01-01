@@ -50,6 +50,7 @@ public class IMService {
 
     IMPeerMessageHandler peerMessageHandler;
     ArrayList<IMServiceObserver> observers = new ArrayList<IMServiceObserver>();
+    ArrayList<VOIPObserver> voipObservers = new ArrayList<VOIPObserver>();
     HashMap<Integer, IMMessage> peerMessages = new HashMap<Integer, IMMessage>();
     private HashMap<Long, Boolean> subs = new HashMap<Long, Boolean>();
 
@@ -105,6 +106,17 @@ public class IMService {
         observers.remove(ob);
     }
 
+    public void pushVOIPObserver(VOIPObserver ob) {
+        if (voipObservers.contains(ob)) {
+            return;
+        }
+        voipObservers.add(ob);
+    }
+
+    public void popVOIPObserver(VOIPObserver ob) {
+        voipObservers.remove(ob);
+    }
+
     public void start() {
         if (this.uid == 0) {
             throw new RuntimeException("NO UID PROVIDED");
@@ -131,6 +143,13 @@ public class IMService {
         heartbeatTimer.suspend();
         connectTimer.suspend();
         this.close();
+    }
+
+    public boolean sendVOIPControl(VOIPControl ctl) {
+        Message msg = new Message();
+        msg.cmd = Command.MSG_VOIP_CONTROL;
+        msg.body = ctl;
+        return sendMessage(msg);
     }
 
     public boolean sendPeerMessage(IMMessage im) {
@@ -389,6 +408,17 @@ public class IMService {
         }
     }
 
+    private void handleVOIPControl(Message msg) {
+        VOIPControl ctl = (VOIPControl)msg.body;
+
+        int count = voipObservers.size();
+        if (count == 0) {
+            return;
+        }
+        VOIPObserver ob = voipObservers.get(count-1);
+        ob.onVOIPControl(ctl);
+    }
+
     private void handleInputting(Message msg) {
         MessageInputing inputting = (MessageInputing)msg.body;
         for (int i = 0; i < observers.size(); i++ ) {
@@ -410,6 +440,8 @@ public class IMService {
             handlePeerACK(msg);
         } else if (msg.cmd == Command.MSG_INPUTTING) {
             handleInputting(msg);
+        } else if (msg.cmd == Command.MSG_VOIP_CONTROL) {
+            handleVOIPControl(msg);
         } else {
             Log.i(TAG, "unknown message cmd:"+msg.cmd);
         }
