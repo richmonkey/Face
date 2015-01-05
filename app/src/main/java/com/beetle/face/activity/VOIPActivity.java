@@ -351,6 +351,7 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
 
         Log.i(TAG, "start stream");
 
+        this.history.beginTimestamp = getNow();
         this.voip = new VOIP();
         long selfUID = Token.getInstance().uid;
         String hostIP = IMService.getInstance().getHostIP();
@@ -365,6 +366,8 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
             return;
         }
         Log.i(TAG, "stop stream");
+
+        this.history.endTimestamp = getNow();
         this.voip.stop();
         this.voip.destroyNative();
         this.voip = null;
