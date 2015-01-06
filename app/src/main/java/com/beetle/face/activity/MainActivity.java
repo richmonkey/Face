@@ -116,15 +116,15 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
         super.onCreate(savedInstanceState);
         setContentView(R.layout.new_conversation);
 
+        ContactDB.getInstance().loadContacts();
+        ContactDB.getInstance().addObserver(this);
+
         loadUsers();
 
         adapter = new ConversationAdapter();
         lv = (ListView)findViewById(R.id.list);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(this);
-
-        ContactDB.getInstance().loadContacts();
-        ContactDB.getInstance().addObserver(this);
 
         IMService.getInstance().pushVOIPObserver(this);
 
