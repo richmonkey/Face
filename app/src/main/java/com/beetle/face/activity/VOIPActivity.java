@@ -5,6 +5,7 @@ import android.media.AudioManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -157,6 +158,26 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_BACK) {
+            Log.i(TAG, "keycode back");
+            VOIPState state = VOIPState.getInstance();
+            if (state.state == VOIPState.VOIP_DIALING) {
+                this.dialTimer.suspend();
+                this.dialTimer = null;
+                sendHangUp();
+                state.state = VOIPState.VOIP_HANGED_UP;
+                this.history.flag = this.history.flag|History.FLAG_CANCELED;
+            } else if (state.state == VOIPState.VOIP_CONNECTED) {
+                sendHangUp();
+                state.state = VOIPState.VOIP_HANGED_UP;
+                stopStream();
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     public void hangup(View v) {
@@ -394,6 +415,7 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
         ctl.cmd = VOIPControl.VOIP_COMMAND_DIAL;
         ctl.dialCount = this.dialCount + 1;
 
+        Log.i(TAG, "dial......");
         boolean r = IMService.getInstance().sendVOIPControl(ctl);
         if (r) {
             this.dialCount = this.dialCount + 1;

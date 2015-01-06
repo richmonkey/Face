@@ -10,13 +10,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 
+import com.beetle.face.Token;
 import com.beetle.face.VOIPState;
 import com.beetle.face.api.IMHttp;
 import com.beetle.face.api.IMHttpFactory;
+import com.beetle.face.api.body.PostAuthRefreshToken;
 import com.beetle.face.api.body.PostPhone;
 import com.beetle.face.api.types.User;
 import com.beetle.face.model.Contact;
 import com.beetle.face.model.ContactDB;
+import com.beetle.face.model.History;
+import com.beetle.face.model.HistoryDB;
 import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.UserDB;
 import com.beetle.im.IMMessage;
@@ -128,6 +132,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
 
         IMService.getInstance().pushVOIPObserver(this);
 
+        refreshToken();
         refreshUsers();
     }
 
@@ -229,6 +234,34 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                     }
                 });
     }
+    private void refreshToken() {
+        PostAuthRefreshToken refreshToken = new PostAuthRefreshToken();
+        refreshToken.refreshToken = Token.getInstance().refreshToken;
+        IMHttp imHttp = IMHttpFactory.Singleton();
+        imHttp.postAuthRefreshToken(refreshToken)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Token>() {
+                    @Override
+                    public void call(Token token) {
+                        onTokenRefreshed(token);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Log.i(TAG, "refresh token error:" + throwable);
+                    }
+                });
+    }
+
+    protected void onTokenRefreshed(Token token) {
+        Token t = Token.getInstance();
+        t.accessToken = token.accessToken;
+        t.refreshToken = token.refreshToken;
+        t.expireTimestamp = token.expireTimestamp;
+        t.save();
+        Log.i(TAG, "token refreshed");
+    }
+
 
 }
 

@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.beetle.NativeWebRtcContextRegistry;
 import com.beetle.face.model.ContactDB;
+import com.beetle.face.model.HistoryDB;
 import com.beetle.im.IMService;
 
 import com.google.code.p.leveldb.LevelDB;
@@ -31,6 +32,8 @@ public class FaceApplication  extends Application {
         ContactDB cdb = ContactDB.getInstance();
         cdb.setContentResolver(getApplicationContext().getContentResolver());
         cdb.monitorConctat(getApplicationContext());
+
+        HistoryDB.initDatabase(getApplicationContext());
 
         new NativeWebRtcContextRegistry().register(this);
 
