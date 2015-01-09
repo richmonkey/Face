@@ -25,6 +25,8 @@ import com.beetle.face.model.UserDB;
 import com.beetle.face.tools.event.BusProvider;
 import com.beetle.face.tools.event.LoginSuccessEvent;
 
+import java.util.Date;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -57,6 +59,12 @@ public class VerifyActivity extends AccountActivity implements TextView.OnEditor
         verifyCode.setOnEditorActionListener(this);
     }
 
+    public static int getNow() {
+        Date date = new Date();
+        long t = date.getTime();
+        return (int)(t/1000);
+    }
+
     @OnClick(R.id.btn_login)
     void onLogin() {
         final String code = verifyCode.getText().toString();
@@ -81,7 +89,7 @@ public class VerifyActivity extends AccountActivity implements TextView.OnEditor
                         Token t = Token.getInstance();
                         t.accessToken = token.accessToken;
                         t.refreshToken = token.refreshToken;
-                        t.expireTimestamp = token.expireTimestamp;
+                        t.expireTimestamp = token.expireTimestamp + getNow();
                         t.uid = token.uid;
 
                         t.save();

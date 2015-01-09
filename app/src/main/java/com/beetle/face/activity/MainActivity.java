@@ -2,6 +2,8 @@ package com.beetle.face.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -42,12 +44,16 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import com.beetle.face.R;
 
+import static android.os.SystemClock.uptimeMillis;
+
 /**
  * Created by houxh on 14-8-12.
  */
 public class MainActivity extends BaseActivity implements AdapterView.OnItemClickListener,
         VOIPObserver, ContactDB.ContactObserver{
     ArrayList<User> users;
+
+    private Timer refreshTokenTimer;
 
     private ListView lv;
     private BaseAdapter adapter;
@@ -132,8 +138,32 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
 
         IMService.getInstance().pushVOIPObserver(this);
 
-        refreshToken();
-        refreshUsers();
+
+        Token token = Token.getInstance();
+        int now = getNow();
+
+        if (now >= token.expireTimestamp + 60) {
+            refreshToken();
+            //30s后刷新用户
+            Handler h = new Handler();
+            h.postAtTime(new Runnable() {
+                @Override
+                public void run() {
+                    refreshUsers();
+                }
+            }, uptimeMillis()+30*1000);
+        } else {
+            int t = token.expireTimestamp - 60 - now;
+            refreshTokenTimer = new Timer() {
+                @Override
+                protected void fire() {
+                    refreshToken();
+                }
+            };
+            refreshTokenTimer.setTimer(uptimeMillis() + t*1000);
+            refreshTokenTimer.resume();
+            refreshUsers();
+        }
     }
 
     @Override
@@ -254,14 +284,42 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
     }
 
     protected void onTokenRefreshed(Token token) {
+        int now = getNow();
+
         Token t = Token.getInstance();
         t.accessToken = token.accessToken;
         t.refreshToken = token.refreshToken;
-        t.expireTimestamp = token.expireTimestamp;
+
+        t.expireTimestamp = token.expireTimestamp + now;
         t.save();
         Log.i(TAG, "token refreshed");
+
+        int ts = token.expireTimestamp - 60 - now;
+        if (ts <= 0) {
+            Log.w(TAG, "expire timestamp:" + (token.expireTimestamp - now));
+            return;
+        }
+
+        if (refreshTokenTimer != null) {
+            refreshTokenTimer.suspend();
+        }
+
+        refreshTokenTimer = new Timer() {
+            @Override
+            protected void fire() {
+                refreshToken();
+            }
+        };
+        refreshTokenTimer.setTimer(uptimeMillis() + ts*1000);
+        refreshTokenTimer.resume();
     }
 
+
+    public static int getNow() {
+        Date date = new Date();
+        long t = date.getTime();
+        return (int)(t/1000);
+    }
 
 }
 
