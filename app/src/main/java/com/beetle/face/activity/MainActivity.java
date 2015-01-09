@@ -54,6 +54,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
     ArrayList<User> users;
 
     private Timer refreshTokenTimer;
+    private int refreshErrorCount;
 
     private ListView lv;
     private BaseAdapter adapter;
@@ -154,14 +155,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
             }, uptimeMillis()+30*1000);
         } else {
             int t = token.expireTimestamp - 60 - now;
-            refreshTokenTimer = new Timer() {
-                @Override
-                protected void fire() {
-                    refreshToken();
-                }
-            };
-            refreshTokenTimer.setTimer(uptimeMillis() + t*1000);
-            refreshTokenTimer.resume();
+            refreshTokenDelay(t);
             refreshUsers();
         }
     }
@@ -273,14 +267,32 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 .subscribe(new Action1<Token>() {
                     @Override
                     public void call(Token token) {
+                        refreshErrorCount = 0;
                         onTokenRefreshed(token);
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
                         Log.i(TAG, "refresh token error:" + throwable);
+                        refreshErrorCount++;
+                        refreshTokenDelay(60*refreshErrorCount);
                     }
                 });
+    }
+
+    private void refreshTokenDelay(int t) {
+        if (refreshTokenTimer != null) {
+            refreshTokenTimer.suspend();
+        }
+
+        refreshTokenTimer = new Timer() {
+            @Override
+            protected void fire() {
+                refreshToken();
+            }
+        };
+        refreshTokenTimer.setTimer(uptimeMillis() + t*1000);
+        refreshTokenTimer.resume();
     }
 
     protected void onTokenRefreshed(Token token) {
@@ -300,18 +312,7 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
             return;
         }
 
-        if (refreshTokenTimer != null) {
-            refreshTokenTimer.suspend();
-        }
-
-        refreshTokenTimer = new Timer() {
-            @Override
-            protected void fire() {
-                refreshToken();
-            }
-        };
-        refreshTokenTimer.setTimer(uptimeMillis() + ts*1000);
-        refreshTokenTimer.resume();
+        refreshTokenDelay(ts);
     }
 
 
