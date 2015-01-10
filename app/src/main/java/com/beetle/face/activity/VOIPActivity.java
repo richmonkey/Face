@@ -128,10 +128,11 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
                 player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
                 afd.close();
                 player.setLooping(true);
+                player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
                 AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
                 am.setSpeakerphoneOn(false);
-
+                am.setMode(AudioManager.STREAM_MUSIC);
                 player.prepare();
                 player.start();
 
@@ -152,8 +153,10 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
                 player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
                 afd.close();
                 player.setLooping(true);
+                player.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
                 am.setSpeakerphoneOn(true);
+                am.setMode(AudioManager.STREAM_MUSIC);
                 player.prepare();
                 player.start();
             } catch (Exception e) {
@@ -183,6 +186,7 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
     protected void onDestroy () {
         if (this.voip != null) {
             Log.e(TAG, "voip is not null");
+            System.exit(1);
         }
         VOIPState state = VOIPState.getInstance();
         state.state = VOIPState.VOIP_LISTENING;
@@ -449,7 +453,7 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
         Log.i(TAG, "start stream");
         AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         am.setSpeakerphoneOn(false);
-
+        am.setMode(AudioManager.MODE_IN_COMMUNICATION);
         this.duration = 0;
         this.durationTimer = new Timer() {
             @Override
