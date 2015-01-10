@@ -23,7 +23,7 @@ public abstract class Timer {
             }
 
             Timer.this.fire();
-            if (Timer.this.interval != -1) {
+            if (Timer.this.interval != -1 && Timer.this.active) {
                 long t = uptimeMillis() + Timer.this.interval;
                 boolean b = this.sendEmptyMessageAtTime(WHAT, t);
             }

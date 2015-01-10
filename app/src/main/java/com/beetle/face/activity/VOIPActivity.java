@@ -1,7 +1,10 @@
 package com.beetle.face.activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +13,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.beetle.NativeWebRtcContextRegistry;
 import com.beetle.VOIP;
@@ -27,8 +32,10 @@ import com.beetle.im.IMService;
 import com.beetle.im.Timer;
 import com.beetle.im.VOIPControl;
 import com.beetle.im.VOIPObserver;
+import com.squareup.picasso.Picasso;
 
 import java.util.Date;
+import java.util.IllegalFormatException;
 
 import static android.os.SystemClock.uptimeMillis;
 
@@ -54,7 +61,13 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
     private Button refuseButton;
     private Button acceptButton;
 
+    private TextView durationTextView;
+
     private VOIP voip;
+    private int duration;
+    private Timer durationTimer;
+
+    private MediaPlayer player;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +77,10 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
         handUpButton = (Button)findViewById(R.id.hang_up);
         acceptButton = (Button)findViewById(R.id.accept);
         refuseButton = (Button)findViewById(R.id.refuse);
+        durationTextView = (TextView)findViewById(R.id.duration);
+
+        ImageView header = (ImageView)findViewById(R.id.header);
+
 
         Intent intent = getIntent();
 
@@ -80,6 +97,10 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
             Log.e(TAG, "load user fail");
             return;
         }
+
+        Picasso.with(getBaseContext())
+                .load(peer.avatar)
+                .into(header);
 
         VOIPState state = VOIPState.getInstance();
         if (isCaller) {
@@ -101,12 +122,43 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
             this.dialTimer.setTimer(uptimeMillis()+1000, 1000);
             this.dialTimer.resume();
 
+            try {
+                AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.call);
+                player = new MediaPlayer();
+                player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                afd.close();
+                player.setLooping(true);
+
+                AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+                am.setSpeakerphoneOn(false);
+
+                player.prepare();
+                player.start();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         } else {
             handUpButton.setVisibility(View.GONE);
             acceptButton.setVisibility(View.VISIBLE);
             refuseButton.setVisibility(View.VISIBLE);
 
             state.state = VOIPState.VOIP_ACCEPTING;
+
+            try {
+                AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.start);
+                player = new MediaPlayer();
+                player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                afd.close();
+                player.setLooping(true);
+                AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+                am.setSpeakerphoneOn(true);
+                player.prepare();
+                player.start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         this.history.createTimestamp = getNow();
 
@@ -129,6 +181,9 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
 
     @Override
     protected void onDestroy () {
+        if (this.voip != null) {
+            Log.e(TAG, "voip is not null");
+        }
         VOIPState state = VOIPState.getInstance();
         state.state = VOIPState.VOIP_LISTENING;
 
@@ -168,9 +223,13 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
             if (state.state == VOIPState.VOIP_DIALING) {
                 this.dialTimer.suspend();
                 this.dialTimer = null;
+                this.player.stop();
+                this.player = null;
+
                 sendHangUp();
                 state.state = VOIPState.VOIP_HANGED_UP;
                 this.history.flag = this.history.flag|History.FLAG_CANCELED;
+
             } else if (state.state == VOIPState.VOIP_CONNECTED) {
                 sendHangUp();
                 state.state = VOIPState.VOIP_HANGED_UP;
@@ -186,6 +245,9 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
         if (state.state == VOIPState.VOIP_DIALING) {
             this.dialTimer.suspend();
             this.dialTimer = null;
+            this.player.stop();
+            this.player = null;
+
             sendHangUp();
             state.state = VOIPState.VOIP_HANGED_UP;
             this.history.flag = this.history.flag|History.FLAG_CANCELED;
@@ -205,6 +267,9 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
         Log.i(TAG, "accepting...");
         VOIPState state = VOIPState.getInstance();
         state.state = VOIPState.VOIP_ACCEPTED;
+
+        this.player.stop();
+        this.player = null;
 
         this.history.flag = this.history.flag|History.FLAG_ACCEPTED;
         this.acceptTimer = new Timer() {
@@ -226,6 +291,9 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
         Log.i(TAG, "refusing...");
         VOIPState state = VOIPState.getInstance();
         state.state = VOIPState.VOIP_REFUSING;
+        this.player.stop();
+        this.player = null;
+
         this.history.flag = this.history.flag|History.FLAG_REFUSED;
 
         this.refuseTimestamp = getNow();
@@ -265,7 +333,8 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
 
                 this.dialTimer.suspend();
                 this.dialTimer = null;
-
+                this.player.stop();
+                this.player = null;
 
                 Log.i(TAG, "voip connected");
                 startStream();
@@ -278,12 +347,16 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
 
                 this.dialTimer.suspend();
                 this.dialTimer = null;
+                this.player.stop();
+                this.player = null;
 
                 dismiss();
 
             } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
                 this.dialTimer.suspend();
                 this.dialTimer = null;
+                this.player.stop();
+                this.player = null;
 
                 state.state = VOIPState.VOIP_ACCEPTED;
                 this.history.flag = this.history.flag|History.FLAG_ACCEPTED;
@@ -301,6 +374,9 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
             }
         } else if (state.state == VOIPState.VOIP_ACCEPTING) {
             if (ctl.cmd == VOIPControl.VOIP_COMMAND_HANG_UP) {
+                this.player.stop();
+                this.player = null;
+
                 this.history.flag = this.history.flag|History.FLAG_UNRECEIVED;
                 state.state = VOIPState.VOIP_HANGED_UP;
                 dismiss();
@@ -371,6 +447,21 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
         }
 
         Log.i(TAG, "start stream");
+        AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        am.setSpeakerphoneOn(false);
+
+        this.duration = 0;
+        this.durationTimer = new Timer() {
+            @Override
+            protected void fire() {
+                VOIPActivity.this.duration += 1;
+                String text = String.format("%02d:%02d", VOIPActivity.this.duration/60, VOIPActivity.this.duration%60);
+                Log.i(TAG, "ddd:" + text);
+                durationTextView.setText(text);
+            }
+        };
+        this.durationTimer.setTimer(uptimeMillis()+1000, 1000);
+        this.durationTimer.resume();
 
         this.history.beginTimestamp = getNow();
         this.voip = new VOIP();
@@ -387,7 +478,8 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
             return;
         }
         Log.i(TAG, "stop stream");
-
+        this.durationTimer.suspend();
+        this.durationTimer = null;
         this.history.endTimestamp = getNow();
         this.voip.stop();
         this.voip.destroyNative();
@@ -428,6 +520,8 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
             Log.i(TAG, "dial timeout");
             this.dialTimer.suspend();
             this.dialTimer = null;
+            this.player.stop();
+            this.player = null;
 
             this.history.flag = this.history.flag|History.FLAG_UNRECEIVED;
 
