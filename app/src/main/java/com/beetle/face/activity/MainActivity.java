@@ -148,11 +148,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             TextView tv = (TextView) view.findViewById(R.id.name);
 
             CallHistory h = callHistories.get(position);
-            if (!TextUtils.isEmpty(h.user.name)) {
-                tv.setText(h.user.name);
-            } else {
-                tv.setText(h.user.number);
-            }
+            tv.setText(h.user.name);
 
             TextView content = ButterKnife.findById(view, R.id.content);
             String str = getCreateTimestamp(h.history.createTimestamp);
@@ -319,6 +315,13 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         for (History h : histories) {
             UserDB userDB = UserDB.getInstance();
             User u = userDB.loadUser(h.peerUID);
+            Contact c = ContactDB.getInstance().loadContact(new PhoneNumber(u.zone, u.number));
+            if (c == null) {
+                u.name = u.number;
+            } else {
+                u.name = c.displayName;
+            }
+
             CallHistory ch = new CallHistory();
             ch.history = h;
             ch.user = u;
