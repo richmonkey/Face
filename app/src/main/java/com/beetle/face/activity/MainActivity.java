@@ -285,6 +285,15 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         }
     }
 
+    private boolean isUserExist(User user) {
+        for (User u : users) {
+            if (u.uid == user.uid) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void loadUsers() {
         users = new ArrayList<User>();
         ContactDB db = ContactDB.getInstance();
@@ -300,7 +309,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
                 UserDB userDB = UserDB.getInstance();
                 User u = userDB.loadUser(number);
-                if (u != null) {
+                if (u != null && !isUserExist(u)) {
                     u.name = c.displayName;
                     users.add(u);
                 }
