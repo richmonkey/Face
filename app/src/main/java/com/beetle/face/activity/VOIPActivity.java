@@ -28,6 +28,8 @@ import com.beetle.face.model.History;
 import com.beetle.face.model.HistoryDB;
 import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.UserDB;
+import com.beetle.face.tools.Notification;
+import com.beetle.face.tools.NotificationCenter;
 import com.beetle.im.IMService;
 import com.beetle.im.Timer;
 import com.beetle.im.VOIPControl;
@@ -164,6 +166,7 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
             }
         }
         this.history.createTimestamp = getNow();
+        this.history.peerUID = peerUID;
 
         IMService.getInstance().pushVOIPObserver(this);
     }
@@ -193,7 +196,8 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
 
         IMService.getInstance().popVOIPObserver(this);
         HistoryDB.getInstance().addHistory(this.history);
-
+        Notification n = new Notification(this.history, "history");
+        NotificationCenter.defaultCenter().postNotification(n);
         super.onDestroy();
     }
 
