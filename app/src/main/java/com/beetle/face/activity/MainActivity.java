@@ -404,6 +404,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position,
                             long id) {
+        VOIPState state = VOIPState.getInstance();
         if (parent.getId() == R.id.contact_list) {
             User u = users.get(position);
 
@@ -411,6 +412,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("peer_uid", u.uid);
             intent.putExtra("is_caller", true);
+            state.state = VOIPState.VOIP_DIALING;
             startActivity(intent);
         } else if (parent.getId() == R.id.history_list) {
             CallHistory ch = callHistories.get(position);
@@ -419,6 +421,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("peer_uid", ch.history.peerUID);
             intent.putExtra("is_caller", true);
+            state.state = VOIPState.VOIP_DIALING;
             startActivity(intent);
         }
     }
@@ -435,6 +438,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("peer_uid", ctl.sender);
                 intent.putExtra("is_caller", false);
+                state.state = VOIPState.VOIP_ACCEPTING;
                 startActivity(intent);
             }
         }
