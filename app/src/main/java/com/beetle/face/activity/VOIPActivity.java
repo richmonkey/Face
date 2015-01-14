@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +15,8 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -73,10 +77,56 @@ public class VOIPActivity extends Activity implements VOIPObserver {
 
     private MediaPlayer player;
 
+    private static Handler sHandler;
+
+
+    Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            int flags;
+            int curApiVersion = android.os.Build.VERSION.SDK_INT;
+            // This work only for android 4.4+
+            if (curApiVersion >= Build.VERSION_CODES.KITKAT) {
+                // This work only for android 4.4+
+                // hide navigation bar permanently in android activity
+                // touch the screen, the navigation bar will not show
+                flags = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN;
+
+            } else {
+                // touch the screen, the navigation bar will show
+                flags = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+            }
+
+            // must be executed in main thread :)
+            getWindow().getDecorView().setSystemUiVisibility(flags);
+        }
+    };
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.activity_voip);
+
+        sHandler = new Handler();
+        sHandler.post(mHideRunnable);
+        final View decorView = getWindow().getDecorView();
+        View.OnSystemUiVisibilityChangeListener sl = new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int visibility)
+            {
+                sHandler.post(mHideRunnable);
+            }
+        };
+        decorView.setOnSystemUiVisibilityChangeListener(sl);
+
 
         handUpButton = (Button)findViewById(R.id.hang_up);
         acceptButton = (ImageButton)findViewById(R.id.accept);
