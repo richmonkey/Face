@@ -112,6 +112,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                 ImageView imageView = (ImageView) view.findViewById(R.id.header);
                 Picasso.with(getBaseContext())
                         .load(c.avatar)
+                        .placeholder(R.drawable.avatar_contact)
                         .into(imageView);
             } else {
                 ImageView imageView = (ImageView) view.findViewById(R.id.header);
@@ -147,8 +148,18 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             }
             TextView tv = (TextView) view.findViewById(R.id.name);
 
+            ImageView flagView = (ImageView)view.findViewById(R.id.flag);
+
             CallHistory h = callHistories.get(position);
             tv.setText(h.user.name);
+
+            if ((h.history.flag&History.FLAG_OUT) != 0) {
+                flagView.setImageResource(R.drawable.call_out);
+            } else if ((h.history.flag&History.FLAG_UNRECEIVED) != 0){
+                flagView.setImageResource(R.drawable.callin_not_answer);
+            } else {
+                flagView.setImageResource(R.drawable.call_in);
+            }
 
             TextView content = ButterKnife.findById(view, R.id.content);
             String str = getCreateTimestamp(h.history.createTimestamp);
@@ -158,6 +169,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                 ImageView imageView = (ImageView) view.findViewById(R.id.header);
                 Picasso.with(getBaseContext())
                         .load(h.user.avatar)
+                        .placeholder(R.drawable.avatar_contact)
                         .into(imageView);
             } else {
                 ImageView imageView = (ImageView) view.findViewById(R.id.header);
@@ -375,8 +387,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         NotificationCenter center = NotificationCenter.defaultCenter();
         center.addObserver(this, HISTORY_NAME);
 
-
-
         ViewPager vp = (ViewPager)findViewById(R.id.viewpager);
         vp.setAdapter(new ViewPagerAdapter());
 
@@ -437,6 +447,12 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             CallHistory ch = new CallHistory();
             ch.history = h;
             ch.user = UserDB.getInstance().loadUser(h.peerUID);
+            Contact c = ContactDB.getInstance().loadContact(new PhoneNumber(ch.user.zone, ch.user.number));
+            if (c == null) {
+                ch.user.name = ch.user.number;
+            } else {
+                ch.user.name = c.displayName;
+            }
             callHistories.add(0, ch);
             if (historyAdapter != null) {
                 historyAdapter.notifyDataSetChanged();

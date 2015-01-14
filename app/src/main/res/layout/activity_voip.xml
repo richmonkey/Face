@@ -16,8 +16,8 @@
 
         <ImageView
             android:id="@+id/header"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
             android:src="@drawable/avatar_contact"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="30dp"
@@ -31,7 +31,8 @@
             android:layout_below="@+id/header"
             android:layout_marginTop="30dp"
             android:text="00:00"
-            android:id="@+id/duration" />
+            android:id="@+id/duration"
+            android:textSize="30sp" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -48,23 +49,23 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="接听"
+                <ImageButton
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/call_answer_x"
                     android:id="@+id/accept"
                     android:layout_centerInParent="true"
-                    android:onClick="accept" />
+                    android:onClick="accept"/>
             </RelativeLayout>
             <RelativeLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="拒绝"
+                <ImageButton
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/call_hangup_x"
                     android:id="@+id/refuse"
                     android:layout_centerVertical="true"
                     android:layout_centerHorizontal="true"
@@ -77,13 +78,10 @@
             android:layout_centerInParent="true"
             android:text="挂断"
             android:id="@+id/hang_up"
-            android:onClick="hangup" />
+            android:onClick="hangup"
+            android:paddingLeft="60dp"
+            android:paddingRight="60dp"
+            android:textSize="30sp" />
 
     </RelativeLayout>
-
-
-
-
-
-
 </LinearLayout>

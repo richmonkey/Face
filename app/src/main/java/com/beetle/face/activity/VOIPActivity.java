@@ -1,5 +1,6 @@
 package com.beetle.face.activity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
@@ -13,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -41,7 +43,7 @@ import java.util.IllegalFormatException;
 
 import static android.os.SystemClock.uptimeMillis;
 
-public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
+public class VOIPActivity extends Activity implements VOIPObserver {
 
     private static final String TAG = "face";
     private User peer;
@@ -60,8 +62,8 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
     private History history = new History();
 
     private Button handUpButton;
-    private Button refuseButton;
-    private Button acceptButton;
+    private ImageButton refuseButton;
+    private ImageButton acceptButton;
 
     private TextView durationTextView;
 
@@ -77,8 +79,8 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
         setContentView(R.layout.activity_voip);
 
         handUpButton = (Button)findViewById(R.id.hang_up);
-        acceptButton = (Button)findViewById(R.id.accept);
-        refuseButton = (Button)findViewById(R.id.refuse);
+        acceptButton = (ImageButton)findViewById(R.id.accept);
+        refuseButton = (ImageButton)findViewById(R.id.refuse);
         durationTextView = (TextView)findViewById(R.id.duration);
 
         ImageView header = (ImageView)findViewById(R.id.header);
@@ -102,10 +104,12 @@ public class VOIPActivity extends ActionBarActivity implements VOIPObserver {
 
         Picasso.with(getBaseContext())
                 .load(peer.avatar)
+                .placeholder(R.drawable.avatar_contact)
                 .into(header);
 
         VOIPState state = VOIPState.getInstance();
         if (isCaller) {
+            this.history.flag = History.FLAG_OUT;
             handUpButton.setVisibility(View.VISIBLE);
             acceptButton.setVisibility(View.GONE);
             refuseButton.setVisibility(View.GONE);
