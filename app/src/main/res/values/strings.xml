@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Face</string>
+    <string name="app_name">电话虫</string>
     <string name="title_activity_verify">校验</string>
     <string name="title_activity_voip">voip</string>
     <string name="hello_world">Hello world!</string>
