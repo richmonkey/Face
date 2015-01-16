@@ -189,7 +189,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             int weekDay = lastDate.get(Calendar.DAY_OF_WEEK);
             int hour = lastDate.get(Calendar.HOUR_OF_DAY);
             int minute = lastDate.get(Calendar.MINUTE);
-            Log.i(TAG, String.format("date:%d %d %d %d %d", year, month, day, weekDay, hour, minute));
             String str;
             if (IsSameDay(lastDate, todayDate)) {
                 str = String.format("%02d:%02d", hour, minute);
@@ -405,6 +404,11 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     public void onItemClick(AdapterView<?> parent, View view, int position,
                             long id) {
         VOIPState state = VOIPState.getInstance();
+        if (IMService.getInstance().getConnectState() != IMService.ConnectState.STATE_CONNECTED) {
+            Toast.makeText(getApplicationContext(), "网络未链接",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (parent.getId() == R.id.contact_list) {
             User u = users.get(position);
 

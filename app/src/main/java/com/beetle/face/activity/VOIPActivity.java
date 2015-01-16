@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -152,10 +153,12 @@ public class VOIPActivity extends Activity implements VOIPObserver {
             return;
         }
 
-        Picasso.with(getBaseContext())
-                .load(peer.avatar)
-                .placeholder(R.drawable.avatar_contact)
-                .into(header);
+        if (!TextUtils.isEmpty(peer.avatar)) {
+            Picasso.with(getBaseContext())
+                    .load(peer.avatar)
+                    .placeholder(R.drawable.avatar_contact)
+                    .into(header);
+        }
 
         VOIPState state = VOIPState.getInstance();
         if (isCaller) {
