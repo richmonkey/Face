@@ -30,6 +30,8 @@ class Command{
     public static final int MSG_INPUTTING = 10;
     public static final int MSG_SUBSCRIBE_ONLINE_STATE = 11;
     public static final int MSG_ONLINE_STATE = 12;
+    public static final int MSG_PING = 13;
+    public static final int MSG_PONG = 14;
 
     public static final int MSG_VOIP_CONTROL = 64;
     public static final int MSG_VOIP_DATA = 65;
@@ -74,7 +76,7 @@ class Message {
         buf[pos] = (byte)cmd;
         pos += 4;
 
-        if (cmd == Command.MSG_HEARTBEAT) {
+        if (cmd == Command.MSG_HEARTBEAT || cmd == Command.MSG_PING) {
             return Arrays.copyOf(buf, HEAD_SIZE);
         } else if (cmd == Command.MSG_AUTH) {
             BytePacket.writeInt64((Long) body, buf, pos);
@@ -204,6 +206,8 @@ class Message {
                 ctl.dialCount = BytePacket.readInt32(data, pos);
             }
             this.body = ctl;
+            return true;
+        } else if (cmd == Command.MSG_PONG) {
             return true;
         } else {
             return false;

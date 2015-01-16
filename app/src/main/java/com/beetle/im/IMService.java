@@ -37,6 +37,7 @@ public class IMService {
     private boolean stopped = true;
     private Timer connectTimer;
     private Timer heartbeatTimer;
+    private int pingTimestamp = 0;
     private int connectFailCount = 0;
     private int seq = 0;
     private ConnectState connectState = ConnectState.STATE_UNCONNECTED;
@@ -73,7 +74,15 @@ public class IMService {
         heartbeatTimer = new Timer() {
             @Override
             protected void fire() {
-                IMService.this.sendHeartbeat();
+                int n = now();
+                if (pingTimestamp > 0 && n - pingTimestamp > 60) {
+                    Log.i(TAG, "ping timeout");
+                    IMService.this.connectState = ConnectState.STATE_UNCONNECTED;
+                    IMService.this.publishConnectState();
+                    IMService.this.close();
+                } else {
+                    IMService.this.sendPing();
+                }
             }
         };
     }
@@ -431,6 +440,11 @@ public class IMService {
         }
     }
 
+    private void handlePong() {
+        Log.i(TAG, "pong");
+        pingTimestamp = 0;
+    }
+
     private void handleMessage(Message msg) {
         if (msg.cmd == Command.MSG_AUTH_STATUS) {
             handleAuthStatus(msg);
@@ -446,6 +460,8 @@ public class IMService {
             handleInputting(msg);
         } else if (msg.cmd == Command.MSG_VOIP_CONTROL) {
             handleVOIPControl(msg);
+        } else if (msg.cmd == Command.MSG_PONG) {
+            handlePong();
         } else {
             Log.i(TAG, "unknown message cmd:"+msg.cmd);
         }
@@ -497,6 +513,18 @@ public class IMService {
         msg.cmd = Command.MSG_AUTH;
         msg.body = new Long(this.uid);
         sendMessage(msg);
+    }
+
+    private void sendPing() {
+        Log.i(TAG, "send ping");
+        Message msg = new Message();
+        msg.cmd = Command.MSG_PING;
+        sendMessage(msg);
+        if (connectState == ConnectState.STATE_CONNECTED) {
+            pingTimestamp = now();
+        } else {
+            pingTimestamp = 0;
+        }
     }
 
     private void sendHeartbeat() {
