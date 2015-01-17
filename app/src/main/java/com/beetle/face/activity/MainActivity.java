@@ -575,9 +575,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         t.save();
         Log.i(TAG, "token refreshed");
 
-        int ts = token.expireTimestamp - 60 - now;
+        int ts = token.expireTimestamp - 60;
         if (ts <= 0) {
-            Log.w(TAG, "expire timestamp:" + (token.expireTimestamp - now));
+            Log.w(TAG, "expire timestamp:" + token.expireTimestamp);
             return;
         }
 
