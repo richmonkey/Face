@@ -44,7 +44,7 @@ public class Token {
             expireTimestamp = (int)db.getLong("token_expire");
             uid = db.getLong("token_uid");
         } catch(Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 }

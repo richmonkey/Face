@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 
 import com.beetle.NativeWebRtcContextRegistry;
 import com.beetle.VOIP;
+import com.beetle.face.Config;
 import com.beetle.face.R;
 import com.beetle.face.Token;
 import com.beetle.face.VOIPState;
@@ -37,14 +39,26 @@ import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.UserDB;
 import com.beetle.face.tools.Notification;
 import com.beetle.face.tools.NotificationCenter;
+import com.beetle.face.tools.Stun;
+import com.beetle.im.BytePacket;
 import com.beetle.im.IMService;
 import com.beetle.im.Timer;
 import com.beetle.im.VOIPControl;
 import com.beetle.im.VOIPObserver;
 import com.squareup.picasso.Picasso;
 
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
+import java.nio.ByteOrder;
 import java.util.Date;
-import java.util.IllegalFormatException;
+import java.util.Enumeration;
+
 
 import static android.os.SystemClock.uptimeMillis;
 
@@ -80,6 +94,23 @@ public class VOIPActivity extends Activity implements VOIPObserver {
 
     private static Handler sHandler;
 
+    private InetSocketAddress mappedAddr;
+    private int natType = Stun.StunTypeUnknown;
+
+    private VOIPControl.NatPortMap localNatMap;
+    private VOIPControl.NatPortMap peerNatMap;
+
+
+    private boolean isP2P() {
+        //return false;
+        if (this.localNatMap == null || this.peerNatMap == null) {
+            return false;
+        }
+        if (this.localNatMap.ip != 0 && this.peerNatMap.ip != 0) {
+            return true;
+        }
+        return  false;
+    }
 
     Runnable mHideRunnable = new Runnable() {
         @Override
@@ -226,6 +257,106 @@ public class VOIPActivity extends Activity implements VOIPObserver {
         this.history.peerUID = peerUID;
 
         IMService.getInstance().pushVOIPObserver(this);
+
+
+        AsyncTask task = new AsyncTask<Object, Object, Boolean>() {
+
+            private InetSocketAddress ma;
+            private int natType;
+
+            @Override
+            protected Boolean doInBackground(Object[] params) {
+                try {
+                    Log.i(TAG, "discovery...");
+                    Stun stun = new Stun();
+                    int stype = stun.getNatType(Config.STUN_SERVER);
+
+                    Log.i(TAG, "nat type:" + stype);
+
+                    if (stype == Stun.StunTypeOpen || stype == Stun.StunTypeIndependentFilter ||
+                            stype == Stun.StunTypeDependentFilter || stype == Stun.StunTypePortDependedFilter) {
+                        int count = 0;
+                        while (count++ < 8) {
+                            InetSocketAddress ma = stun.mapPort(Config.STUN_SERVER, Config.VOIP_PORT);
+                            if (ma == null) {
+                                continue;
+                            }
+                            Log.i(TAG, "mapped address:" + ma.getAddress().getHostAddress() + ":" + ma.getPort());
+                            this.ma = ma;
+                            this.natType = stype;
+                            return true;
+                        }
+                        return false;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println(e.getMessage());
+                }
+                return false;
+            }
+            @Override
+            protected void onPostExecute(Boolean result) {
+                if (!result) {
+                    Log.i(TAG, "map port fail");
+                    return;
+                }
+
+                VOIPActivity.this.mappedAddr = this.ma;
+                VOIPActivity.this.natType = this.natType;
+
+                if (VOIPActivity.this.localNatMap != null) {
+                    return;
+                }
+
+                if (natType == Stun.StunTypeOpen || natType == Stun.StunTypeIndependentFilter ||
+                        natType == Stun.StunTypeDependentFilter || natType == Stun.StunTypePortDependedFilter) {
+                    try {
+                        VOIPControl.NatPortMap natMap = new VOIPControl.NatPortMap();
+                        natMap.ip = BytePacket.packInetAddress(ma.getAddress().getAddress());
+                        natMap.port = (short)ma.getPort();
+                        InetAddress localAddr = getPrimayIP();
+                        if (localAddr != null) {
+                            natMap.localIP = BytePacket.packInetAddress(localAddr.getAddress());
+                        }
+                        natMap.localPort = Config.VOIP_PORT;
+
+                        VOIPActivity.this.localNatMap = natMap;
+
+                        byte[] addr = BytePacket.unpackInetAddress(natMap.ip);
+                        InetAddress iaddr = InetAddress.getByAddress(addr);
+                        Log.i(TAG, "address:" + iaddr.getHostAddress() + "--" + ma.getAddress().getHostAddress());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            InetAddress getPrimayIP() {
+                try {
+                    Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+                    while (interfaces.hasMoreElements()) {
+                        NetworkInterface current = interfaces.nextElement();
+                        if (!current.isUp() || current.isLoopback() || current.isVirtual())
+                            continue;
+                        Enumeration<InetAddress> addresses = current.getInetAddresses();
+                        while (addresses.hasMoreElements()) {
+                            InetAddress addr = addresses.nextElement();
+                            Log.i(TAG, "host:" + addr.getHostAddress());
+                            if (addr.isLoopbackAddress()) continue;
+                            if (addr instanceof Inet4Address) {
+                                Log.i(TAG, "primay host ip:" + addr.getHostAddress());
+                                return addr;
+                            }
+                        }
+                    }
+                } catch (SocketException e) {
+                    return null;
+                }
+                return null;
+            }
+        };
+        task.execute();
+        Log.i(TAG, "is little endian:" + ByteOrder.nativeOrder());
     }
 
     private User loadUser(long uid) {
@@ -337,6 +468,11 @@ public class VOIPActivity extends Activity implements VOIPObserver {
         this.player = null;
 
         this.history.flag = this.history.flag|History.FLAG_ACCEPTED;
+
+        if (this.localNatMap == null) {
+            this.localNatMap = new VOIPControl.NatPortMap();
+        }
+
         this.acceptTimer = new Timer() {
             @Override
             protected void fire() {
@@ -393,6 +529,11 @@ public class VOIPActivity extends Activity implements VOIPObserver {
             if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT) {
                 this.history.flag = this.history.flag|History.FLAG_ACCEPTED;
 
+                this.peerNatMap = ctl.natMap;
+                if (this.localNatMap == null) {
+                    this.localNatMap = new VOIPControl.NatPortMap();
+                }
+
                 sendConnected();
                 state.state = VOIPState.VOIP_CONNECTED;
 
@@ -426,6 +567,9 @@ public class VOIPActivity extends Activity implements VOIPObserver {
                 state.state = VOIPState.VOIP_ACCEPTED;
                 this.history.flag = this.history.flag|History.FLAG_ACCEPTED;
 
+                if (this.localNatMap == null) {
+                    this.localNatMap = new VOIPControl.NatPortMap();
+                }
                 this.acceptTimestamp = getNow();
                 this.acceptTimer = new Timer() {
                     @Override
@@ -451,6 +595,7 @@ public class VOIPActivity extends Activity implements VOIPObserver {
                 this.acceptTimer.suspend();
                 this.acceptTimer = null;
 
+                this.peerNatMap = ctl.natMap;
                 state.state = VOIPState.VOIP_CONNECTED;
 
                 startStream();
@@ -462,6 +607,8 @@ public class VOIPActivity extends Activity implements VOIPObserver {
                 Log.i(TAG, "simultaneous voip connected");
                 this.acceptTimer.suspend();
                 this.acceptTimer = null;
+
+                this.peerNatMap = ctl.natMap;
                 state.state = VOIPState.VOIP_CONNECTED;
 
                 startStream();
@@ -511,7 +658,39 @@ public class VOIPActivity extends Activity implements VOIPObserver {
             return;
         }
 
-        Log.i(TAG, "start stream");
+        try {
+            if (this.localNatMap != null && this.localNatMap.ip != 0) {
+                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.localNatMap.ip)).getHostAddress();
+                int port = this.localNatMap.port;
+
+                Log.i(TAG, "local nat map:" + ip + ":" + port);
+
+                ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.localNatMap.localIP)).getHostAddress();
+                port = this.localNatMap.localPort;
+
+                Log.i(TAG, "local host:" + ip + ":" + port);
+
+            }
+            if (this.peerNatMap != null && this.peerNatMap.ip != 0) {
+                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.ip)).getHostAddress();
+                int port = this.peerNatMap.port;
+                Log.i(TAG, "peer nat map:" + ip + ":" + port);
+
+                ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.localIP)).getHostAddress();
+                port = this.peerNatMap.localPort;
+
+                Log.i(TAG, "peer local host:" + ip + ":" + port);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (isP2P()) {
+
+            Log.i(TAG, "start p2p stream");
+        } else {
+            Log.i(TAG, "start stream");
+        }
+
         AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         am.setSpeakerphoneOn(false);
         am.setMode(AudioManager.MODE_IN_COMMUNICATION);
@@ -533,7 +712,24 @@ public class VOIPActivity extends Activity implements VOIPObserver {
         long selfUID = Token.getInstance().uid;
         String hostIP = IMService.getInstance().getHostIP();
         boolean headphone = getHeadphoneStatus();
-        this.voip.initNative(selfUID, this.peer.uid, hostIP, headphone);
+        String peerIP = "";
+        int peerPort = 0;
+        try {
+            if (isP2P()) {
+                if (this.peerNatMap.ip == this.localNatMap.ip && false) {
+                    peerIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.localIP)).getHostAddress();
+                    peerPort = this.peerNatMap.localPort;
+                } else {
+                    peerIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.ip)).getHostAddress();
+                    peerPort = this.peerNatMap.port;
+                }
+                Log.i(TAG, "peer ip:" + peerIP + " port:" + peerPort);
+            }
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        this.voip.initNative(selfUID, this.peer.uid, hostIP, peerIP, peerPort, headphone);
+
         this.voip.start();
     }
 
@@ -599,7 +795,12 @@ public class VOIPActivity extends Activity implements VOIPObserver {
     }
 
     private void sendConnected() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_CONNECTED);
+        VOIPControl ctl = new VOIPControl();
+        ctl.sender = Token.getInstance().uid;
+        ctl.receiver = this.peer.uid;
+        ctl.cmd = VOIPControl.VOIP_COMMAND_CONNECTED;
+        ctl.natMap = this.localNatMap;
+        IMService.getInstance().sendVOIPControl(ctl);
     }
 
     private void sendTalking() {
@@ -611,7 +812,12 @@ public class VOIPActivity extends Activity implements VOIPObserver {
     }
 
     private void sendDialAccept() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_ACCEPT);
+        VOIPControl ctl = new VOIPControl();
+        ctl.sender = Token.getInstance().uid;
+        ctl.receiver = this.peer.uid;
+        ctl.cmd = VOIPControl.VOIP_COMMAND_ACCEPT;
+        ctl.natMap = this.localNatMap;
+        IMService.getInstance().sendVOIPControl(ctl);
 
         long now = getNow();
         if (now - this.acceptTimestamp >= 10) {

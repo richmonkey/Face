@@ -5,6 +5,8 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import retrofit.http.HEAD;
+
 /**
  * Created by houxh on 14-7-23.
  */
@@ -133,6 +135,21 @@ class Message {
                 BytePacket.writeInt32(ctl.dialCount, buf, pos);
                 pos += 4;
                 return Arrays.copyOf(buf, HEAD_SIZE + 24);
+            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT ||
+                    ctl.cmd == VOIPControl.VOIP_COMMAND_CONNECTED) {
+                if (ctl.natMap != null) {
+                    BytePacket.writeInt32(ctl.natMap.ip, buf, pos);
+                    pos += 4;
+                    BytePacket.writeInt16(ctl.natMap.port, buf, pos);
+                    pos += 2;
+                    BytePacket.writeInt32(ctl.natMap.localIP, buf, pos);
+                    pos += 4;
+                    BytePacket.writeInt16(ctl.natMap.localPort, buf, pos);
+                    pos += 2;
+                    return Arrays.copyOf(buf, HEAD_SIZE+32);
+                } else {
+                    return Arrays.copyOf(buf, HEAD_SIZE + 20);
+                }
             } else {
                 return Arrays.copyOf(buf, HEAD_SIZE + 20);
             }
@@ -204,6 +221,19 @@ class Message {
             pos += 4;
             if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
                 ctl.dialCount = BytePacket.readInt32(data, pos);
+            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT ||
+                    ctl.cmd == VOIPControl.VOIP_COMMAND_CONNECTED) {
+                if (data.length >= HEAD_SIZE + 32) {
+                    ctl.natMap = new VOIPControl.NatPortMap();
+                    ctl.natMap.ip = BytePacket.readInt32(data, pos);
+                    pos += 4;
+                    ctl.natMap.port = BytePacket.readInt16(data, pos);
+                    pos += 2;
+                    ctl.natMap.localIP = BytePacket.readInt32(data, pos);
+                    pos += 4;
+                    ctl.natMap.localPort = BytePacket.readInt16(data, pos);
+                    pos += 2;
+                }
             }
             this.body = ctl;
             return true;
