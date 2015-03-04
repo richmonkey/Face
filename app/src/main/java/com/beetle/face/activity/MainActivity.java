@@ -3,6 +3,7 @@ package com.beetle.face.activity;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 
+import com.beetle.face.Config;
 import com.beetle.face.Token;
 import com.beetle.face.VOIPState;
 import com.beetle.face.api.IMHttp;
@@ -78,7 +80,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         public User user;
     }
 
-    class ConversationAdapter extends BaseAdapter {
+    class  ContactAdapter extends BaseAdapter {
         @Override
         public int getCount() {
             return users.size();
@@ -257,18 +259,34 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             if (position == 0) {
                 View historyView = lf.inflate(R.layout.call_history, null);
                 container.addView(historyView, 0);
+                View tv = historyView.findViewById(R.id.tip);
                 historyAdapter = new HistoryAdapter();
                 ListView lv = (ListView)historyView.findViewById(R.id.history_list);
                 lv.setAdapter(historyAdapter);
                 lv.setOnItemClickListener(MainActivity.this);
+
+                if (callHistories.size() > 0) {
+                    lv.setVisibility(View.VISIBLE);
+                    tv.setVisibility(View.GONE);
+                } else {
+                    lv.setVisibility(View.GONE);
+                    tv.setVisibility(View.VISIBLE);
+                }
+
                 return historyView;
             } else if (position == 1) {
                 View contactListView = lf.inflate(R.layout.contact_list, null);
                 container.addView(contactListView, 0);
-                contactAdapter = new ConversationAdapter();
+                contactAdapter = new ContactAdapter();
+
                 ListView lv = (ListView)contactListView.findViewById(R.id.contact_list);
                 lv.setAdapter(contactAdapter);
                 lv.setOnItemClickListener(MainActivity.this);
+
+                View footView  = getLayoutInflater().inflate(R.layout.share_item, null);
+                lv.addFooterView(footView);
+
+
                 return contactListView;
             }
             return null;
@@ -403,6 +421,18 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position,
                             long id) {
+
+        if (parent.getId() == R.id.contact_list) {
+            if (id == -1 && position == users.size()) {
+                Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("sms:"));
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                String body = String.format("我正在使用“电话虫”。 %s 可以给您的联系人拨打语音电话。", Config.DOWNLOAD_URL);
+                intent.putExtra("sms_body", body);
+                startActivity(intent);
+                return;
+            }
+        }
+
         VOIPState state = VOIPState.getInstance();
         if (IMService.getInstance().getConnectState() != IMService.ConnectState.STATE_CONNECTED) {
             Toast.makeText(getApplicationContext(), "网络未链接",
@@ -462,6 +492,16 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                 ch.user.name = c.displayName;
             }
             callHistories.add(0, ch);
+            if (callHistories.size() == 1) {
+                View t = this.findViewById(R.id.tip);
+                View hl = this.findViewById(R.id.history_list);
+                if (t != null) {
+                    t.setVisibility(View.GONE);
+                }
+                if (hl != null) {
+                    hl.setVisibility(View.VISIBLE);
+                }
+            }
             if (historyAdapter != null) {
                 historyAdapter.notifyDataSetChanged();
             }
