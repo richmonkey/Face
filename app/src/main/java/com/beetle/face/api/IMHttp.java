@@ -9,6 +9,8 @@ import com.beetle.face.api.types.Audio;
 import com.beetle.face.api.types.Code;
 import com.beetle.face.api.types.Image;
 import com.beetle.face.api.types.User;
+import com.beetle.face.api.types.Version;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,9 @@ import rx.Observable;
  * Created by tsung on 10/10/14.
  */
 public interface IMHttp {
+    @GET("/version/android")
+    Observable<Version> getLatestVersion();
+
     @GET("/verify_code")
     Observable<Code> getVerifyCode(@Query("zone") String zone, @Query("number") String number);
 

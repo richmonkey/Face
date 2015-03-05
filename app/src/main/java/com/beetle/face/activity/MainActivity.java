@@ -2,7 +2,11 @@ package com.beetle.face.activity;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,6 +32,7 @@ import com.beetle.face.api.IMHttpFactory;
 import com.beetle.face.api.body.PostAuthRefreshToken;
 import com.beetle.face.api.body.PostPhone;
 import com.beetle.face.api.types.User;
+import com.beetle.face.api.types.Version;
 import com.beetle.face.model.Contact;
 import com.beetle.face.model.ContactDB;
 import com.beetle.face.model.History;
@@ -411,6 +416,52 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         pagerTabStrip.setDrawFullUnderline(false);
         pagerTabStrip.setTextSpacing(50);
 
+        IMHttp imHttp = IMHttpFactory.Singleton();
+        imHttp.getLatestVersion()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Version>() {
+                    @Override
+                    public void call(Version obj) {
+                        MainActivity.this.checkVersion(obj);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Log.i(TAG, "get latest version fail:" + throwable.getMessage());
+                    }
+                });
+
+    }
+
+    private void checkVersion(final Version version) {
+        Log.i(TAG, "latest version:" + version.major + ":" + version.minor + " url:" + version.url);
+        int versionCode = version.major*10+version.minor;
+        PackageManager pm = this.getPackageManager();
+        try {
+            PackageInfo info = pm.getPackageInfo(getPackageName(), 0);
+            if (versionCode > info.versionCode) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage("是否更新电话虫?");
+                builder.setTitle("提示");
+                builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(version.url));
+                        startActivity(browserIntent);
+                    }
+                });
+                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                builder.create().show();
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
