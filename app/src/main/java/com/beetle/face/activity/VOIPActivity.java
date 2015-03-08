@@ -314,11 +314,6 @@ public class VOIPActivity extends Activity implements VOIPObserver {
                         VOIPControl.NatPortMap natMap = new VOIPControl.NatPortMap();
                         natMap.ip = BytePacket.packInetAddress(ma.getAddress().getAddress());
                         natMap.port = (short)ma.getPort();
-                        InetAddress localAddr = getPrimayIP();
-                        if (localAddr != null) {
-                            natMap.localIP = BytePacket.packInetAddress(localAddr.getAddress());
-                        }
-                        natMap.localPort = Config.VOIP_PORT;
 
                         VOIPActivity.this.localNatMap = natMap;
 
@@ -329,30 +324,6 @@ public class VOIPActivity extends Activity implements VOIPObserver {
                         e.printStackTrace();
                     }
                 }
-            }
-
-            InetAddress getPrimayIP() {
-                try {
-                    Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-                    while (interfaces.hasMoreElements()) {
-                        NetworkInterface current = interfaces.nextElement();
-                        if (!current.isUp() || current.isLoopback() || current.isVirtual())
-                            continue;
-                        Enumeration<InetAddress> addresses = current.getInetAddresses();
-                        while (addresses.hasMoreElements()) {
-                            InetAddress addr = addresses.nextElement();
-                            Log.i(TAG, "host:" + addr.getHostAddress());
-                            if (addr.isLoopbackAddress()) continue;
-                            if (addr instanceof Inet4Address) {
-                                Log.i(TAG, "primay host ip:" + addr.getHostAddress());
-                                return addr;
-                            }
-                        }
-                    }
-                } catch (SocketException e) {
-                    return null;
-                }
-                return null;
             }
         };
         task.execute();
@@ -662,24 +633,12 @@ public class VOIPActivity extends Activity implements VOIPObserver {
             if (this.localNatMap != null && this.localNatMap.ip != 0) {
                 String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.localNatMap.ip)).getHostAddress();
                 int port = this.localNatMap.port;
-
                 Log.i(TAG, "local nat map:" + ip + ":" + port);
-
-                ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.localNatMap.localIP)).getHostAddress();
-                port = this.localNatMap.localPort;
-
-                Log.i(TAG, "local host:" + ip + ":" + port);
-
             }
             if (this.peerNatMap != null && this.peerNatMap.ip != 0) {
                 String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.ip)).getHostAddress();
                 int port = this.peerNatMap.port;
                 Log.i(TAG, "peer nat map:" + ip + ":" + port);
-
-                ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.localIP)).getHostAddress();
-                port = this.peerNatMap.localPort;
-
-                Log.i(TAG, "peer local host:" + ip + ":" + port);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -716,13 +675,8 @@ public class VOIPActivity extends Activity implements VOIPObserver {
         int peerPort = 0;
         try {
             if (isP2P()) {
-                if (this.peerNatMap.ip == this.localNatMap.ip && false) {
-                    peerIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.localIP)).getHostAddress();
-                    peerPort = this.peerNatMap.localPort;
-                } else {
-                    peerIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.ip)).getHostAddress();
-                    peerPort = this.peerNatMap.port;
-                }
+                peerIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.ip)).getHostAddress();
+                peerPort = this.peerNatMap.port;
                 Log.i(TAG, "peer ip:" + peerIP + " port:" + peerPort);
             }
         } catch (UnknownHostException e) {

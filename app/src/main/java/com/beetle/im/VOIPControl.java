@@ -25,7 +25,5 @@ public class VOIPControl {
     public static class NatPortMap {
         public int ip;
         public short port;
-        public int localIP;
-        public short localPort;
     }
 }
