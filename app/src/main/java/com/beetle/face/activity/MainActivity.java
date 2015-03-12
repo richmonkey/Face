@@ -497,7 +497,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("peer_uid", u.uid);
             intent.putExtra("is_caller", true);
-            state.state = VOIPState.VOIP_DIALING;
+            state.state = VOIPState.VOIP_TALKING;
             startActivity(intent);
         } else if (parent.getId() == R.id.history_list) {
             CallHistory ch = callHistories.get(position);
@@ -506,7 +506,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("peer_uid", ch.history.peerUID);
             intent.putExtra("is_caller", true);
-            state.state = VOIPState.VOIP_DIALING;
+            state.state = VOIPState.VOIP_TALKING;
             startActivity(intent);
         }
     }
@@ -517,13 +517,13 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         VOIPState state = VOIPState.getInstance();
 
         Log.i(TAG, "voip state:" + state.state + " command:" + ctl.cmd);
-        if (state.state == VOIPState.VOIP_LISTENING) {
+        if (state.state == VOIPState.VOIP_WAITING) {
             if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
                 Intent intent = new Intent(this, VOIPActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("peer_uid", ctl.sender);
                 intent.putExtra("is_caller", false);
-                state.state = VOIPState.VOIP_ACCEPTING;
+                state.state = VOIPState.VOIP_TALKING;
                 startActivity(intent);
             }
         }

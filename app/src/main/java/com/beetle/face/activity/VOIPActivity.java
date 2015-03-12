@@ -26,6 +26,7 @@ import android.widget.TextView;
 
 import com.beetle.NativeWebRtcContextRegistry;
 import com.beetle.VOIP;
+import com.beetle.VOIPSession;
 import com.beetle.face.Config;
 import com.beetle.face.R;
 import com.beetle.face.Token;
@@ -43,40 +44,19 @@ import com.beetle.face.tools.Stun;
 import com.beetle.im.BytePacket;
 import com.beetle.im.IMService;
 import com.beetle.im.Timer;
-import com.beetle.im.VOIPControl;
-import com.beetle.im.VOIPObserver;
 import com.squareup.picasso.Picasso;
-
-
-import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.UnknownHostException;
-
-import java.nio.ByteOrder;
 import java.util.Date;
-import java.util.Enumeration;
 
 
 import static android.os.SystemClock.uptimeMillis;
 
-public class VOIPActivity extends Activity implements VOIPObserver {
+public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObserver {
 
     private static final String TAG = "face";
     private User peer;
     private boolean isCaller;
-
-
-    private int dialCount;
-    private long dialBeginTimestamp;
-    private Timer dialTimer;
-
-    private Timer acceptTimer;
-    private long acceptTimestamp;
-    private Timer refuseTimer;
-    private long refuseTimestamp;
 
     private History history = new History();
 
@@ -94,19 +74,16 @@ public class VOIPActivity extends Activity implements VOIPObserver {
 
     private static Handler sHandler;
 
-    private InetSocketAddress mappedAddr;
-    private int natType = Stun.StunTypeUnknown;
 
-    private VOIPControl.NatPortMap localNatMap;
-    private VOIPControl.NatPortMap peerNatMap;
-
+    private VOIPSession voipSession;
+    private boolean isConnected;
 
     private boolean isP2P() {
         //return false;
-        if (this.localNatMap == null || this.peerNatMap == null) {
+        if (this.voipSession.localNatMap == null || this.voipSession.peerNatMap == null) {
             return false;
         }
-        if (this.localNatMap.ip != 0 && this.peerNatMap.ip != 0) {
+        if (this.voipSession.localNatMap.ip != 0 && this.voipSession.peerNatMap.ip != 0) {
             return true;
         }
         return  false;
@@ -191,26 +168,20 @@ public class VOIPActivity extends Activity implements VOIPObserver {
                     .into(header);
         }
 
-        VOIPState state = VOIPState.getInstance();
+        voipSession = new VOIPSession(Token.getInstance().uid, peerUID, Config.VOIP_PORT, Config.STUN_SERVER);
+        voipSession.setObserver(this);
+        voipSession.holePunch();
+
+        IMService.getInstance().pushVOIPObserver(this.voipSession);
+
         if (isCaller) {
             this.history.flag = History.FLAG_OUT;
             handUpButton.setVisibility(View.VISIBLE);
             acceptButton.setVisibility(View.GONE);
             refuseButton.setVisibility(View.GONE);
 
-            state.state = VOIPState.VOIP_DIALING;
-            this.dialBeginTimestamp = getNow();
+            voipSession.dial();
 
-            sendDial();
-
-            this.dialTimer = new Timer() {
-                @Override
-                protected void fire() {
-                    VOIPActivity.this.sendDial();
-                }
-            };
-            this.dialTimer.setTimer(uptimeMillis()+1000, 1000);
-            this.dialTimer.resume();
 
             try {
                 AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.call);
@@ -235,8 +206,6 @@ public class VOIPActivity extends Activity implements VOIPObserver {
             acceptButton.setVisibility(View.VISIBLE);
             refuseButton.setVisibility(View.VISIBLE);
 
-            state.state = VOIPState.VOIP_ACCEPTING;
-
             try {
                 AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.start);
                 player = new MediaPlayer();
@@ -255,79 +224,6 @@ public class VOIPActivity extends Activity implements VOIPObserver {
         }
         this.history.createTimestamp = getNow();
         this.history.peerUID = peerUID;
-
-        IMService.getInstance().pushVOIPObserver(this);
-
-
-        AsyncTask task = new AsyncTask<Object, Object, Boolean>() {
-
-            private InetSocketAddress ma;
-            private int natType;
-
-            @Override
-            protected Boolean doInBackground(Object[] params) {
-                try {
-                    Log.i(TAG, "discovery...");
-                    Stun stun = new Stun();
-                    int stype = stun.getNatType(Config.STUN_SERVER);
-
-                    Log.i(TAG, "nat type:" + stype);
-
-                    if (stype == Stun.StunTypeOpen || stype == Stun.StunTypeIndependentFilter ||
-                            stype == Stun.StunTypeDependentFilter || stype == Stun.StunTypePortDependedFilter) {
-                        int count = 0;
-                        while (count++ < 8) {
-                            InetSocketAddress ma = stun.mapPort(Config.STUN_SERVER, Config.VOIP_PORT);
-                            if (ma == null) {
-                                continue;
-                            }
-                            Log.i(TAG, "mapped address:" + ma.getAddress().getHostAddress() + ":" + ma.getPort());
-                            this.ma = ma;
-                            this.natType = stype;
-                            return true;
-                        }
-                        return false;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.out.println(e.getMessage());
-                }
-                return false;
-            }
-            @Override
-            protected void onPostExecute(Boolean result) {
-                if (!result) {
-                    Log.i(TAG, "map port fail");
-                    return;
-                }
-
-                VOIPActivity.this.mappedAddr = this.ma;
-                VOIPActivity.this.natType = this.natType;
-
-                if (VOIPActivity.this.localNatMap != null) {
-                    return;
-                }
-
-                if (natType == Stun.StunTypeOpen || natType == Stun.StunTypeIndependentFilter ||
-                        natType == Stun.StunTypeDependentFilter || natType == Stun.StunTypePortDependedFilter) {
-                    try {
-                        VOIPControl.NatPortMap natMap = new VOIPControl.NatPortMap();
-                        natMap.ip = BytePacket.packInetAddress(ma.getAddress().getAddress());
-                        natMap.port = (short)ma.getPort();
-
-                        VOIPActivity.this.localNatMap = natMap;
-
-                        byte[] addr = BytePacket.unpackInetAddress(natMap.ip);
-                        InetAddress iaddr = InetAddress.getByAddress(addr);
-                        Log.i(TAG, "address:" + iaddr.getHostAddress() + "--" + ma.getAddress().getHostAddress());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        };
-        task.execute();
-        Log.i(TAG, "is little endian:" + ByteOrder.nativeOrder());
     }
 
     private User loadUser(long uid) {
@@ -351,9 +247,9 @@ public class VOIPActivity extends Activity implements VOIPObserver {
             System.exit(1);
         }
         VOIPState state = VOIPState.getInstance();
-        state.state = VOIPState.VOIP_LISTENING;
+        state.state = VOIPState.VOIP_WAITING;
 
-        IMService.getInstance().popVOIPObserver(this);
+        IMService.getInstance().popVOIPObserver(this.voipSession);
         HistoryDB.getInstance().addHistory(this.history);
         Notification n = new Notification(this.history, "history");
         NotificationCenter.defaultCenter().postNotification(n);
@@ -386,99 +282,45 @@ public class VOIPActivity extends Activity implements VOIPObserver {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if(keyCode == KeyEvent.KEYCODE_BACK) {
             Log.i(TAG, "keycode back");
-            VOIPState state = VOIPState.getInstance();
-            if (state.state == VOIPState.VOIP_DIALING) {
-                this.dialTimer.suspend();
-                this.dialTimer = null;
-                this.player.stop();
-                this.player = null;
-
-                sendHangUp();
-                state.state = VOIPState.VOIP_HANGED_UP;
-                this.history.flag = this.history.flag|History.FLAG_CANCELED;
-
-            } else if (state.state == VOIPState.VOIP_CONNECTED) {
-                sendHangUp();
-                state.state = VOIPState.VOIP_HANGED_UP;
-                stopStream();
-            }
+            hangup(null);
         }
         return super.onKeyDown(keyCode, event);
     }
 
     public void hangup(View v) {
         Log.i(TAG, "hangup...");
-        VOIPState state = VOIPState.getInstance();
-        if (state.state == VOIPState.VOIP_DIALING) {
-            this.dialTimer.suspend();
-            this.dialTimer = null;
-            this.player.stop();
-            this.player = null;
-
-            sendHangUp();
-            state.state = VOIPState.VOIP_HANGED_UP;
-            this.history.flag = this.history.flag|History.FLAG_CANCELED;
-
-            dismiss();
-        } else if (state.state == VOIPState.VOIP_CONNECTED) {
-            sendHangUp();
-            state.state = VOIPState.VOIP_HANGED_UP;
+        voipSession.hangup();
+        if (isConnected) {
             stopStream();
             dismiss();
         } else {
-            Log.i(TAG, "invalid voip state:" + state.state);
+            this.player.stop();
+            this.player = null;
+            this.history.flag = this.history.flag|History.FLAG_CANCELED;
+
+            dismiss();
         }
     }
 
     public void accept(View v) {
         Log.i(TAG, "accepting...");
-        VOIPState state = VOIPState.getInstance();
-        state.state = VOIPState.VOIP_ACCEPTED;
-
+        voipSession.accept();
         this.player.stop();
         this.player = null;
-
         this.history.flag = this.history.flag|History.FLAG_ACCEPTED;
 
-        if (this.localNatMap == null) {
-            this.localNatMap = new VOIPControl.NatPortMap();
-        }
-
-        this.acceptTimer = new Timer() {
-            @Override
-            protected void fire() {
-                VOIPActivity.this.sendDialAccept();
-            }
-        };
-        this.acceptTimer.setTimer(uptimeMillis()+1000, 1000);
-        this.acceptTimer.resume();
-
-        this.acceptTimestamp = getNow();
-        sendDialAccept();
         this.acceptButton.setEnabled(false);
         this.refuseButton.setEnabled(false);
     }
 
     public void refuse(View v) {
         Log.i(TAG, "refusing...");
-        VOIPState state = VOIPState.getInstance();
-        state.state = VOIPState.VOIP_REFUSING;
+
+        voipSession.refuse();
+
         this.player.stop();
         this.player = null;
-
         this.history.flag = this.history.flag|History.FLAG_REFUSED;
-
-        this.refuseTimestamp = getNow();
-        this.refuseTimer = new Timer() {
-            @Override
-            protected void fire() {
-                VOIPActivity.this.sendDialRefuse();
-            }
-        };
-        this.refuseTimer.setTimer(uptimeMillis()+1000, 1000);
-        this.refuseTimer.resume();
-
-        sendDialRefuse();
         this.acceptButton.setEnabled(false);
         this.refuseButton.setEnabled(false);
     }
@@ -487,135 +329,7 @@ public class VOIPActivity extends Activity implements VOIPObserver {
         finish();
     }
 
-    public void onVOIPControl(VOIPControl ctl) {
-        VOIPState state = VOIPState.getInstance();
 
-        if (ctl.sender != this.peer.uid) {
-            sendTalking();
-            return;
-        }
-
-        Log.i(TAG, "state:" + state.state + " command:" + ctl.cmd);
-        if (state.state == VOIPState.VOIP_DIALING) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT) {
-                this.history.flag = this.history.flag|History.FLAG_ACCEPTED;
-
-                this.peerNatMap = ctl.natMap;
-                if (this.localNatMap == null) {
-                    this.localNatMap = new VOIPControl.NatPortMap();
-                }
-
-                sendConnected();
-                state.state = VOIPState.VOIP_CONNECTED;
-
-                this.dialTimer.suspend();
-                this.dialTimer = null;
-                this.player.stop();
-                this.player = null;
-
-                Log.i(TAG, "voip connected");
-                startStream();
-
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_REFUSE) {
-                state.state = VOIPState.VOIP_REFUSED;
-                this.history.flag = this.history.flag|History.FLAG_REFUSED;
-                sendRefused();
-
-
-                this.dialTimer.suspend();
-                this.dialTimer = null;
-                this.player.stop();
-                this.player = null;
-
-                dismiss();
-
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
-                this.dialTimer.suspend();
-                this.dialTimer = null;
-                this.player.stop();
-                this.player = null;
-
-                state.state = VOIPState.VOIP_ACCEPTED;
-                this.history.flag = this.history.flag|History.FLAG_ACCEPTED;
-
-                if (this.localNatMap == null) {
-                    this.localNatMap = new VOIPControl.NatPortMap();
-                }
-                this.acceptTimestamp = getNow();
-                this.acceptTimer = new Timer() {
-                    @Override
-                    protected void fire() {
-                        VOIPActivity.this.sendDialAccept();
-                    }
-                };
-                this.acceptTimer.setTimer(uptimeMillis() + 1000, 1000);
-                this.acceptTimer.resume();
-                sendDialAccept();
-            }
-        } else if (state.state == VOIPState.VOIP_ACCEPTING) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_HANG_UP) {
-                this.player.stop();
-                this.player = null;
-
-                this.history.flag = this.history.flag|History.FLAG_UNRECEIVED;
-                state.state = VOIPState.VOIP_HANGED_UP;
-                dismiss();
-            }
-        } else if (state.state == VOIPState.VOIP_ACCEPTED) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_CONNECTED) {
-                this.acceptTimer.suspend();
-                this.acceptTimer = null;
-
-                this.peerNatMap = ctl.natMap;
-                state.state = VOIPState.VOIP_CONNECTED;
-
-                startStream();
-
-                this.handUpButton.setVisibility(View.VISIBLE);
-                this.acceptButton.setVisibility(View.GONE);
-                this.refuseButton.setVisibility(View.GONE);
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT) {
-                Log.i(TAG, "simultaneous voip connected");
-                this.acceptTimer.suspend();
-                this.acceptTimer = null;
-
-                this.peerNatMap = ctl.natMap;
-                state.state = VOIPState.VOIP_CONNECTED;
-
-                startStream();
-
-                this.handUpButton.setVisibility(View.VISIBLE);
-                this.acceptButton.setVisibility(View.GONE);
-                this.refuseButton.setVisibility(View.GONE);
-            }
-        } else if (state.state == VOIPState.VOIP_CONNECTED) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_HANG_UP) {
-                state.state = VOIPState.VOIP_HANGED_UP;
-
-                stopStream();
-
-                dismiss();
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_RESET) {
-                state.state = VOIPState.VOIP_RESETED;
-
-                stopStream();
-
-                dismiss();
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT) {
-                sendConnected();
-            }
-        } else if (state.state == VOIPState.VOIP_REFUSING) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_REFUSED) {
-                Log.i(TAG, "refuse finished");
-                state.state = VOIPState.VOIP_REFUSED;
-
-                this.refuseTimer.suspend();
-                this.refuseTimer = null;
-
-                dismiss();
-            }
-        }
-    }
 
     private boolean getHeadphoneStatus() {
         AudioManager audioManager = (AudioManager)getSystemService(AUDIO_SERVICE);
@@ -630,14 +344,14 @@ public class VOIPActivity extends Activity implements VOIPObserver {
         }
 
         try {
-            if (this.localNatMap != null && this.localNatMap.ip != 0) {
-                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.localNatMap.ip)).getHostAddress();
-                int port = this.localNatMap.port;
+            if (this.voipSession.localNatMap != null && this.voipSession.localNatMap.ip != 0) {
+                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.localNatMap.ip)).getHostAddress();
+                int port = this.voipSession.localNatMap.port;
                 Log.i(TAG, "local nat map:" + ip + ":" + port);
             }
-            if (this.peerNatMap != null && this.peerNatMap.ip != 0) {
-                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.ip)).getHostAddress();
-                int port = this.peerNatMap.port;
+            if (this.voipSession.peerNatMap != null && this.voipSession.peerNatMap.ip != 0) {
+                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.peerNatMap.ip)).getHostAddress();
+                int port = this.voipSession.peerNatMap.port;
                 Log.i(TAG, "peer nat map:" + ip + ":" + port);
             }
         } catch (Exception e) {
@@ -675,8 +389,8 @@ public class VOIPActivity extends Activity implements VOIPObserver {
         int peerPort = 0;
         try {
             if (isP2P()) {
-                peerIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.peerNatMap.ip)).getHostAddress();
-                peerPort = this.peerNatMap.port;
+                peerIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.peerNatMap.ip)).getHostAddress();
+                peerPort = this.voipSession.peerNatMap.port;
                 Log.i(TAG, "peer ip:" + peerIP + " port:" + peerPort);
             }
         } catch (UnknownHostException e) {
@@ -707,95 +421,69 @@ public class VOIPActivity extends Activity implements VOIPObserver {
         return (int)(t/1000);
     }
 
-    private void sendControlCommand(int cmd) {
-        VOIPControl ctl = new VOIPControl();
-        ctl.sender = Token.getInstance().uid;
-        ctl.receiver = this.peer.uid;
-        ctl.cmd = cmd;
-        IMService.getInstance().sendVOIPControl(ctl);
+    //对方拒绝接听
+    @Override
+    public void onRefuse() {
+        this.history.flag = this.history.flag|History.FLAG_REFUSED;
+        this.player.stop();
+        this.player = null;
+
+        dismiss();
     }
-
-    private void sendDial() {
-        VOIPControl ctl = new VOIPControl();
-        ctl.sender = Token.getInstance().uid;
-        ctl.receiver = this.peer.uid;
-        ctl.cmd = VOIPControl.VOIP_COMMAND_DIAL;
-        ctl.dialCount = this.dialCount + 1;
-
-        Log.i(TAG, "dial......");
-        boolean r = IMService.getInstance().sendVOIPControl(ctl);
-        if (r) {
-            this.dialCount = this.dialCount + 1;
+    //对方挂断通话
+    @Override
+    public void onHangUp() {
+        if (this.isConnected) {
+            stopStream();
+            dismiss();
         } else {
-            Log.i(TAG, "dial fail");
-        }
-
-        long now = getNow();
-        if (now - this.dialBeginTimestamp >= 60) {
-            Log.i(TAG, "dial timeout");
-            this.dialTimer.suspend();
-            this.dialTimer = null;
             this.player.stop();
             this.player = null;
-
             this.history.flag = this.history.flag|History.FLAG_UNRECEIVED;
-
+            dismiss();
+        }
+    }
+    //回话被重置
+    @Override
+    public void onReset() {
+        if (this.isConnected) {
+            stopStream();
             dismiss();
         }
     }
 
-    private void sendRefused() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_REFUSED);
+    @Override
+    public void onDialTimeout() {
+        this.player.stop();
+        this.player = null;
+        this.history.flag = this.history.flag|History.FLAG_UNRECEIVED;
+        dismiss();
     }
-
-    private void sendConnected() {
-        VOIPControl ctl = new VOIPControl();
-        ctl.sender = Token.getInstance().uid;
-        ctl.receiver = this.peer.uid;
-        ctl.cmd = VOIPControl.VOIP_COMMAND_CONNECTED;
-        ctl.natMap = this.localNatMap;
-        IMService.getInstance().sendVOIPControl(ctl);
+    @Override
+    public void onAcceptTimeout() {
+        dismiss();
     }
-
-    private void sendTalking() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_TALKING);
-    }
-
-    private void sendReset() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_RESET);
-    }
-
-    private void sendDialAccept() {
-        VOIPControl ctl = new VOIPControl();
-        ctl.sender = Token.getInstance().uid;
-        ctl.receiver = this.peer.uid;
-        ctl.cmd = VOIPControl.VOIP_COMMAND_ACCEPT;
-        ctl.natMap = this.localNatMap;
-        IMService.getInstance().sendVOIPControl(ctl);
-
-        long now = getNow();
-        if (now - this.acceptTimestamp >= 10) {
-            Log.i(TAG, "accept timeout");
-            this.acceptTimer.suspend();
-            dismiss();
+    @Override
+    public void onConnected() {
+        if (this.player != null) {
+            this.player.stop();
+            this.player = null;
         }
+
+        this.history.flag = this.history.flag|History.FLAG_ACCEPTED;
+
+        Log.i(TAG, "voip connected");
+        startStream();
+
+        this.handUpButton.setVisibility(View.VISIBLE);
+        this.acceptButton.setVisibility(View.GONE);
+        this.refuseButton.setVisibility(View.GONE);
+
+        this.isConnected = true;
+
     }
-
-    private void sendDialRefuse() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_REFUSE);
-
-        long now = getNow();
-        if (now - this.refuseTimestamp > 10) {
-            Log.i(TAG, "refuse timeout");
-            this.refuseTimer.suspend();
-
-            VOIPState state = VOIPState.getInstance();
-            state.state = VOIPState.VOIP_REFUSED;
-            dismiss();
-        }
-    }
-
-    private void sendHangUp() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_HANG_UP);
+    @Override
+    public void onRefuseFinshed() {
+        dismiss();
     }
 }

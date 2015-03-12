@@ -7,8 +7,6 @@ public class VOIP {
 	public native void destroyNative();
 	public native void start();	
 	public native void stop();
-    public native void listenVOIP();
-    public native void closeUDP();
 
     static {
         System.loadLibrary("voip");
