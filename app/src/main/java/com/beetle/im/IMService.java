@@ -49,11 +49,8 @@ public class IMService {
     private int port;
     private long uid;
 
-    IMPeerMessageHandler peerMessageHandler;
     ArrayList<IMServiceObserver> observers = new ArrayList<IMServiceObserver>();
     ArrayList<VOIPObserver> voipObservers = new ArrayList<VOIPObserver>();
-    HashMap<Integer, IMMessage> peerMessages = new HashMap<Integer, IMMessage>();
-    private HashMap<Long, Boolean> subs = new HashMap<Long, Boolean>();
 
     private byte[] data;
 
@@ -104,9 +101,6 @@ public class IMService {
         return this.hostIP;
     }
 
-    public void setPeerMessageHandler(IMPeerMessageHandler handler) {
-        this.peerMessageHandler = handler;
-    }
 
     public void addObserver(IMServiceObserver ob) {
         if (observers.contains(ob)) {
@@ -162,49 +156,6 @@ public class IMService {
         Message msg = new Message();
         msg.cmd = Command.MSG_VOIP_CONTROL;
         msg.body = ctl;
-        return sendMessage(msg);
-    }
-
-    public boolean sendPeerMessage(IMMessage im) {
-        Message msg = new Message();
-        msg.cmd = Command.MSG_IM;
-        msg.body = im;
-        if (!sendMessage(msg)) {
-            return false;
-        }
-
-        peerMessages.put(new Integer(msg.seq), im);
-        return true;
-    }
-
-    //订阅用户在线状态通知消息
-    public void subscribeState(long uid) {
-        Long n = new Long(uid);
-        if (!subs.containsKey(n)) {
-            MessageSubscribe sub = new MessageSubscribe();
-            sub.uids = new ArrayList<Long>();
-            sub.uids.add(n);
-            if (sendSubscribe(sub)) {
-                subs.put(n, new Boolean(false));
-            }
-        } else {
-            Boolean online = subs.get(n);
-            for (int i = 0; i < observers.size(); i++ ) {
-                IMServiceObserver ob = observers.get(i);
-                ob.onOnlineState(uid, online);
-            }
-        }
-    }
-
-    public void unsubscribeState(long uid) {
-        Long n = new Long(uid);
-        subs.remove(n);
-    }
-
-    private boolean sendSubscribe(MessageSubscribe sub) {
-        Message msg = new Message();
-        msg.cmd = Command.MSG_SUBSCRIBE_ONLINE_STATE;
-        msg.body = sub;
         return sendMessage(msg);
     }
 
@@ -312,7 +263,6 @@ public class IMService {
                     IMService.this.publishConnectState();
                     IMService.this.sendAuth();
                     IMService.this.tcp.startRead();
-                    subs.clear();
                 }
             }
         });
@@ -359,67 +309,17 @@ public class IMService {
         Log.d(TAG, "auth status:" + status);
     }
 
-    private void handleIMMessage(Message msg) {
-        IMMessage im = (IMMessage)msg.body;
-        Log.d(TAG, "im message sender:" + im.sender + " receiver:" + im.receiver + " content:" + im.content);
-        if (!peerMessageHandler.handleMessage(im)) {
-            Log.i(TAG, "handle im message fail");
-            return;
-        }
-        publishPeerMessage(im);
-        Message ack = new Message();
-        ack.cmd = Command.MSG_ACK;
-        ack.body = new Integer(msg.seq);
-        sendMessage(ack);
-    }
+
 
     private void handleClose() {
-        Iterator iter = peerMessages.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry<Integer, IMMessage> entry = (Map.Entry<Integer, IMMessage>)iter.next();
-            IMMessage im = entry.getValue();
-            peerMessageHandler.handleMessageFailure(im.msgLocalID, im.receiver);
-            publishPeerMessageFailure(im.msgLocalID, im.receiver);
-        }
-        peerMessages.clear();
         close();
     }
 
     private void handleACK(Message msg) {
-        Integer seq = (Integer)msg.body;
-        IMMessage im = peerMessages.get(seq);
-        if (im == null) {
-            return;
-        }
-
-        if (!peerMessageHandler.handleMessageACK(im.msgLocalID, im.receiver)) {
-            Log.w(TAG, "handle message ack fail");
-            return;
-        }
-        peerMessages.remove(seq);
-        publishPeerMessageACK(im.msgLocalID, im.receiver);
-    }
-
-    private void handlePeerACK(Message msg) {
-        MessagePeerACK ack = (MessagePeerACK)msg.body;
-        this.peerMessageHandler.handleMessageRemoteACK(ack.msgLocalID, ack.sender);
-
-        publishPeerMessageRemoteACK(ack.msgLocalID, ack.sender);
 
     }
 
-    private void handleOnlineState(Message msg) {
-        MessageOnlineState state = (MessageOnlineState)msg.body;
-        boolean on = state.online != 0 ? true : false;
 
-        if (subs.containsKey(new Long(state.sender))) {
-            subs.put(new Long(state.sender), new Boolean(on));
-        }
-        for (int i = 0; i < observers.size(); i++ ) {
-            IMServiceObserver ob = observers.get(i);
-            ob.onOnlineState(state.sender, on);
-        }
-    }
 
     private void handleVOIPControl(Message msg) {
         VOIPControl ctl = (VOIPControl)msg.body;
@@ -432,13 +332,7 @@ public class IMService {
         ob.onVOIPControl(ctl);
     }
 
-    private void handleInputting(Message msg) {
-        MessageInputing inputting = (MessageInputing)msg.body;
-        for (int i = 0; i < observers.size(); i++ ) {
-            IMServiceObserver ob = observers.get(i);
-            ob.onPeerInputting(inputting.sender);
-        }
-    }
+
 
     private void handlePong() {
         Log.i(TAG, "pong");
@@ -448,16 +342,8 @@ public class IMService {
     private void handleMessage(Message msg) {
         if (msg.cmd == Command.MSG_AUTH_STATUS) {
             handleAuthStatus(msg);
-        } else if (msg.cmd == Command.MSG_IM) {
-            handleIMMessage(msg);
         } else if (msg.cmd == Command.MSG_ACK) {
             handleACK(msg);
-        } else if (msg.cmd == Command.MSG_ONLINE_STATE) {
-            handleOnlineState(msg);
-        } else if (msg.cmd == Command.MSG_PEER_ACK) {
-            handlePeerACK(msg);
-        } else if (msg.cmd == Command.MSG_INPUTTING) {
-            handleInputting(msg);
         } else if (msg.cmd == Command.MSG_VOIP_CONTROL) {
             handleVOIPControl(msg);
         } else if (msg.cmd == Command.MSG_PONG) {
@@ -527,13 +413,6 @@ public class IMService {
         }
     }
 
-    private void sendHeartbeat() {
-        Log.i(TAG, "send heartbeat");
-        Message msg = new Message();
-        msg.cmd = Command.MSG_HEARTBEAT;
-        sendMessage(msg);
-    }
-
     private boolean sendMessage(Message msg) {
         if (this.tcp == null || connectState != ConnectState.STATE_CONNECTED) return false;
         this.seq++;
@@ -547,32 +426,6 @@ public class IMService {
         return true;
     }
 
-    private void publishPeerMessage(IMMessage msg) {
-        for (int i = 0; i < observers.size(); i++ ) {
-            IMServiceObserver ob = observers.get(i);
-            ob.onPeerMessage(msg);
-        }
-    }
-
-    private void publishPeerMessageACK(int msgLocalID, long uid) {
-        for (int i = 0; i < observers.size(); i++ ) {
-            IMServiceObserver ob = observers.get(i);
-            ob.onPeerMessageACK(msgLocalID, uid);
-        }
-    }
-
-    private void publishPeerMessageRemoteACK(int msgLocalID, long uid) {
-        for (int i = 0; i < observers.size(); i++ ) {
-            IMServiceObserver ob = observers.get(i);
-            ob.onPeerMessageRemoteACK(msgLocalID, uid);
-        }
-    }
-    private void publishPeerMessageFailure(int msgLocalID, long uid) {
-        for (int i = 0; i < observers.size(); i++ ) {
-            IMServiceObserver ob = observers.get(i);
-            ob.onPeerMessageFailure(msgLocalID, uid);
-        }
-    }
 
     private void publishConnectState() {
         for (int i = 0; i < observers.size(); i++ ) {
