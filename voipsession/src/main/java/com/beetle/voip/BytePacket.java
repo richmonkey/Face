@@ -1,4 +1,4 @@
-package com.beetle.im;
+package com.beetle.voip;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

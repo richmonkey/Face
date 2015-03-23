@@ -14,7 +14,7 @@
 // Macro for native functions that can be found by way of jni-auto discovery.
 // Note extern "C" is needed for "discovery" of native methods to work.
 #define JOWW(rettype, name)                                             \
-  extern "C" rettype JNIEXPORT JNICALL Java_com_beetle_face_tools_##name
+  extern "C" rettype JNIEXPORT JNICALL Java_com_beetle_voip_##name
 
 #define VERBOSE true
  

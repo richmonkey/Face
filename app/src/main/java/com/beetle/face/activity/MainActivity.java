@@ -1,6 +1,5 @@
 package com.beetle.face.activity;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -10,16 +9,12 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.PagerTabStrip;
-import android.support.v4.view.PagerTitleStrip;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
@@ -41,11 +36,11 @@ import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.UserDB;
 import com.beetle.face.tools.Notification;
 import com.beetle.face.tools.NotificationCenter;
-import com.beetle.im.IMService;
-import com.beetle.im.Timer;
+import com.beetle.voip.IMService;
+import com.beetle.voip.Timer;
 
-import com.beetle.im.VOIPControl;
-import com.beetle.im.VOIPObserver;
+import com.beetle.voip.VOIPControl;
+import com.beetle.voip.VOIPObserver;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -53,7 +48,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 
 import butterknife.ButterKnife;
 import rx.android.schedulers.AndroidSchedulers;

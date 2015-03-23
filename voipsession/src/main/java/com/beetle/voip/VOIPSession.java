@@ -1,23 +1,10 @@
-package com.beetle;
+package com.beetle.voip;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import android.view.View;
-
-import com.beetle.face.Config;
-import com.beetle.face.Token;
-import com.beetle.face.VOIPState;
-import com.beetle.face.model.History;
-import com.beetle.face.tools.Stun;
-import com.beetle.im.BytePacket;
-import com.beetle.im.IMService;
-import com.beetle.im.Timer;
-import com.beetle.im.VOIPControl;
-import com.beetle.im.VOIPObserver;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.nio.ByteOrder;
 import java.util.Date;
 
 import static android.os.SystemClock.uptimeMillis;
@@ -38,6 +25,8 @@ public class VOIPSession implements VOIPObserver {
 
     private static final String TAG = "voip";
 
+    public static final String STUN_SERVER = "stun.counterpath.net";
+    public static final int VOIP_PORT = 20001;
 
 
     private int voipPort;
@@ -105,7 +94,7 @@ public class VOIPSession implements VOIPObserver {
                 try {
                     Log.i(TAG, "discovery...");
                     Stun stun = new Stun();
-                    int stype = stun.getNatType(Config.STUN_SERVER);
+                    int stype = stun.getNatType(STUN_SERVER);
 
                     Log.i(TAG, "nat type:" + stype);
 
@@ -113,7 +102,7 @@ public class VOIPSession implements VOIPObserver {
                             stype == Stun.StunTypeDependentFilter || stype == Stun.StunTypePortDependedFilter) {
                         int count = 0;
                         while (count++ < 8) {
-                            InetSocketAddress ma = stun.mapPort(Config.STUN_SERVER, Config.VOIP_PORT);
+                            InetSocketAddress ma = stun.mapPort(STUN_SERVER, VOIP_PORT);
                             if (ma == null) {
                                 continue;
                             }
@@ -361,7 +350,7 @@ public class VOIPSession implements VOIPObserver {
 
     private void sendControlCommand(int cmd) {
         VOIPControl ctl = new VOIPControl();
-        ctl.sender = Token.getInstance().uid;
+        ctl.sender = currentUID;
         ctl.receiver = peerUID;
         ctl.cmd = cmd;
         IMService.getInstance().sendVOIPControl(ctl);
@@ -398,7 +387,7 @@ public class VOIPSession implements VOIPObserver {
 
     private void sendConnected() {
         VOIPControl ctl = new VOIPControl();
-        ctl.sender = Token.getInstance().uid;
+        ctl.sender = currentUID;
         ctl.receiver = peerUID;
         ctl.cmd = VOIPControl.VOIP_COMMAND_CONNECTED;
         ctl.natMap = this.localNatMap;
@@ -415,7 +404,7 @@ public class VOIPSession implements VOIPObserver {
 
     private void sendDialAccept() {
         VOIPControl ctl = new VOIPControl();
-        ctl.sender = Token.getInstance().uid;
+        ctl.sender = currentUID;
         ctl.receiver = peerUID;
         ctl.cmd = VOIPControl.VOIP_COMMAND_ACCEPT;
         ctl.natMap = this.localNatMap;

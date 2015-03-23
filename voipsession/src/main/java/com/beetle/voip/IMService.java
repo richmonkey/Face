@@ -1,4 +1,4 @@
-package com.beetle.im;
+package com.beetle.voip;
 
 
 import android.os.AsyncTask;
@@ -11,10 +11,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 
 
 import static android.os.SystemClock.uptimeMillis;

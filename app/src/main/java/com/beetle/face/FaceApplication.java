@@ -12,7 +12,7 @@ import android.util.Log;
 import com.beetle.NativeWebRtcContextRegistry;
 import com.beetle.face.model.ContactDB;
 import com.beetle.face.model.HistoryDB;
-import com.beetle.im.IMService;
+import com.beetle.voip.IMService;
 
 import com.google.code.p.leveldb.LevelDB;
 

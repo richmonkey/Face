@@ -1,8 +1,8 @@
-package com.beetle.im;
+package com.beetle.voip;
 
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
+
 import static android.os.SystemClock.uptimeMillis;
 
 /**

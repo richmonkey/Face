@@ -1,22 +1,12 @@
-package com.beetle.im;
+package com.beetle.voip;
 
-import android.util.Log;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 
-import retrofit.http.HEAD;
 
 /**
  * Created by houxh on 14-7-23.
  */
 
-public class IMMessage {
-    public long sender;
-    public long receiver;
-    public int msgLocalID;
-    public String content;
-}
 
 
 class Command{

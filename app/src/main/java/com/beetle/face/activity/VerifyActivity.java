@@ -14,8 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.beetle.face.R;
-import com.beetle.im.IMService;
-import com.beetle.face.activity.MainActivity;
+import com.beetle.voip.IMService;
 import com.beetle.face.Token;
 import com.beetle.face.api.IMHttp;
 import com.beetle.face.api.IMHttpFactory;
