@@ -1,1 +1,3 @@
 include ':app', ':voipsession', ':voipengine'
+project(':voipsession').projectDir = new File('voip/voipsession')
+project(':voipengine').projectDir = new File('voip/voipengine')
