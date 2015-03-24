@@ -652,6 +652,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     protected void onTokenRefreshed(Token token) {
         int now = getNow();
 
+        IMService.getInstance().setToken(token.accessToken);
+
         Token t = Token.getInstance();
         t.accessToken = token.accessToken;
         t.refreshToken = token.refreshToken;

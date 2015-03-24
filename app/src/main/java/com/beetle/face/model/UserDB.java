@@ -52,7 +52,6 @@ public class UserDB {
             }
             return loadUser(uid);
         } catch(Exception e) {
-            e.printStackTrace();
             return null;
         }
     }

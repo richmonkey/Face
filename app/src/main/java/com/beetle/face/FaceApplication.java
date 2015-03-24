@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.beetle.NativeWebRtcContextRegistry;
@@ -44,12 +45,13 @@ public class FaceApplication  extends Application {
         new NativeWebRtcContextRegistry().register(this);
 
         IMService im =  IMService.getInstance();
-        im.setHost(Config.HOST);
-        im.setPort(Config.PORT);
-
+        String androidID = Settings.Secure.getString(this.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        im.setDeviceID(androidID);
+        im.registerConnectivityChangeReceiver(getApplicationContext());
         //already login
         if (Token.getInstance().uid > 0) {
-            im.setUid(Token.getInstance().uid);
+            im.setToken(Token.getInstance().accessToken);
             im.start();
         }
 

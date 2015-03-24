@@ -164,7 +164,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
                     .into(header);
         }
 
-        voipSession = new VOIPSession(Token.getInstance().uid, peerUID, Config.VOIP_PORT, Config.STUN_SERVER);
+        voipSession = new VOIPSession(Token.getInstance().uid, peerUID);
         voipSession.setObserver(this);
         voipSession.holePunch();
 
