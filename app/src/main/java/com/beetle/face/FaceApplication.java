@@ -54,47 +54,5 @@ public class FaceApplication  extends Application {
             im.setToken(Token.getInstance().accessToken);
             im.start();
         }
-
-        registerBroadcastReceiver();
-    }
-
-    public void registerBroadcastReceiver() {
-        this.registerReceiver(networdStateReceiver, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
-    }
-
-
-    public void unregisterBroadcastReceiver() {
-        this.unregisterReceiver(networdStateReceiver);
-    }
-
-
-    BroadcastReceiver networdStateReceiver = new BroadcastReceiver(){
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (FaceApplication.this.isNetworkConnected(context)) {
-                if (Token.getInstance().uid > 0) {
-                    Log.i(TAG, "network connected start im service");
-                    IMService.getInstance().stop();
-                    IMService.getInstance().start();
-                }
-            } else {
-                Log.i(TAG, "network disconnected stop im service");
-                IMService.getInstance().stop();
-            }
-        }
-    };
-
-
-    public boolean isNetworkConnected(Context context) {
-        if (context != null) {
-            ConnectivityManager mConnectivityManager = (ConnectivityManager) context
-                    .getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo mNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
-            if (mNetworkInfo != null) {
-                return mNetworkInfo.isAvailable();
-            }
-        }
-        return false;
     }
 }
