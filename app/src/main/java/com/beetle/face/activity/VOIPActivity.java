@@ -379,7 +379,8 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         this.history.beginTimestamp = getNow();
         this.voip = new VOIP();
         long selfUID = Token.getInstance().uid;
-        String hostIP = this.voipSession.getRelayIP();
+        String relayIP = this.voipSession.getRelayIP();
+        Log.i(TAG, "relay ip:" + relayIP);
         boolean headphone = getHeadphoneStatus();
         String peerIP = "";
         int peerPort = 0;
@@ -392,7 +393,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        this.voip.initNative(selfUID, this.peer.uid, hostIP, peerIP, peerPort, headphone);
+        this.voip.initNative(selfUID, this.peer.uid, relayIP, peerIP, peerPort, headphone);
 
         this.voip.start();
     }
