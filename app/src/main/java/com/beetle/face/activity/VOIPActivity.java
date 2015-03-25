@@ -439,13 +439,10 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
             dismiss();
         }
     }
-    //回话被重置
+    //呼叫对方时，对方正在通话
     @Override
-    public void onReset() {
-        if (this.isConnected) {
-            stopStream();
-            dismiss();
-        }
+    public void onTalking() {
+        dismiss();
     }
 
     @Override
