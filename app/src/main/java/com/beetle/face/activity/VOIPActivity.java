@@ -379,7 +379,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         this.history.beginTimestamp = getNow();
         this.voip = new VOIP();
         long selfUID = Token.getInstance().uid;
-        String hostIP = IMService.getInstance().getHostIP();
+        String hostIP = this.voipSession.getRelayIP();
         boolean headphone = getHeadphoneStatus();
         String peerIP = "";
         int peerPort = 0;
