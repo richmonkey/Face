@@ -442,6 +442,9 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
     //呼叫对方时，对方正在通话
     @Override
     public void onTalking() {
+        this.player.stop();
+        this.player = null;
+        this.history.flag = this.history.flag|History.FLAG_UNRECEIVED;
         dismiss();
     }
 
