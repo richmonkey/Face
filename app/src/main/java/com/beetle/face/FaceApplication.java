@@ -45,6 +45,8 @@ public class FaceApplication  extends Application {
         new NativeWebRtcContextRegistry().register(this);
 
         IMService im =  IMService.getInstance();
+        im.setHost(Config.SDK_HOST);
+
         String androidID = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
         im.setDeviceID(androidID);
