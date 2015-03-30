@@ -13,15 +13,17 @@ import static android.os.SystemClock.uptimeMillis;
  * Created by houxh on 15/3/12.
  */
 public class VOIPSession implements VOIPObserver {
-    public static final int VOIP_LISTENING = 0;
-    public static final int VOIP_DIALING = 1;//呼叫对方
-    public static final int VOIP_CONNECTED = 2;//通话连接成功
-    public static final int VOIP_ACCEPTING = 3;//询问用户是否接听来电
-    public static final int VOIP_ACCEPTED = 4;//用户接听来电
-    public static final int VOIP_REFUSING = 5;//来电被拒
-    public static final int VOIP_REFUSED = 6;//(来/去)电已被拒
-    public static final int VOIP_HANGED_UP = 7;//通话被挂断
-    public static final int VOIP_RESETED = 8;//通话连接被重置
+
+
+    private static final int VOIP_LISTENING = 0;
+    private static final int VOIP_DIALING = 1;//呼叫对方
+    private static final int VOIP_CONNECTED = 2;//通话连接成功
+    private static final int VOIP_ACCEPTING = 3;//询问用户是否接听来电
+    private static final int VOIP_ACCEPTED = 4;//用户接听来电
+    private static final int VOIP_REFUSING = 5;//来电被拒
+    private static final int VOIP_REFUSED = 6;//(来/去)电已被拒
+    private static final int VOIP_HANGED_UP = 7;//通话被挂断
+    private static final int VOIP_SHUTDOWN = 8;//对方正在通话中，连接被终止
 
     private static final String TAG = "voip";
 
@@ -40,6 +42,7 @@ public class VOIPSession implements VOIPObserver {
     public VOIPControl.NatPortMap localNatMap;
     public VOIPControl.NatPortMap peerNatMap;
 
+    private String relayIP;
 
     private int dialCount;
     private long dialBeginTimestamp;
@@ -53,7 +56,7 @@ public class VOIPSession implements VOIPObserver {
 
     private VOIPSessionObserver observer;
 
-    public int state;
+    private int state;
 
 
     public static interface VOIPSessionObserver  {
@@ -61,8 +64,9 @@ public class VOIPSession implements VOIPObserver {
         public void onRefuse();
         //对方挂断通话
         public void onHangUp();
-        //回话被重置
-        public void onReset();
+
+        //对方正在通话
+        public void onTalking();
 
         public void onDialTimeout();
         public void onAcceptTimeout();
@@ -71,12 +75,17 @@ public class VOIPSession implements VOIPObserver {
     };
 
 
-    public VOIPSession(long currentUID, long peerUID,  int voipPort, String stunServer) {
+    public VOIPSession(long currentUID, long peerUID) {
         state = VOIP_ACCEPTING;
         this.currentUID = currentUID;
         this.peerUID = peerUID;
-        this.voipPort = voipPort;
-        this.stunServer = stunServer;
+        this.voipPort = VOIP_PORT;
+        this.stunServer = STUN_SERVER;
+    }
+
+    //获取中转服务器IP地址
+    public String getRelayIP() {
+        return relayIP;
     }
 
     public void setObserver(VOIPSessionObserver ob) {
@@ -233,7 +242,7 @@ public class VOIPSession implements VOIPObserver {
     @Override
     public void onVOIPControl(VOIPControl ctl) {
         if (ctl.sender != peerUID) {
-            sendTalking();
+            sendTalking(ctl.sender);
             return;
         }
 
@@ -244,7 +253,9 @@ public class VOIPSession implements VOIPObserver {
                 if (this.localNatMap == null) {
                     this.localNatMap = new VOIPControl.NatPortMap();
                 }
-
+                if (this.relayIP == null) {
+                    this.relayIP = IMService.getInstance().getHostIP();
+                }
                 sendConnected();
                 state = VOIPSession.VOIP_CONNECTED;
 
@@ -264,25 +275,12 @@ public class VOIPSession implements VOIPObserver {
                 this.dialTimer = null;
 
                 this.observer.onRefuse();
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
+            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_TALKING) {
+                state = VOIPSession.VOIP_SHUTDOWN;
+
                 this.dialTimer.suspend();
                 this.dialTimer = null;
-
-                state = VOIPSession.VOIP_ACCEPTED;
-
-                if (this.localNatMap == null) {
-                    this.localNatMap = new VOIPControl.NatPortMap();
-                }
-                this.acceptTimestamp = getNow();
-                this.acceptTimer = new Timer() {
-                    @Override
-                    protected void fire() {
-                        VOIPSession.this.sendDialAccept();
-                    }
-                };
-                this.acceptTimer.setTimer(uptimeMillis() + 1000, 1000);
-                this.acceptTimer.resume();
-                sendDialAccept();
+                this.observer.onTalking();
             }
         } else if (state == VOIPSession.VOIP_ACCEPTING) {
             if (ctl.cmd == VOIPControl.VOIP_COMMAND_HANG_UP) {
@@ -295,15 +293,17 @@ public class VOIPSession implements VOIPObserver {
                 this.acceptTimer = null;
 
                 this.peerNatMap = ctl.natMap;
-                state = VOIPSession.VOIP_CONNECTED;
 
-                observer.onConnected();
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT) {
-                Log.i(TAG, "simultaneous voip connected");
-                this.acceptTimer.suspend();
-                this.acceptTimer = null;
+                if (ctl.relayIP > 0) {
+                    try {
+                        this.relayIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(ctl.relayIP)).getHostAddress();
+                    } catch (Exception e) {
+                        this.relayIP = IMService.getInstance().getHostIP();
+                    }
+                } else {
+                    this.relayIP = IMService.getInstance().getHostIP();
+                }
 
-                this.peerNatMap = ctl.natMap;
                 state = VOIPSession.VOIP_CONNECTED;
 
                 observer.onConnected();
@@ -321,10 +321,6 @@ public class VOIPSession implements VOIPObserver {
 
                 observer.onHangUp();
 
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_RESET) {
-                state = VOIPSession.VOIP_RESETED;
-
-                observer.onReset();
             } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT) {
                 sendConnected();
             }
@@ -391,15 +387,22 @@ public class VOIPSession implements VOIPObserver {
         ctl.receiver = peerUID;
         ctl.cmd = VOIPControl.VOIP_COMMAND_CONNECTED;
         ctl.natMap = this.localNatMap;
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(this.relayIP);
+            ctl.relayIP = BytePacket.packInetAddress(addresses[0].getAddress());
+        } catch (Exception e) {
+            ctl.relayIP = 0;
+        }
+
         IMService.getInstance().sendVOIPControl(ctl);
     }
 
-    private void sendTalking() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_TALKING);
-    }
-
-    private void sendReset() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_RESET);
+    private void sendTalking(long receiver) {
+        VOIPControl ctl = new VOIPControl();
+        ctl.sender = currentUID;
+        ctl.receiver = receiver;
+        ctl.cmd = VOIPControl.VOIP_COMMAND_TALKING;
+        IMService.getInstance().sendVOIPControl(ctl);
     }
 
     private void sendDialAccept() {
