@@ -14,7 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.beetle.face.R;
-import com.beetle.voip.IMService;
+import com.beetle.voip.VOIPService;
 import com.beetle.face.Token;
 import com.beetle.face.api.IMHttp;
 import com.beetle.face.api.IMHttpFactory;
@@ -99,7 +99,7 @@ public class VerifyActivity extends AccountActivity implements TextView.OnEditor
                         u.zone = "86";
                         UserDB.getInstance().addUser(u);
 
-                        IMService im = IMService.getInstance();
+                        VOIPService im = VOIPService.getInstance();
                         im.setToken(token.accessToken);
                         im.start();
 

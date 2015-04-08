@@ -36,7 +36,7 @@ import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.UserDB;
 import com.beetle.face.tools.Notification;
 import com.beetle.face.tools.NotificationCenter;
-import com.beetle.voip.IMService;
+import com.beetle.voip.VOIPService;
 import com.beetle.voip.Timer;
 
 import com.beetle.voip.VOIPControl;
@@ -378,7 +378,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         loadUsers();
         loadHistory();
 
-        IMService.getInstance().pushVOIPObserver(this);
+        VOIPService.getInstance().pushVOIPObserver(this);
 
 
         Token token = Token.getInstance();
@@ -460,7 +460,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
     @Override
     protected void onDestroy() {
-        IMService.getInstance().popVOIPObserver(this);
+        VOIPService.getInstance().popVOIPObserver(this);
         super.onDestroy();
     }
     @Override
@@ -479,7 +479,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         }
 
         VOIPState state = VOIPState.getInstance();
-        if (IMService.getInstance().getConnectState() != IMService.ConnectState.STATE_CONNECTED) {
+        if (VOIPService.getInstance().getConnectState() != VOIPService.ConnectState.STATE_CONNECTED) {
             Toast.makeText(getApplicationContext(), "网络未链接",
                     Toast.LENGTH_SHORT).show();
             return;
@@ -652,7 +652,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     protected void onTokenRefreshed(Token token) {
         int now = getNow();
 
-        IMService.getInstance().setToken(token.accessToken);
+        VOIPService.getInstance().setToken(token.accessToken);
 
         Token t = Token.getInstance();
         t.accessToken = token.accessToken;

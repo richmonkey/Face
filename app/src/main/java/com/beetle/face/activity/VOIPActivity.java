@@ -22,7 +22,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.beetle.VOIP;
+import com.beetle.VOIPEngine;
 import com.beetle.voip.VOIPSession;
 import com.beetle.face.Config;
 import com.beetle.face.R;
@@ -38,7 +38,7 @@ import com.beetle.face.model.UserDB;
 import com.beetle.face.tools.Notification;
 import com.beetle.face.tools.NotificationCenter;
 import com.beetle.voip.BytePacket;
-import com.beetle.voip.IMService;
+import com.beetle.voip.VOIPService;
 import com.beetle.voip.Timer;
 import com.squareup.picasso.Picasso;
 import java.net.InetAddress;
@@ -62,7 +62,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
 
     private TextView durationTextView;
 
-    private VOIP voip;
+    private VOIPEngine voip;
     private int duration;
     private Timer durationTimer;
 
@@ -168,7 +168,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         voipSession.setObserver(this);
         voipSession.holePunch();
 
-        IMService.getInstance().pushVOIPObserver(this.voipSession);
+        VOIPService.getInstance().pushVOIPObserver(this.voipSession);
 
         if (isCaller) {
             this.history.flag = History.FLAG_OUT;
@@ -245,7 +245,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         VOIPState state = VOIPState.getInstance();
         state.state = VOIPState.VOIP_WAITING;
 
-        IMService.getInstance().popVOIPObserver(this.voipSession);
+        VOIPService.getInstance().popVOIPObserver(this.voipSession);
         HistoryDB.getInstance().addHistory(this.history);
         Notification n = new Notification(this.history, "history");
         NotificationCenter.defaultCenter().postNotification(n);
@@ -377,7 +377,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         this.durationTimer.resume();
 
         this.history.beginTimestamp = getNow();
-        this.voip = new VOIP();
+        this.voip = new VOIPEngine();
         long selfUID = Token.getInstance().uid;
         String relayIP = this.voipSession.getRelayIP();
         Log.i(TAG, "relay ip:" + relayIP);
@@ -393,7 +393,8 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        this.voip.initNative(selfUID, this.peer.uid, relayIP, peerIP, peerPort, headphone);
+        String token = Token.getInstance().accessToken;
+        this.voip.initNative(token, selfUID, this.peer.uid, relayIP, VOIPSession.VOIP_PORT, peerIP, peerPort, headphone);
 
         this.voip.start();
     }

@@ -1,19 +1,13 @@
 package com.beetle.face;
 
 import android.app.Application;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.provider.Settings;
 import android.util.Log;
 
 import com.beetle.NativeWebRtcContextRegistry;
 import com.beetle.face.model.ContactDB;
 import com.beetle.face.model.HistoryDB;
-import com.beetle.voip.IMService;
+import com.beetle.voip.VOIPService;
 
 import com.google.code.p.leveldb.LevelDB;
 
@@ -44,7 +38,7 @@ public class FaceApplication  extends Application {
 
         new NativeWebRtcContextRegistry().register(this);
 
-        IMService im =  IMService.getInstance();
+        VOIPService im =  VOIPService.getInstance();
         im.setHost(Config.SDK_HOST);
 
         String androidID = Settings.Secure.getString(this.getContentResolver(),
