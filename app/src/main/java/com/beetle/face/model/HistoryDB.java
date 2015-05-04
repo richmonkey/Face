@@ -85,7 +85,7 @@ public class HistoryDB {
     }
 
     public ArrayList<History> loadHistoryDB() {
-        ArrayList<History> histories = new ArrayList<>();
+        ArrayList<History> histories = new ArrayList<History>();
         Cursor cursor = null;
         try {
             String sql = "select hid, peer_uid, flag, create_timestamp, begin_timestamp, end_timestamp from history";
