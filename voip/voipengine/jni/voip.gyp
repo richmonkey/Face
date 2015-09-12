@@ -9,35 +9,58 @@
 
 {
   'includes': [
-    '../../../../build/common.gypi',
+      '../../../build/common.gypi',
   ],
  
   'targets': [
-    {
-     'target_name': 'libvoip',
-     'type': 'loadable_module',
-     'dependencies': [
-         '<(webrtc_root)/webrtc.gyp:*',
-      ],
-      'include_dirs': [
-         '<(webrtc_root)/../',
-      ],
-      'sources': [
-	  	 'voip_transport_jni.cc',	
-         'WebRTC.cpp',
-         'AVSendStream.cpp',
-         'AVReceiveStream.cpp',
-		 'util.cc',
-         'on_load.cc',
-      ],
-	  'link_settings': {
-	      'libraries': [
-              '-landroid',
-              '-llog',
-              '-lGLESv2',
-              '-lOpenSLES',
+     {
+       'target_name': 'libvoip',
+          'type': 'loadable_module',
+          'dependencies': [
+              '<(webrtc_root)/webrtc.gyp:*',
           ],
-      }
+          'include_dirs': [
+              '<(webrtc_root)/../',
+              '<(webrtc_root)/../third_party/libyuv/include',
+        ],
+        'sources': [
+            'video_renderer_jni.cc',
+            'voip_jni.cc',	
+            'WebRTC.cc',
+            'av_send_stream.cc',
+            'av_receive_stream.cc',
+            'audio_send_stream.cc',
+            "audio_receive_stream.cc",
+            'classreferenceholder.cc',
+            'jni_helpers.cc',
+            'util.cc',
+            'on_load.cc',
+            'androidmediadecoder_jni.cc',
+            'androidmediaencoder_jni.cc',
+        ],
+        'link_settings': {
+            'libraries': [
+                '-landroid',
+                '-llog',
+                '-lGLESv2',
+                '-lOpenSLES',
+            ],
+        },
+        'cflags_cc!': [
+            '-Werror=reorder',
+            '-Werror=unused-variable',
+            '-Wsign-compare',
+        ],
+        'cflags_cc': [
+            '-Wno-sign-compare',
+            '-Wno-unused-variable',
+            '-Wno-reorder',
+        ],
+        'variables': {
+            # This library uses native JNI exports; tell GYP so that the
+            # required symbols will be kept.
+            'use_native_jni_exports': 1,
+        },
     },
   ], # targets
 }
