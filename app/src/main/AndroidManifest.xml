@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name="com.beetle.face.FaceApplication"
@@ -42,9 +43,14 @@
             android:label="@string/title_activity_verify" >
         </activity>
         <activity
-            android:name="com.beetle.face.activity.VOIPActivity"
+            android:name="com.beetle.face.activity.VOIPVoiceActivity"
             android:screenOrientation="portrait"
-            android:label="@string/title_activity_voip" >
+            android:label="voip_voice" >
+        </activity>
+        <activity
+            android:name="com.beetle.face.activity.VOIPVideoActivity"
+            android:screenOrientation="portrait"
+            android:label="voip_video" >
         </activity>
     </application>
 

@@ -487,7 +487,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         if (parent.getId() == R.id.contact_list) {
             User u = users.get(position);
 
-            Intent intent = new Intent(this, VOIPActivity.class);
+            Intent intent = new Intent(this, VOIPVoiceActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("peer_uid", u.uid);
             intent.putExtra("is_caller", true);
@@ -496,7 +496,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         } else if (parent.getId() == R.id.history_list) {
             CallHistory ch = callHistories.get(position);
 
-            Intent intent = new Intent(this, VOIPActivity.class);
+            Intent intent = new Intent(this, VOIPVoiceActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("peer_uid", ch.history.peerUID);
             intent.putExtra("is_caller", true);
@@ -513,7 +513,14 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         Log.i(TAG, "voip state:" + state.state + " command:" + ctl.cmd);
         if (state.state == VOIPState.VOIP_WAITING) {
             if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
-                Intent intent = new Intent(this, VOIPActivity.class);
+                Intent intent = new Intent(this, VOIPVoiceActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("peer_uid", ctl.sender);
+                intent.putExtra("is_caller", false);
+                state.state = VOIPState.VOIP_TALKING;
+                startActivity(intent);
+            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL_VIDEO) {
+                Intent intent = new Intent(this, VOIPVideoActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("peer_uid", ctl.sender);
                 intent.putExtra("is_caller", false);

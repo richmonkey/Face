@@ -50,9 +50,9 @@ import static android.os.SystemClock.uptimeMillis;
 
 public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObserver {
 
-    private static final String TAG = "face";
-    private User peer;
-    private boolean isCaller;
+    protected static final String TAG = "face";
+    protected User peer;
+    protected boolean isCaller;
 
     private History history = new History();
 
@@ -62,7 +62,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
 
     private TextView durationTextView;
 
-    private VOIPEngine voip;
+    protected VOIPEngine voip;
     private int duration;
     private Timer durationTimer;
 
@@ -71,10 +71,10 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
     private static Handler sHandler;
 
 
-    private VOIPSession voipSession;
+    protected VOIPSession voipSession;
     private boolean isConnected;
 
-    private boolean isP2P() {
+    protected boolean isP2P() {
         //return false;
         if (this.voipSession.localNatMap == null || this.voipSession.peerNatMap == null) {
             return false;
@@ -113,12 +113,6 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        setContentView(R.layout.activity_voip);
 
         sHandler = new Handler();
         sHandler.post(mHideRunnable);
@@ -176,8 +170,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
             acceptButton.setVisibility(View.GONE);
             refuseButton.setVisibility(View.GONE);
 
-            voipSession.dial();
-
+            dial();
 
             try {
                 AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.call);
@@ -326,40 +319,17 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
     }
 
 
-
     private boolean getHeadphoneStatus() {
         AudioManager audioManager = (AudioManager)getSystemService(AUDIO_SERVICE);
         boolean headphone = audioManager.isWiredHeadsetOn() || audioManager.isBluetoothA2dpOn();
         return headphone;
     }
 
-    private void startStream() {
-        if (this.voip != null) {
-            Log.w(TAG, "voip is active");
-            return;
-        }
+    protected void dial() {
 
-        try {
-            if (this.voipSession.localNatMap != null && this.voipSession.localNatMap.ip != 0) {
-                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.localNatMap.ip)).getHostAddress();
-                int port = this.voipSession.localNatMap.port;
-                Log.i(TAG, "local nat map:" + ip + ":" + port);
-            }
-            if (this.voipSession.peerNatMap != null && this.voipSession.peerNatMap.ip != 0) {
-                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.peerNatMap.ip)).getHostAddress();
-                int port = this.voipSession.peerNatMap.port;
-                Log.i(TAG, "peer nat map:" + ip + ":" + port);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (isP2P()) {
+    }
 
-            Log.i(TAG, "start p2p stream");
-        } else {
-            Log.i(TAG, "start stream");
-        }
-
+    protected void startStream() {
         AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         am.setSpeakerphoneOn(false);
         am.setMode(AudioManager.MODE_IN_COMMUNICATION);
@@ -375,42 +345,11 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         };
         this.durationTimer.setTimer(uptimeMillis()+1000, 1000);
         this.durationTimer.resume();
-
-        this.history.beginTimestamp = getNow();
-        this.voip = new VOIPEngine();
-        long selfUID = Token.getInstance().uid;
-        String relayIP = this.voipSession.getRelayIP();
-        Log.i(TAG, "relay ip:" + relayIP);
-        boolean headphone = getHeadphoneStatus();
-        String peerIP = "";
-        int peerPort = 0;
-        try {
-            if (isP2P()) {
-                peerIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.peerNatMap.ip)).getHostAddress();
-                peerPort = this.voipSession.peerNatMap.port;
-                Log.i(TAG, "peer ip:" + peerIP + " port:" + peerPort);
-            }
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        String token = Token.getInstance().accessToken;
-        this.voip.initNative(token, selfUID, this.peer.uid, relayIP, VOIPSession.VOIP_PORT, peerIP, peerPort, headphone);
-
-        this.voip.start();
     }
 
-    private void stopStream() {
-        if (this.voip == null) {
-            Log.w(TAG, "voip is inactive");
-            return;
-        }
-        Log.i(TAG, "stop stream");
+    protected void stopStream() {
         this.durationTimer.suspend();
         this.durationTimer = null;
-        this.history.endTimestamp = getNow();
-        this.voip.stop();
-        this.voip.destroyNative();
-        this.voip = null;
     }
 
     public static int getNow() {
