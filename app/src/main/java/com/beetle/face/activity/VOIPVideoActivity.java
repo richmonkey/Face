@@ -1,10 +1,15 @@
 package com.beetle.face.activity;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Switch;
@@ -21,6 +26,7 @@ import org.webrtc.VideoRendererGui;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
 import com.beetle.face.R;
 
 import static android.os.SystemClock.uptimeMillis;
@@ -33,6 +39,7 @@ public class VOIPVideoActivity extends VOIPActivity {
     private VideoRenderer localRender;
     private VideoRenderer remoteRender;
 
+    private View controlView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +51,20 @@ public class VOIPVideoActivity extends VOIPActivity {
 
         setContentView(R.layout.activity_voip_video);
 
+
+        controlView = findViewById(R.id.control);
+
         GLSurfaceView renderView = (GLSurfaceView) findViewById(R.id.render);
         VideoRendererGui.setView(renderView, null);
+
+        renderView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isConnected) {
+                    VOIPVideoActivity.this.showOrHideHangUp();
+                }
+            }
+        });
 
         try {
             remoteRender = VideoRendererGui.createGui(0, 0, 100, 100, RendererCommon.ScalingType.SCALE_ASPECT_FIT, false);
@@ -56,6 +75,44 @@ public class VOIPVideoActivity extends VOIPActivity {
         super.onCreate(savedInstanceState);
 
     }
+
+    protected void showOrHideHangUp() {
+        if (controlView.getVisibility() == View.VISIBLE) {
+            hideHangUp();
+        } else {
+            showHangUp();
+        }
+    }
+    private void hideHangUp() {
+        controlView.setAlpha(1.0f);
+        controlView.animate()
+                .alpha(0.0f)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        controlView.setVisibility(View.GONE);
+                    }
+                });
+    }
+
+    private void showHangUp() {
+        controlView.setVisibility(View.VISIBLE);
+        controlView.setAlpha(0.0f);
+        controlView.animate()
+                .alpha(1.0f)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        controlView.setVisibility(View.VISIBLE);
+                        controlView.setAlpha(1.0f);
+                    }
+                });
+
+    }
+
+
 
     protected void dial() {
         this.voipSession.dialVideo();
@@ -93,9 +150,6 @@ public class VOIPVideoActivity extends VOIPActivity {
         String token = Token.getInstance().accessToken;
 
         String relayIP = this.voipSession.getRelayIP();
-        if (relayIP == null) {
-            relayIP = "121.42.143.50";
-        }
         Log.i(TAG, "relay ip:" + relayIP);
         String peerIP = "";
         int peerPort = 0;
@@ -119,6 +173,8 @@ public class VOIPVideoActivity extends VOIPActivity {
 
         AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         audioManager.setSpeakerphoneOn(true);
+
+        showOrHideHangUp();
     }
 
     protected void stopStream() {

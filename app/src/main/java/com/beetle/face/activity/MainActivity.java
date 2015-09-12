@@ -282,9 +282,17 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                 lv.setAdapter(contactAdapter);
                 lv.setOnItemClickListener(MainActivity.this);
 
+                View headView  = getLayoutInflater().inflate(R.layout.my_number, null);
+
+                TextView textView = (TextView)headView.findViewById(R.id.number);
+                User u = UserDB.getInstance().loadUser(Token.getInstance().uid);
+                String number = String.format("+%s %s", u.zone, u.number);
+                textView.setText(number);
+
+                lv.addHeaderView(headView);
+
                 View footView  = getLayoutInflater().inflate(R.layout.share_item, null);
                 lv.addFooterView(footView);
-
 
                 return contactListView;
             }
@@ -468,12 +476,15 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                             long id) {
 
         if (parent.getId() == R.id.contact_list) {
-            if (id == -1 && position == users.size()) {
+            if (id == -1 && position == users.size() + 1) {
                 Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("sms:"));
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 String body = String.format("我正在使用“电话虫”。 %s 可以给您的联系人拨打语音电话。", Config.DOWNLOAD_URL);
                 intent.putExtra("sms_body", body);
                 startActivity(intent);
+                return;
+            }
+            if (id == -1) {
                 return;
             }
         }
@@ -484,25 +495,47 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                     Toast.LENGTH_SHORT).show();
             return;
         }
+        long peerUID = 0;
         if (parent.getId() == R.id.contact_list) {
-            User u = users.get(position);
-
-            Intent intent = new Intent(this, VOIPVoiceActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.putExtra("peer_uid", u.uid);
-            intent.putExtra("is_caller", true);
-            state.state = VOIPState.VOIP_TALKING;
-            startActivity(intent);
+            User u = users.get((int)id);
+            peerUID = u.uid;
         } else if (parent.getId() == R.id.history_list) {
             CallHistory ch = callHistories.get(position);
-
-            Intent intent = new Intent(this, VOIPVoiceActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.putExtra("peer_uid", ch.history.peerUID);
-            intent.putExtra("is_caller", true);
-            state.state = VOIPState.VOIP_TALKING;
-            startActivity(intent);
+            peerUID = ch.history.peerUID;
+        } else {
+            Log.i(TAG, "invalid click");
+            return;
         }
+
+        final CharSequence[] items = {
+                "语音呼叫", "视频呼叫"
+        };
+
+        final long calleeUID = peerUID;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int item) {
+                VOIPState state = VOIPState.getInstance();
+                if (item == 0) {
+                    Intent intent = new Intent(MainActivity.this, VOIPVoiceActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("peer_uid", calleeUID);
+                    intent.putExtra("is_caller", true);
+                    state.state = VOIPState.VOIP_TALKING;
+                    startActivity(intent);
+                } else if (item == 1){
+                    Intent intent = new Intent(MainActivity.this, VOIPVideoActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("peer_uid", calleeUID);
+                    intent.putExtra("is_caller", true);
+                    state.state = VOIPState.VOIP_TALKING;
+                    startActivity(intent);
+                }
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     private final static String TAG = "face";

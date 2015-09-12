@@ -59,7 +59,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
     private Button handUpButton;
     private ImageButton refuseButton;
     private ImageButton acceptButton;
-
+    private ImageView  headView;
     private TextView durationTextView;
 
     protected VOIPEngine voip;
@@ -72,7 +72,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
 
 
     protected VOIPSession voipSession;
-    private boolean isConnected;
+    protected boolean isConnected;
 
     protected boolean isP2P() {
         //return false;
@@ -133,7 +133,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         durationTextView = (TextView)findViewById(R.id.duration);
 
         ImageView header = (ImageView)findViewById(R.id.header);
-
+        headView = header;
 
         Intent intent = getIntent();
 
@@ -325,6 +325,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         return headphone;
     }
 
+
     protected void dial() {
 
     }
@@ -394,8 +395,10 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
         this.player.stop();
         this.player = null;
         this.history.flag = this.history.flag|History.FLAG_UNRECEIVED;
+        voipSession.hangup();
         dismiss();
     }
+
     @Override
     public void onAcceptTimeout() {
         dismiss();
@@ -409,12 +412,12 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
 
         this.history.flag = this.history.flag|History.FLAG_ACCEPTED;
 
-        Log.i(TAG, "voip connected");
-        startStream();
-
         this.handUpButton.setVisibility(View.VISIBLE);
         this.acceptButton.setVisibility(View.GONE);
         this.refuseButton.setVisibility(View.GONE);
+
+        Log.i(TAG, "voip connected");
+        startStream();
 
         this.isConnected = true;
 
