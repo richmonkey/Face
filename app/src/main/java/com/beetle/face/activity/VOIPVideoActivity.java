@@ -68,12 +68,18 @@ public class VOIPVideoActivity extends VOIPActivity {
 
         try {
             remoteRender = VideoRendererGui.createGui(0, 0, 100, 100, RendererCommon.ScalingType.SCALE_ASPECT_FIT, false);
-            localRender = VideoRendererGui.createGui(70, 70, 25, 25, RendererCommon.ScalingType.SCALE_ASPECT_FIT, false);
+            localRender = VideoRendererGui.createGui(70, 75, 25, 25, RendererCommon.ScalingType.SCALE_ASPECT_FIT, false);
         } catch (Exception e) {
             e.printStackTrace();
         }
         super.onCreate(savedInstanceState);
 
+    }
+
+    public void switchCamera(View v) {
+        if (this.voip != null) {
+            this.voip.switchCamera();
+        }
     }
 
     protected void showOrHideHangUp() {
