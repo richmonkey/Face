@@ -59,8 +59,8 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
     private Button handUpButton;
     private ImageButton refuseButton;
     private ImageButton acceptButton;
-    private ImageView  headView;
-    private TextView durationTextView;
+    protected ImageView  headView;
+    protected TextView durationTextView;
 
     protected VOIPEngine voip;
     private int duration;
@@ -331,9 +331,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
     }
 
     protected void startStream() {
-        AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        am.setSpeakerphoneOn(false);
-        am.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        durationTextView.setVisibility(View.VISIBLE);
         this.duration = 0;
         this.durationTimer = new Timer() {
             @Override

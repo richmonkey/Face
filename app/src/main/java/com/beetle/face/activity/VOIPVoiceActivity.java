@@ -87,6 +87,8 @@ public class VOIPVoiceActivity extends VOIPActivity {
 
         AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         audioManager.setSpeakerphoneOn(false);
+        audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+
     }
 
     protected void stopStream() {

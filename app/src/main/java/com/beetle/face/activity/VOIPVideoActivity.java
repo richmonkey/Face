@@ -179,7 +179,9 @@ public class VOIPVideoActivity extends VOIPActivity {
 
         AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         audioManager.setSpeakerphoneOn(true);
+        audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
 
+        headView.setVisibility(View.GONE);
         showOrHideHangUp();
     }
 
