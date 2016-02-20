@@ -62,7 +62,7 @@ import static android.os.SystemClock.uptimeMillis;
  * Created by houxh on 14-8-12.
  */
 public class MainActivity extends Activity implements AdapterView.OnItemClickListener,
-        VOIPObserver, ContactDB.ContactObserver, NotificationCenter.NotificationCenterObserver{
+        ContactDB.ContactObserver, NotificationCenter.NotificationCenterObserver{
     private static final String HISTORY_NAME = "history";
     ArrayList<User> users;
     ArrayList<CallHistory> callHistories;
@@ -388,9 +388,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         loadUsers();
         loadHistory();
 
-        VOIPService.getInstance().pushVOIPObserver(this);
-
-
         Token token = Token.getInstance();
         int now = getNow();
 
@@ -501,7 +498,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     protected void onDestroy() {
         Log.i(TAG, "main activity ondestroy");
-        VOIPService.getInstance().popVOIPObserver(this);
         super.onDestroy();
     }
     @Override
@@ -573,28 +569,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
     private final static String TAG = "face";
 
-    public void onVOIPControl(VOIPControl ctl)  {
-        VOIPState state = VOIPState.getInstance();
 
-        Log.i(TAG, "voip state:" + state.state + " command:" + ctl.cmd);
-        if (state.state == VOIPState.VOIP_WAITING) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
-                Intent intent = new Intent(this, VOIPVoiceActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra("peer_uid", ctl.sender);
-                intent.putExtra("is_caller", false);
-                state.state = VOIPState.VOIP_TALKING;
-                startActivity(intent);
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL_VIDEO) {
-                Intent intent = new Intent(this, VOIPVideoActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra("peer_uid", ctl.sender);
-                intent.putExtra("is_caller", false);
-                state.state = VOIPState.VOIP_TALKING;
-                startActivity(intent);
-            }
-        }
-    }
 
     @Override
     public void onNotification(Notification notification) {
