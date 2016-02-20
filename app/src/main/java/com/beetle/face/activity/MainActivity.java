@@ -28,6 +28,7 @@ import com.beetle.face.api.body.PostAuthRefreshToken;
 import com.beetle.face.api.body.PostPhone;
 import com.beetle.face.api.types.User;
 import com.beetle.face.api.types.Version;
+import com.beetle.face.model.ApplicationDB;
 import com.beetle.face.model.Contact;
 import com.beetle.face.model.ContactDB;
 import com.beetle.face.model.History;
@@ -36,6 +37,7 @@ import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.UserDB;
 import com.beetle.face.tools.Notification;
 import com.beetle.face.tools.NotificationCenter;
+import com.beetle.face.tools.Rom;
 import com.beetle.voip.VOIPService;
 import com.beetle.voip.Timer;
 
@@ -433,6 +435,36 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                     }
                 });
 
+
+        openAutoRunSetting();
+        Log.i(TAG, "main activity oncreate");
+    }
+
+    private void openAutoRunSetting() {
+        if (!ApplicationDB.getInstance().firstRun) {
+            return;
+        }
+
+        ApplicationDB.getInstance().firstRun = false;
+        ApplicationDB.getInstance().save();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("为了保证正常拨打与接听免费电话，请开启蜗牛电话“自启动权限”。");
+        builder.setTitle("提示");
+        builder.setPositiveButton("确认", new AlertDialog.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                Rom.openAutoRunSetting(MainActivity.this);
+            }
+        });
+        builder.setNegativeButton("取消", new AlertDialog.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.create().show();
     }
 
     private void checkVersion(final Version version) {
@@ -468,6 +500,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
     @Override
     protected void onDestroy() {
+        Log.i(TAG, "main activity ondestroy");
         VOIPService.getInstance().popVOIPObserver(this);
         super.onDestroy();
     }
