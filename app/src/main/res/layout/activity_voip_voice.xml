@@ -49,18 +49,6 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <ImageButton
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:background="@drawable/call_answer_x"
-                    android:id="@+id/accept"
-                    android:layout_centerInParent="true"
-                    android:onClick="accept"/>
-            </RelativeLayout>
-            <RelativeLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
 
                 <ImageButton
                     android:layout_width="64dp"
@@ -70,6 +58,20 @@
                     android:layout_centerVertical="true"
                     android:layout_centerHorizontal="true"
                     android:onClick="refuse" />
+
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <ImageButton
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/call_answer_x"
+                    android:id="@+id/accept"
+                    android:layout_centerInParent="true"
+                    android:onClick="accept"/>
             </RelativeLayout>
         </LinearLayout>
         <Button
