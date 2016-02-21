@@ -6,6 +6,7 @@ package com.beetle.face.api;
 public class IMHttpFactory {
     static final Object monitor = new Object();
     static IMHttp singleton;
+    static IMHttp sdkSingleton;
 
     public static IMHttp Singleton() {
         if (singleton == null) {
@@ -17,5 +18,17 @@ public class IMHttpFactory {
         }
 
         return singleton;
+    }
+
+    public static IMHttp SDKSingleton() {
+        if (sdkSingleton == null) {
+            synchronized (monitor) {
+                if (sdkSingleton == null) {
+                    sdkSingleton = new IMHttpRetrofit().getSdkService();
+                }
+            }
+        }
+
+        return sdkSingleton;
     }
 }

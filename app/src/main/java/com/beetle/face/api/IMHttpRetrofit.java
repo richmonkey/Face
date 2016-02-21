@@ -14,6 +14,8 @@ import retrofit.converter.GsonConverter;
 class IMHttpRetrofit {
     final IMHttp service;
 
+    final IMHttp sdkService;
+
     IMHttpRetrofit() {
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(Config.API_URL)
@@ -29,9 +31,29 @@ class IMHttpRetrofit {
                 .build();
 
         service = adapter.create(IMHttp.class);
+
+
+        RestAdapter sdkAdapter = new RestAdapter.Builder()
+                .setEndpoint(Config.SDK_API_URL)
+                .setConverter(new GsonConverter(new Gson()))
+                .setRequestInterceptor(new RequestInterceptor() {
+                    @Override
+                    public void intercept(RequestFacade request) {
+                        if (Token.getInstance().accessToken != null && !Token.getInstance().accessToken.equals("")) {
+                            request.addHeader("Authorization", "Bearer " + Token.getInstance().accessToken);
+                        }
+                    }
+                })
+                .build();
+
+        sdkService = sdkAdapter.create(IMHttp.class);
     }
 
     public IMHttp getService() {
         return service;
+    }
+
+    public IMHttp getSdkService() {
+        return sdkService;
     }
 }

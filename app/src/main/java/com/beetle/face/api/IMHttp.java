@@ -3,6 +3,7 @@ package com.beetle.face.api;
 import com.beetle.face.Token;
 import com.beetle.face.api.body.PostAuthRefreshToken;
 import com.beetle.face.api.body.PostAuthToken;
+import com.beetle.face.api.body.PostDeviceToken;
 import com.beetle.face.api.body.PostPhone;
 import com.beetle.face.api.body.PostTextValue;
 import com.beetle.face.api.types.Audio;
@@ -44,10 +45,7 @@ public interface IMHttp {
 
     @POST("/images")
     Observable<Image> postImages(@Header("Content-Type") String contentType, @Body TypedFile file);
-
-    @POST("/audios")
-    Observable<Audio> postAudios(@Header("Content-Type") String contentType, @Body TypedFile file);
-
+    
     @Multipart
     @PUT("/users/me/avatar")
     Observable<Image> putUsersMeAvatar(@Part("file") TypedFile file);
@@ -60,4 +58,12 @@ public interface IMHttp {
 
     @POST("/users")
     Observable<ArrayList<User>> postUsers(@Body List<PostPhone> phones);
+
+
+    @POST("/device/bind")
+    Observable<Object> bindDeviceToken(@Body PostDeviceToken token);
+
+    @POST("/device/unbind")
+    Observable<Object> unBindDeviceToken(@Body PostDeviceToken token);
+
 }
