@@ -1,10 +1,18 @@
 package com.beetle.voip;
 
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
+
+import com.beetle.voip.VOIPCommand;
+import com.beetle.im.BytePacket;
+import com.beetle.im.Timer;
+import com.beetle.im.VOIPControl;
+import com.beetle.im.VOIPObserver;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.Date;
 
 import static android.os.SystemClock.uptimeMillis;
@@ -33,9 +41,15 @@ public class VOIPSession implements VOIPObserver {
     private static final String TAG = "voip";
 
     public static final String STUN_SERVER = "stun.counterpath.net";
+    public static String VOIP_HOST = "voipnode.gobelieve.io";
     public static final int VOIP_PORT = 20002;
 
+    public static void setVOIPHost(String host) {
+        VOIP_HOST = host;
+    }
 
+    private String voipHostIP;
+    private String voipHost;
     private int voipPort;
     private String stunServer;
     private long currentUID;
@@ -44,10 +58,11 @@ public class VOIPSession implements VOIPObserver {
     private InetSocketAddress mappedAddr;
     private int natType = Stun.StunTypeUnknown;
 
-    public VOIPControl.NatPortMap localNatMap;
-    public VOIPControl.NatPortMap peerNatMap;
+    public VOIPCommand.NatPortMap localNatMap;
+    public VOIPCommand.NatPortMap peerNatMap;
 
     private String relayIP;
+    private boolean refreshing;
 
     private int dialCount;
     private long dialBeginTimestamp;
@@ -84,8 +99,10 @@ public class VOIPSession implements VOIPObserver {
         state = VOIP_ACCEPTING;
         this.currentUID = currentUID;
         this.peerUID = peerUID;
+        this.voipHost = VOIP_HOST;
         this.voipPort = VOIP_PORT;
         this.stunServer = STUN_SERVER;
+        this.refreshing = false;
     }
 
     //获取中转服务器IP地址
@@ -133,6 +150,7 @@ public class VOIPSession implements VOIPObserver {
                 }
                 return false;
             }
+
             @Override
             protected void onPostExecute(Boolean result) {
                 if (!result) {
@@ -150,9 +168,9 @@ public class VOIPSession implements VOIPObserver {
                 if (natType == Stun.StunTypeOpen || natType == Stun.StunTypeIndependentFilter ||
                         natType == Stun.StunTypeDependentFilter || natType == Stun.StunTypePortDependedFilter) {
                     try {
-                        VOIPControl.NatPortMap natMap = new VOIPControl.NatPortMap();
+                        VOIPCommand.NatPortMap natMap = new VOIPCommand.NatPortMap();
                         natMap.ip = BytePacket.packInetAddress(ma.getAddress().getAddress());
-                        natMap.port = (short)ma.getPort();
+                        natMap.port = (short) ma.getPort();
 
                         VOIPSession.this.localNatMap = natMap;
 
@@ -166,6 +184,55 @@ public class VOIPSession implements VOIPObserver {
             }
         };
         task.execute();
+
+
+        refreshHost();
+    }
+
+    private void refreshHost() {
+        if (!TextUtils.isEmpty(this.voipHostIP) || this.refreshing) {
+            return;
+        }
+        this.refreshing = true;
+        //解析voip中专服务器的域名
+        new AsyncTask<Void, Integer, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                for (int i = 0; i < 10; i++) {
+                    String ip = lookupHost(VOIPSession.this.voipHost);
+                    if (TextUtils.isEmpty(ip)) {
+                        try {
+                            Thread.sleep((long) (0.05 * 1000));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        continue;
+                    } else {
+                        return ip;
+                    }
+                }
+                return "";
+            }
+
+            private String lookupHost(String host) {
+                try {
+                    InetAddress inetAddress = InetAddress.getByName(host);
+                    Log.i(TAG, "host name:" + inetAddress.getHostName() + " " + inetAddress.getHostAddress());
+                    return inetAddress.getHostAddress();
+                } catch (UnknownHostException exception) {
+                    exception.printStackTrace();
+                    return "";
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String result) {
+                if (!TextUtils.isEmpty(result)) {
+                    VOIPSession.this.voipHostIP = result;
+                }
+                VOIPSession.this.refreshing = false;
+            }
+        }.execute();
     }
 
     public void dial() {
@@ -210,7 +277,7 @@ public class VOIPSession implements VOIPObserver {
 
 
         if (this.localNatMap == null) {
-            this.localNatMap = new VOIPControl.NatPortMap();
+            this.localNatMap = new VOIPCommand.NatPortMap();
         }
 
         this.acceptTimer = new Timer() {
@@ -269,15 +336,17 @@ public class VOIPSession implements VOIPObserver {
             return;
         }
 
-        Log.i(TAG, "state:" + state + " command:" + ctl.cmd);
+        VOIPCommand command = new VOIPCommand(ctl.content);
+
+        Log.i(TAG, "state:" + state + " command:" + command.cmd);
         if (state == VOIPSession.VOIP_DIALING) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT) {
-                this.peerNatMap = ctl.natMap;
+            if (command.cmd == VOIPCommand.VOIP_COMMAND_ACCEPT) {
+                this.peerNatMap = command.natMap;
                 if (this.localNatMap == null) {
-                    this.localNatMap = new VOIPControl.NatPortMap();
+                    this.localNatMap = new VOIPCommand.NatPortMap();
                 }
                 if (this.relayIP == null) {
-                    this.relayIP = VOIPService.getInstance().getRelayIP();
+                    this.relayIP = this.voipHostIP;
                 }
                 sendConnected();
                 state = VOIPSession.VOIP_CONNECTED;
@@ -289,7 +358,7 @@ public class VOIPSession implements VOIPObserver {
                 observer.onConnected();
 
 
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_REFUSE) {
+            } else if (command.cmd == VOIPCommand.VOIP_COMMAND_REFUSE) {
                 state = VOIPSession.VOIP_REFUSED;
                 sendRefused();
 
@@ -298,7 +367,7 @@ public class VOIPSession implements VOIPObserver {
                 this.dialTimer = null;
 
                 this.observer.onRefuse();
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_TALKING) {
+            } else if (command.cmd == VOIPCommand.VOIP_COMMAND_TALKING) {
                 state = VOIPSession.VOIP_SHUTDOWN;
 
                 this.dialTimer.suspend();
@@ -306,31 +375,31 @@ public class VOIPSession implements VOIPObserver {
                 this.observer.onTalking();
             }
         } else if (state == VOIPSession.VOIP_ACCEPTING) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_HANG_UP) {
+            if (command.cmd == VOIPCommand.VOIP_COMMAND_HANG_UP) {
                 state = VOIPSession.VOIP_HANGED_UP;
                 observer.onHangUp();
             }
         } else if (state == VOIPSession.VOIP_ACCEPTED) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_CONNECTED) {
+            if (command.cmd == VOIPCommand.VOIP_COMMAND_CONNECTED) {
                 this.acceptTimer.suspend();
                 this.acceptTimer = null;
 
-                this.peerNatMap = ctl.natMap;
+                this.peerNatMap = command.natMap;
 
-                if (ctl.relayIP > 0) {
+                if (command.relayIP > 0) {
                     try {
-                        this.relayIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(ctl.relayIP)).getHostAddress();
+                        this.relayIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(command.relayIP)).getHostAddress();
                     } catch (Exception e) {
-                        this.relayIP = VOIPService.getInstance().getRelayIP();
+                        this.relayIP = this.voipHostIP;
                     }
                 } else {
-                    this.relayIP = VOIPService.getInstance().getRelayIP();
+                    this.relayIP = this.voipHostIP;
                 }
 
                 state = VOIPSession.VOIP_CONNECTED;
 
                 observer.onConnected();
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_HANG_UP) {
+            } else if (command.cmd == VOIPCommand.VOIP_COMMAND_HANG_UP) {
                 this.acceptTimer.suspend();
                 this.acceptTimer = null;
 
@@ -339,16 +408,16 @@ public class VOIPSession implements VOIPObserver {
                 observer.onHangUp();
             }
         } else if (state == VOIPSession.VOIP_CONNECTED) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_HANG_UP) {
+            if (command.cmd == VOIPCommand.VOIP_COMMAND_HANG_UP) {
                 state = VOIPSession.VOIP_HANGED_UP;
 
                 observer.onHangUp();
 
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_ACCEPT) {
+            } else if (command.cmd == VOIPCommand.VOIP_COMMAND_ACCEPT) {
                 sendConnected();
             }
         } else if (state == VOIPSession.VOIP_REFUSING) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_REFUSED) {
+            if (command.cmd == VOIPCommand.VOIP_COMMAND_REFUSED) {
                 Log.i(TAG, "refuse finished");
                 state = VOIPSession.VOIP_REFUSED;
 
@@ -371,7 +440,10 @@ public class VOIPSession implements VOIPObserver {
         VOIPControl ctl = new VOIPControl();
         ctl.sender = currentUID;
         ctl.receiver = peerUID;
-        ctl.cmd = cmd;
+
+        VOIPCommand command = new VOIPCommand();
+        command.cmd = cmd;
+        ctl.content = command.getContent();
         VOIPService.getInstance().sendVOIPControl(ctl);
     }
 
@@ -379,21 +451,29 @@ public class VOIPSession implements VOIPObserver {
         VOIPControl ctl = new VOIPControl();
         ctl.sender = currentUID;
         ctl.receiver = peerUID;
+
+        VOIPCommand command = new VOIPCommand();
         if (mode == SESSION_VOICE) {
-            ctl.cmd = VOIPControl.VOIP_COMMAND_DIAL;
+            command.cmd = VOIPCommand.VOIP_COMMAND_DIAL;
         } else if (mode == SESSION_VIDEO) {
-            ctl.cmd = VOIPControl.VOIP_COMMAND_DIAL_VIDEO;
+            command.cmd = VOIPCommand.VOIP_COMMAND_DIAL_VIDEO;
         } else {
             assert(false);
         }
-        ctl.dialCount = this.dialCount + 1;
+        command.dialCount = this.dialCount + 1;
+        ctl.content = command.getContent();
 
-        Log.i(TAG, "dial......");
-        boolean r = VOIPService.getInstance().sendVOIPControl(ctl);
-        if (r) {
-            this.dialCount = this.dialCount + 1;
+        if (!TextUtils.isEmpty(this.voipHostIP)) {
+            Log.i(TAG, "dial......");
+            boolean r = VOIPService.getInstance().sendVOIPControl(ctl);
+            if (r) {
+                this.dialCount = this.dialCount + 1;
+            } else {
+                Log.i(TAG, "dial fail");
+            }
         } else {
-            Log.i(TAG, "dial fail");
+            Log.i(TAG, "voip host ip is empty");
+            refreshHost();
         }
 
         long now = getNow();
@@ -407,22 +487,26 @@ public class VOIPSession implements VOIPObserver {
     }
 
     private void sendRefused() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_REFUSED);
+        sendControlCommand(VOIPCommand.VOIP_COMMAND_REFUSED);
     }
 
     private void sendConnected() {
         VOIPControl ctl = new VOIPControl();
         ctl.sender = currentUID;
         ctl.receiver = peerUID;
-        ctl.cmd = VOIPControl.VOIP_COMMAND_CONNECTED;
-        ctl.natMap = this.localNatMap;
+
+        VOIPCommand command = new VOIPCommand();
+
+        command.cmd = VOIPCommand.VOIP_COMMAND_CONNECTED;
+        command.natMap = this.localNatMap;
         try {
             InetAddress[] addresses = InetAddress.getAllByName(this.relayIP);
-            ctl.relayIP = BytePacket.packInetAddress(addresses[0].getAddress());
+            command.relayIP = BytePacket.packInetAddress(addresses[0].getAddress());
         } catch (Exception e) {
-            ctl.relayIP = 0;
+            command.relayIP = 0;
         }
 
+        ctl.content = command.getContent();
         VOIPService.getInstance().sendVOIPControl(ctl);
     }
 
@@ -430,7 +514,9 @@ public class VOIPSession implements VOIPObserver {
         VOIPControl ctl = new VOIPControl();
         ctl.sender = currentUID;
         ctl.receiver = receiver;
-        ctl.cmd = VOIPControl.VOIP_COMMAND_TALKING;
+        VOIPCommand command = new VOIPCommand();
+        command.cmd = VOIPCommand.VOIP_COMMAND_TALKING;
+        ctl.content = command.getContent();
         VOIPService.getInstance().sendVOIPControl(ctl);
     }
 
@@ -438,8 +524,11 @@ public class VOIPSession implements VOIPObserver {
         VOIPControl ctl = new VOIPControl();
         ctl.sender = currentUID;
         ctl.receiver = peerUID;
-        ctl.cmd = VOIPControl.VOIP_COMMAND_ACCEPT;
-        ctl.natMap = this.localNatMap;
+        VOIPCommand command = new VOIPCommand();
+        command.cmd = VOIPCommand.VOIP_COMMAND_ACCEPT;
+        command.natMap = this.localNatMap;
+        ctl.content = command.getContent();
+
         VOIPService.getInstance().sendVOIPControl(ctl);
 
         long now = getNow();
@@ -452,7 +541,7 @@ public class VOIPSession implements VOIPObserver {
     }
 
     private void sendDialRefuse() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_REFUSE);
+        sendControlCommand(VOIPCommand.VOIP_COMMAND_REFUSE);
 
         long now = getNow();
         if (now - this.refuseTimestamp > 10) {
@@ -467,7 +556,7 @@ public class VOIPSession implements VOIPObserver {
     }
 
     private void sendHangUp() {
-        sendControlCommand(VOIPControl.VOIP_COMMAND_HANG_UP);
+        sendControlCommand(VOIPCommand.VOIP_COMMAND_HANG_UP);
     }
 
 
