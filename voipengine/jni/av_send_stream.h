@@ -2,10 +2,8 @@
 #define BEETLE_AV_SEND_STREAM_H
 #include <string>
 
-
-
 #include "webrtc/common_types.h"
-#include "webrtc/modules/video_capture/include/video_capture.h"
+#include "webrtc/modules/video_capture/video_capture.h"
 
 
 class VoiceChannelTransport;
@@ -18,13 +16,13 @@ namespace webrtc {
     class VideoSendStream;
     class VideoEncoder;
     class VideoRenderer;
+    class Transport;
 }
-
-class WebRtcVcmFactory;
 
 class AVSendStream : public webrtc::VideoCaptureDataCallback {
 public:
-    AVSendStream(int32_t ssrc, int32_t rtxSSRC, VoiceTransport *t);
+    AVSendStream(int32_t ssrc, int32_t rtxSSRC, 
+                 VoiceTransport *t, webrtc::Transport *transport);
     virtual ~AVSendStream();
 
     void start();
@@ -37,12 +35,6 @@ public:
     void setCall(webrtc::Call *c) {
         call_ = c;
     }
-
-    void setRender(webrtc::VideoRenderer *render) {
-        render_ = render;
-    }
-
-    void sendKeyFrame();
 
     void switchCamera();
 
@@ -81,9 +73,7 @@ private:
     int voiceChannel;
 
     VoiceChannelTransport *voiceChannelTransport;
-
-    WebRtcVcmFactory *factory_;
-    webrtc::VideoCaptureModule* module_;
+    webrtc::Transport *transport_;
 
     int captured_frames_;
     std::vector<uint8_t> capture_buffer_;
@@ -93,10 +83,6 @@ private:
     
     webrtc::VideoSendStream *stream_;
     webrtc::VideoEncoder *encoder_;
-
-    webrtc::VideoRenderer *render_;
-
-    bool front_;
 };
 
 

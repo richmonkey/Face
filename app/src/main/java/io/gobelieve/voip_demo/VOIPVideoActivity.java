@@ -10,9 +10,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Switch;
 
+import com.beetle.VOIPCapture;
 import com.beetle.VOIPEngine;
-import com.beetle.voip.BytePacket;
-import com.beetle.voip.Timer;
+import com.beetle.im.BytePacket;
 import com.beetle.voip.VOIPSession;
 
 import org.webrtc.RendererCommon;
@@ -32,6 +32,7 @@ public class VOIPVideoActivity extends VOIPActivity {
     private VideoRenderer localRender;
     private VideoRenderer remoteRender;
 
+    private VOIPCapture capture;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +53,11 @@ public class VOIPVideoActivity extends VOIPActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        capture = new VOIPCapture(true, remoteRender.nativeVideoRenderer);
+        capture.nativeInit();
+        capture.startCapture();
+
         super.onCreate(savedInstanceState);
 
     }
@@ -62,6 +68,13 @@ public class VOIPVideoActivity extends VOIPActivity {
 
     protected void startStream() {
         super.startStream();
+
+        if (capture != null) {
+            capture.stopCapture();
+            capture.destroyNative();
+            capture = null;
+        }
+
 
         if (this.voip != null) {
             Log.w(TAG, "voip is active");
@@ -106,7 +119,7 @@ public class VOIPVideoActivity extends VOIPActivity {
             e.printStackTrace();
         }
 
-        this.voip = new VOIPEngine(this.isCaller, token, selfUID, peerUID, relayIP, VOIPSession.VOIP_PORT,
+        this.voip = new VOIPEngine(this.isCaller, true, token, selfUID, peerUID, relayIP, VOIPSession.VOIP_PORT,
                 peerIP, peerPort, localRender.nativeVideoRenderer, remoteRender.nativeVideoRenderer);
         this.voip.initNative();
         this.voip.start();
@@ -120,11 +133,14 @@ public class VOIPVideoActivity extends VOIPActivity {
 
     protected void stopStream() {
         super.stopStream();
+
+
         if (this.voip == null) {
             Log.w(TAG, "voip is inactive");
             return;
         }
-        Log.i(TAG, "stop stream");
+        boolean p2p = this.voip.isP2P();
+        Log.i(TAG, "stop stream p2p:" + p2p);
         this.voip.stop();
         this.voip.destroyNative();
         this.voip = null;
@@ -143,6 +159,11 @@ public class VOIPVideoActivity extends VOIPActivity {
         if (this.voip != null) {
             Log.e(TAG, "voip is not null");
             System.exit(1);
+        }
+        if (capture != null) {
+            capture.stopCapture();
+            capture.destroyNative();
+            capture = null;
         }
         VideoRendererGui.dispose();
         super.onDestroy();

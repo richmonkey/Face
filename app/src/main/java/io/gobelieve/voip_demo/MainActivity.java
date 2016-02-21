@@ -16,9 +16,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.beetle.NativeWebRtcContextRegistry;
+import com.beetle.voip.VOIPCommand;
+import com.beetle.im.VOIPControl;
+import com.beetle.im.VOIPObserver;
 import com.beetle.voip.VOIPService;
-import com.beetle.voip.VOIPControl;
-import com.beetle.voip.VOIPObserver;
+import com.beetle.voip.VOIPSession;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -64,8 +66,9 @@ public class MainActivity extends ActionBarActivity implements VOIPObserver {
                 Settings.Secure.ANDROID_ID);
 
         //app可以单独部署服务器，给予第三方应用更多的灵活性
-        //在开发阶段也可以配置成测试环境的地址 "sandbox.voipnode.gobelieve.io"
-        String sdkHost = "voipnode.gobelieve.io";
+        //在开发阶段也可以配置成测试环境的地址 "sandbox.voipnode.gobelieve.io", "sandbox.imnode.gobelieve.io"
+        VOIPSession.setVOIPHost("voipnode.gobelieve.io");
+        String sdkHost = "imnode.gobelieve.io";
         VOIPService.getInstance().setHost(sdkHost);
         VOIPService.getInstance().registerConnectivityChangeReceiver(getApplicationContext());
         VOIPService.getInstance().setDeviceID(androidID);
@@ -296,7 +299,8 @@ public class MainActivity extends ActionBarActivity implements VOIPObserver {
         }
     }
     public void onVOIPControl(VOIPControl ctl) {
-        if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
+        VOIPCommand command = new VOIPCommand(ctl.content);
+        if (command.cmd == VOIPCommand.VOIP_COMMAND_DIAL) {
             if (ctl.sender == peerUID) {
                 dialog.dismiss();
 
@@ -309,7 +313,7 @@ public class MainActivity extends ActionBarActivity implements VOIPObserver {
                 intent.putExtra("is_caller", false);
                 startActivity(intent);
             }
-        } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL_VIDEO) {
+        } else if (command.cmd == VOIPCommand.VOIP_COMMAND_DIAL_VIDEO) {
             if (ctl.sender == peerUID) {
                 dialog.dismiss();
 
