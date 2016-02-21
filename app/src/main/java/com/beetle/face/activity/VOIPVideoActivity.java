@@ -8,16 +8,14 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Switch;
 
 import com.beetle.VOIPEngine;
 import com.beetle.face.Token;
-import com.beetle.voip.BytePacket;
-import com.beetle.voip.Timer;
+import com.beetle.im.BytePacket;
+import com.beetle.im.Timer;
 import com.beetle.voip.VOIPSession;
 
 import org.webrtc.RendererCommon;
@@ -169,7 +167,7 @@ public class VOIPVideoActivity extends VOIPActivity {
             e.printStackTrace();
         }
 
-        this.voip = new VOIPEngine(this.isCaller, token, selfUID, peer.uid, relayIP, VOIPSession.VOIP_PORT,
+        this.voip = new VOIPEngine(this.isCaller, true, token, selfUID, peer.uid, relayIP, VOIPSession.VOIP_PORT,
                 peerIP, peerPort, localRender.nativeVideoRenderer, remoteRender.nativeVideoRenderer);
         this.voip.initNative();
         this.voip.start();

@@ -39,10 +39,8 @@ import com.beetle.face.tools.Notification;
 import com.beetle.face.tools.NotificationCenter;
 import com.beetle.face.tools.Rom;
 import com.beetle.voip.VOIPService;
-import com.beetle.voip.Timer;
+import com.beetle.im.Timer;
 
-import com.beetle.voip.VOIPControl;
-import com.beetle.voip.VOIPObserver;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;

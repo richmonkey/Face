@@ -12,8 +12,9 @@ import com.beetle.face.model.ContactDB;
 import com.beetle.face.model.HistoryDB;
 import com.beetle.face.tools.event.BusProvider;
 import com.beetle.face.tools.event.LoginSuccessEvent;
-import com.beetle.voip.VOIPControl;
-import com.beetle.voip.VOIPObserver;
+import com.beetle.im.VOIPControl;
+import com.beetle.im.VOIPObserver;
+import com.beetle.voip.VOIPCommand;
 import com.beetle.voip.VOIPService;
 
 import com.google.code.p.leveldb.LevelDB;
@@ -76,16 +77,17 @@ public class FaceApplication  extends Application implements VOIPObserver {
     public void onVOIPControl(VOIPControl ctl) {
         VOIPState state = VOIPState.getInstance();
 
-        Log.i(TAG, "voip state:" + state.state + " command:" + ctl.cmd);
+        VOIPCommand command = new VOIPCommand(ctl.content);
+        Log.i(TAG, "voip state:" + state.state + " command:" + command.cmd);
         if (state.state == VOIPState.VOIP_WAITING) {
-            if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL) {
+            if (command.cmd == VOIPCommand.VOIP_COMMAND_DIAL) {
                 Intent intent = new Intent(this, VOIPVoiceActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("peer_uid", ctl.sender);
                 intent.putExtra("is_caller", false);
                 state.state = VOIPState.VOIP_TALKING;
                 startActivity(intent);
-            } else if (ctl.cmd == VOIPControl.VOIP_COMMAND_DIAL_VIDEO) {
+            } else if (command.cmd == VOIPCommand.VOIP_COMMAND_DIAL_VIDEO) {
                 Intent intent = new Intent(this, VOIPVideoActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("peer_uid", ctl.sender);

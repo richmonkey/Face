@@ -37,14 +37,10 @@ import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.UserDB;
 import com.beetle.face.tools.Notification;
 import com.beetle.face.tools.NotificationCenter;
-import com.beetle.voip.BytePacket;
 import com.beetle.voip.VOIPService;
-import com.beetle.voip.Timer;
 import com.squareup.picasso.Picasso;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Date;
-
+import com.beetle.im.Timer;
 
 import static android.os.SystemClock.uptimeMillis;
 
