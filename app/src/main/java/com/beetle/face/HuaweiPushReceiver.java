@@ -44,7 +44,6 @@ public class HuaweiPushReceiver extends PushEventReceiver {
         try {
             String content = new String(msg, "UTF-8");
             Log.d(TAG, "收到一条huaweiPush消息： " + content);
-//            showPushMessage(PustDemoActivity.RECEIVE_PUSH_MSG, content);
         } catch (Exception e) {
             e.printStackTrace();
         }

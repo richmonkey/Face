@@ -1,16 +1,18 @@
 package com.beetle.face;
 
 import android.content.Context;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.beetle.face.tools.event.BusProvider;
 import com.beetle.face.tools.event.DeviceTokenEvent;
 import com.xiaomi.mipush.sdk.ErrorCode;
-import com.xiaomi.mipush.sdk.MiPushClient;
 import com.xiaomi.mipush.sdk.MiPushCommandMessage;
 import com.xiaomi.mipush.sdk.MiPushMessage;
 import com.xiaomi.mipush.sdk.PushMessageReceiver;
+
+import java.util.List;
 
 
 /**
@@ -110,11 +112,18 @@ public class XiaomiPushReceiver extends PushMessageReceiver  {
     public void onReceiveRegisterResult(Context context, MiPushCommandMessage message) {
         Log.d(TAG, "onReceiveRegisterResult " + message);
         if (message!=null && message.getCommandArguments()!=null && message.getCommandArguments().size()>0) {
-            Log.d(TAG, "xiaomi device token: " + message.getCommandArguments().get(0));
-            DeviceTokenEvent e = new DeviceTokenEvent();
+            Log.d(TAG, "post xiaomi device token: " + message.getCommandArguments().get(0));
+            final DeviceTokenEvent e = new DeviceTokenEvent();
             e.xmDeviceToken = message.getCommandArguments().get(0);
-            BusProvider.getInstance().post(e);
-            //PushDemoApplication.getApplication().setXiaomiPushToken(message.getCommandArguments().get(0));
+
+            Handler mainHandler = new Handler(context.getMainLooper());
+            Runnable myRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    BusProvider.getInstance().post(e);
+                }
+            };
+            mainHandler.post(myRunnable);
         }
     }
 }

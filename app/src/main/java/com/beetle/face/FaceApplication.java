@@ -73,6 +73,9 @@ public class FaceApplication  extends Application implements VOIPObserver {
                 Settings.Secure.ANDROID_ID);
         im.setDeviceID(androidID);
         im.registerConnectivityChangeReceiver(getApplicationContext());
+
+        BusProvider.getInstance().register(this);
+
         //already login
         if (Token.getInstance().uid > 0) {
             im.setToken(Token.getInstance().accessToken);
@@ -85,7 +88,7 @@ public class FaceApplication  extends Application implements VOIPObserver {
             }
         }
 
-        BusProvider.getInstance().register(this);
+
     }
 
     private boolean isAppProcess() {
