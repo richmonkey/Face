@@ -1,7 +1,13 @@
 package com.beetle.face.activity;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -430,7 +436,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                     }
                 });
 
-
+        createSyncAccount();
         openAutoRunSetting();
         Log.i(TAG, "main activity oncreate");
     }
@@ -723,6 +729,30 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         long t = date.getTime();
         return (int)(t/1000);
     }
+
+    private static final String ACCOUNT_TYPE = "com.beetle.face";
+    public static final String CONTENT_AUTHORITY = "com.android.contacts";
+    private static final long SYNC_FREQUENCY = 60;  //(in seconds)
+
+    public void createSyncAccount() {
+        User u = UserDB.getInstance().loadUser(Token.getInstance().uid);
+        if (u == null) {
+            return;
+        }
+        Account account = new Account(u.number, ACCOUNT_TYPE);
+        AccountManager accountManager = (AccountManager) getSystemService(Context.ACCOUNT_SERVICE);
+        if (accountManager.addAccountExplicitly(account, null, null)) {
+            // Inform the system that this account supports sync
+            ContentResolver.setIsSyncable(account, CONTENT_AUTHORITY, 1);
+            ContentResolver.setSyncAutomatically(account, CONTENT_AUTHORITY, true);
+            // Recommend a schedule for automatic synchronization. The system may modify this based
+            // on other scheduled syncs and network utilization.
+            ContentResolver.addPeriodicSync(
+                    account, CONTENT_AUTHORITY, new Bundle(),SYNC_FREQUENCY);
+            Log.i(TAG, "add account periodic sync");
+        }
+    }
+
 
 }
 
