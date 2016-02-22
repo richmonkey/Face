@@ -2,11 +2,11 @@ package com.beetle.face.activity;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -15,7 +15,6 @@ import android.view.WindowManager;
 import com.beetle.VOIPEngine;
 import com.beetle.face.Token;
 import com.beetle.im.BytePacket;
-import com.beetle.im.Timer;
 import com.beetle.voip.VOIPSession;
 
 import org.webrtc.RendererCommon;
@@ -46,6 +45,11 @@ public class VOIPVideoActivity extends VOIPActivity {
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        getWindow().addFlags( WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
         setContentView(R.layout.activity_voip_video);
 
