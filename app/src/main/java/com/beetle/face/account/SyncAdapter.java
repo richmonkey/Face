@@ -22,7 +22,10 @@ import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.SyncResult;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+
+import com.beetle.voip.VOIPService;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
@@ -40,5 +43,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle extras, String authority,
             ContentProviderClient provider, SyncResult syncResult) {
         Log.d(TAG, "sync contacts!");
+        Handler mainHandler = new Handler(mContext.getMainLooper());
+        Runnable myRunnable = new Runnable() {
+            @Override
+            public void run() {
+                VOIPService.getInstance().sendHeartbeat();
+            }
+        };
+        mainHandler.post(myRunnable);
     }
 }

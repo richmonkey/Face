@@ -876,7 +876,12 @@ public class IMService {
         sendMessage(msg);
     }
 
-    private void sendHeartbeat() {
+    public boolean sendHeartbeat() {
+        int now = now();
+        if (this.pingTimestamp > 0 && (now - this.pingTimestamp) < 60) {
+            //ping过快
+            return false;
+        }
         Log.i(TAG, "send ping");
         Message msg = new Message();
         msg.cmd = Command.MSG_PING;
@@ -884,6 +889,7 @@ public class IMService {
         if (r && this.pingTimestamp == 0) {
             this.pingTimestamp = now();
 
+            Log.i(TAG, "set ping timeout timer");
             Timer t = new Timer() {
                 @Override
                 protected void fire() {
@@ -900,6 +906,7 @@ public class IMService {
             t.setTimer(uptimeMillis()+1000*3+100);
             t.resume();
         }
+        return r;
     }
 
     private boolean sendMessage(Message msg) {
