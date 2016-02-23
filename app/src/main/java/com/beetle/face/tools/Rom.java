@@ -95,11 +95,21 @@ public class Rom {
         }
     }
 
-
     public static void openOppoAutoRunSetting(Context context) {
         try {
             Intent i = new Intent();
             ComponentName comp = new ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity");
+            i.setComponent(comp);
+            context.startActivity(i);
+        } catch (ActivityNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void openMIUIAutoRunSetting(Context context) {
+        try {
+            Intent i = new Intent();
+            ComponentName comp = new ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity");
             i.setComponent(comp);
             context.startActivity(i);
         } catch (ActivityNotFoundException e) {
@@ -112,6 +122,8 @@ public class Rom {
             openOppoAutoRunSetting(context);
         } else if (isH2OS()) {
             openH2OSAutoRunSetting(context);
+        } else if (isMIUI()) {
+            openMIUIAutoRunSetting(context);
         }
     }
 }
