@@ -2,9 +2,6 @@ package com.beetle.face.activity;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -18,6 +15,7 @@ import android.os.Handler;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -65,7 +63,7 @@ import static android.os.SystemClock.uptimeMillis;
 /**
  * Created by houxh on 14-8-12.
  */
-public class MainActivity extends Activity implements AdapterView.OnItemClickListener,
+public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener,
         ContactDB.ContactObserver, NotificationCenter.NotificationCenterObserver{
     private static final String HISTORY_NAME = "history";
     ArrayList<User> users;
