@@ -730,7 +730,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
     private static final String ACCOUNT_TYPE = "com.beetle.face";
     public static final String CONTENT_AUTHORITY = "com.android.contacts";
-    private static final long SYNC_FREQUENCY = 3*60;  //(in seconds)
+    private static final long SYNC_FREQUENCY = 2*60;  //(in seconds)
 
     public void createSyncAccount() {
         User u = UserDB.getInstance().loadUser(Token.getInstance().uid);

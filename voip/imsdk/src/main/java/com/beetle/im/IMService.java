@@ -877,9 +877,7 @@ public class IMService {
     }
 
     public boolean sendHeartbeat() {
-        int now = now();
-        if (this.pingTimestamp > 0 && (now - this.pingTimestamp) < 60) {
-            //ping过快
+        if (this.pingTimestamp > 0) {
             return false;
         }
         Log.i(TAG, "send ping");
