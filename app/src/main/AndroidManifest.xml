@@ -85,12 +85,12 @@
         <activity
             android:name="com.beetle.face.activity.VOIPVoiceActivity"
             android:screenOrientation="portrait"
-            android:label="voip_voice" >
+            android:label="@string/app_name" >
         </activity>
         <activity
             android:name="com.beetle.face.activity.VOIPVideoActivity"
             android:screenOrientation="portrait"
-            android:label="voip_video" >
+            android:label="@string/app_name" >
         </activity>
 
         <receiver android:name=".BootReceiver">
