@@ -116,6 +116,14 @@
         </receiver>
 
 
+        <service
+            android:name=".service.ForegroundService">
+        </service>
+
+        <service
+            android:name=".service.AssistService">
+        </service>
+
         <!-- 华为推送相关 begin -->
         <!-- 第三方相关 :接收Push消息（注册、Push消息、Push连接状态、标签，LBS上报结果）广播 -->
         <receiver android:name="com.beetle.face.HuaweiPushReceiver" >

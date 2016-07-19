@@ -39,6 +39,7 @@ import com.beetle.face.model.History;
 import com.beetle.face.model.HistoryDB;
 import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.UserDB;
+import com.beetle.face.service.ForegroundService;
 import com.beetle.face.tools.Notification;
 import com.beetle.face.tools.NotificationCenter;
 import com.beetle.face.tools.Rom;
@@ -436,6 +437,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         createSyncAccount();
         openAutoRunSetting();
+
+        Intent service = new Intent(this, ForegroundService.class);
+        startService(service);
         Log.i(TAG, "main activity oncreate");
     }
 
