@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -57,9 +56,9 @@ public class Rom {
     }
 
     public static boolean isMIUI() {
-        return getSystemProperty(KEY_MIUI_VERSION_CODE) != null
-                || getSystemProperty(KEY_MIUI_VERSION_NAME) != null
-                || getSystemProperty(KEY_MIUI_INTERNAL_STORAGE) != null;
+        return !TextUtils.isEmpty(getSystemProperty(KEY_MIUI_VERSION_CODE))
+                || !TextUtils.isEmpty(getSystemProperty(KEY_MIUI_VERSION_NAME))
+                || !TextUtils.isEmpty(getSystemProperty(KEY_MIUI_INTERNAL_STORAGE));
     }
 
     public static boolean isH2OS() {
