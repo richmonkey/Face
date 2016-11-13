@@ -2,22 +2,53 @@ package io.gobelieve.voip_demo;
 
 import android.content.Context;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 
-import com.beetle.VOIPEngine;
-import com.beetle.im.BytePacket;
-import com.beetle.voip.VOIPSession;
+import org.webrtc.EglBase;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 /**
  * Created by houxh on 15/9/8.
  */
 public class VOIPVoiceActivity extends VOIPActivity {
+
+    protected Handler sHandler;
+
+    Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            int flags;
+            int curApiVersion = android.os.Build.VERSION.SDK_INT;
+            // This work only for android 4.4+
+            if (curApiVersion >= Build.VERSION_CODES.KITKAT) {
+                // This work only for android 4.4+
+                // hide navigation bar permanently in android activity
+                // touch the screen, the navigation bar will not show
+                flags = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN;
+
+            } else {
+                // touch the screen, the navigation bar will show
+                flags = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+            }
+
+            // must be executed in main thread :)
+            getWindow().getDecorView().setSystemUiVisibility(flags);
+        }
+    };
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -26,87 +57,55 @@ public class VOIPVoiceActivity extends VOIPActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.activity_voip_voice);
+
+        getIntent().putExtra(EXTRA_VIDEO_CALL, false);
+
         super.onCreate(savedInstanceState);
+
+
+        sHandler = new Handler();
+        sHandler.post(mHideRunnable);
+        final View decorView = getWindow().getDecorView();
+        View.OnSystemUiVisibilityChangeListener sl = new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int visibility)
+            {
+                sHandler.post(mHideRunnable);
+            }
+        };
+        decorView.setOnSystemUiVisibilityChangeListener(sl);
+
+
+        handUpButton = (Button)findViewById(R.id.hang_up);
+        acceptButton = (ImageButton)findViewById(R.id.accept);
+        refuseButton = (ImageButton)findViewById(R.id.refuse);
+        durationTextView = (TextView)findViewById(R.id.duration);
+
+        ImageView header = (ImageView)findViewById(R.id.header);
+        header.setImageResource(R.drawable.avatar_contact);
+
+
+        // Create video renderers.
+        rootEglBase = EglBase.create();
+
+        if (isCaller) {
+            dial();
+        } else {
+            waitAccept();
+        }
+
     }
 
     protected void dial() {
+        super.dial();
         this.voipSession.dial();
     }
 
-    protected void startStream() {
-        super.startStream();
 
-        if (this.voip != null) {
-            Log.w(TAG, "voip is active");
-            return;
-        }
-
-        try {
-            if (this.voipSession.localNatMap != null && this.voipSession.localNatMap.ip != 0) {
-                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.localNatMap.ip)).getHostAddress();
-                int port = this.voipSession.localNatMap.port;
-                Log.i(TAG, "local nat map:" + ip + ":" + port);
-            }
-            if (this.voipSession.peerNatMap != null && this.voipSession.peerNatMap.ip != 0) {
-                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.peerNatMap.ip)).getHostAddress();
-                int port = this.voipSession.peerNatMap.port;
-                Log.i(TAG, "peer nat map:" + ip + ":" + port);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (isP2P()) {
-            Log.i(TAG, "start p2p stream");
-        } else {
-            Log.i(TAG, "start stream");
-        }
-
-        long selfUID = currentUID;
-        String relayIP = this.voipSession.getRelayIP();
-        if (relayIP == null) {
-            relayIP = "121.42.143.50";
-        }
-        Log.i(TAG, "relay ip:" + relayIP);
-        String peerIP = "";
-        int peerPort = 0;
-        try {
-            if (isP2P()) {
-                peerIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.peerNatMap.ip)).getHostAddress();
-                peerPort = this.voipSession.peerNatMap.port;
-                Log.i(TAG, "peer ip:" + peerIP + " port:" + peerPort);
-            }
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-
-        this.voip = new VOIPEngine(this.isCaller, true, token, selfUID, peerUID, relayIP, VOIPSession.VOIP_PORT,
-                peerIP, peerPort);
-        this.voip.initNative();
-        this.voip.start();
-
-        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        audioManager.setSpeakerphoneOn(false);
-    }
-
-    protected void stopStream() {
-        super.stopStream();
-        if (this.voip == null) {
-            Log.w(TAG, "voip is inactive");
-            return;
-        }
-        boolean p2p = this.voip.isP2P();
-        Log.i(TAG, "stop stream p2p:" + p2p);
-        this.voip.stop();
-        this.voip.destroyNative();
-        this.voip = null;
-    }
 
     @Override
     protected void onDestroy () {
-        if (this.voip != null) {
-            Log.e(TAG, "voip is not null");
-            System.exit(1);
-        }
+
         super.onDestroy();
     }
 
