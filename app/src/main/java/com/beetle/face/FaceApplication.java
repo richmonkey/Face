@@ -9,7 +9,6 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.beetle.NativeWebRtcContextRegistry;
 import com.beetle.face.activity.VOIPVideoActivity;
 import com.beetle.face.activity.VOIPVoiceActivity;
 import com.beetle.face.api.IMHttpFactory;
@@ -64,10 +63,9 @@ public class FaceApplication  extends Application implements VOIPObserver {
 
         HistoryDB.initDatabase(getApplicationContext());
 
-        new NativeWebRtcContextRegistry().register(this);
-
         VOIPService im =  VOIPService.getInstance();
         im.setHost(Config.SDK_HOST);
+        im.setIsSync(false);
 
         String androidID = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);

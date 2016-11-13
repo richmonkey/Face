@@ -1,5 +1,4 @@
-include ':app', ':voipsession', ':voipengine', ":asynctcp", ':imsdk'
+include ':app', ':voipsession', ":asynctcp", ':imsdk'
 project(':voipsession').projectDir = new File('voip/voipsession')
-project(':voipengine').projectDir = new File('voip/voipengine')
 project(':asynctcp').projectDir = new File('voip/asynctcp')
 project(':imsdk').projectDir = new File('voip/imsdk')

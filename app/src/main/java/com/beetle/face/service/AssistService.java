@@ -45,13 +45,19 @@ public class AssistService extends Service {
 
 
     private Notification getNotification() {
-        Notification notification = new Notification();
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
         String appName = getResources().getString(R.string.app_name);
         String running = getResources().getString(R.string.running);
-        notification.setLatestEventInfo(this, appName, running, pendingIntent);
+
+        Notification notification = new Notification.Builder(this)
+                .setAutoCancel(true)
+                .setContentTitle(appName)
+                .setContentText(running)
+                .setContentIntent(pendingIntent)
+                .setWhen(System.currentTimeMillis())
+                .build();
         return notification;
     }
 

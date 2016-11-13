@@ -5,11 +5,28 @@
     android:layout_height="match_parent"
     >
 
-    <io.gobelieve.voip_demo.RTCRenderView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/render"
-        android:layout_alignParentTop="true"/>
+
+
+    <com.beetle.face.activity.PercentFrameLayout
+        android:id="@+id/remote_video_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <org.webrtc.SurfaceViewRenderer
+            android:id="@+id/remote_video_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </com.beetle.face.activity.PercentFrameLayout>
+
+    <com.beetle.face.activity.PercentFrameLayout
+        android:id="@+id/local_video_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <org.webrtc.SurfaceViewRenderer
+            android:id="@+id/local_video_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </com.beetle.face.activity.PercentFrameLayout>
+
 
     <LinearLayout
         android:id="@+id/control"

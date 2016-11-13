@@ -22,9 +22,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.beetle.VOIPEngine;
 import com.beetle.voip.VOIPSession;
-import com.beetle.face.Config;
 import com.beetle.face.R;
 import com.beetle.face.Token;
 import com.beetle.face.VOIPState;
@@ -44,169 +42,63 @@ import com.beetle.im.Timer;
 
 import static android.os.SystemClock.uptimeMillis;
 
-public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObserver {
+public class VOIPActivity extends WebRTCActivity implements VOIPSession.VOIPSessionObserver {
 
     protected static final String TAG = "face";
+
+
+    protected String peerName;
     protected User peer;
-    protected boolean isCaller;
 
     private History history = new History();
 
-    private Button handUpButton;
-    private ImageButton refuseButton;
-    private ImageButton acceptButton;
+    protected Button handUpButton;
+    protected ImageButton refuseButton;
+    protected ImageButton acceptButton;
     protected ImageView  headView;
     protected TextView durationTextView;
 
-    protected VOIPEngine voip;
     private int duration;
     private Timer durationTimer;
 
     private MediaPlayer player;
 
-    private static Handler sHandler;
 
 
     protected VOIPSession voipSession;
     protected boolean isConnected;
 
-    protected boolean isP2P() {
-        //return false;
-        if (this.voipSession.localNatMap == null || this.voipSession.peerNatMap == null) {
-            return false;
-        }
-        if (this.voipSession.localNatMap.ip != 0 && this.voipSession.peerNatMap.ip != 0) {
-            return true;
-        }
-        return  false;
-    }
-
-    Runnable mHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            int flags;
-            int curApiVersion = android.os.Build.VERSION.SDK_INT;
-            // This work only for android 4.4+
-            if (curApiVersion >= Build.VERSION_CODES.KITKAT) {
-                // This work only for android 4.4+
-                // hide navigation bar permanently in android activity
-                // touch the screen, the navigation bar will not show
-                flags = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN;
-
-            } else {
-                // touch the screen, the navigation bar will show
-                flags = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            }
-
-            // must be executed in main thread :)
-            getWindow().getDecorView().setSystemUiVisibility(flags);
-        }
-    };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        currentUID = Token.getInstance().uid;
+        token = Token.getInstance().accessToken;
+
         super.onCreate(savedInstanceState);
-
-        sHandler = new Handler();
-        sHandler.post(mHideRunnable);
-        final View decorView = getWindow().getDecorView();
-        View.OnSystemUiVisibilityChangeListener sl = new View.OnSystemUiVisibilityChangeListener() {
-            @Override
-            public void onSystemUiVisibilityChange(int visibility)
-            {
-                sHandler.post(mHideRunnable);
-            }
-        };
-        decorView.setOnSystemUiVisibilityChangeListener(sl);
-
-
-        handUpButton = (Button)findViewById(R.id.hang_up);
-        acceptButton = (ImageButton)findViewById(R.id.accept);
-        refuseButton = (ImageButton)findViewById(R.id.refuse);
-        durationTextView = (TextView)findViewById(R.id.duration);
-
-        ImageView header = (ImageView)findViewById(R.id.header);
-        headView = header;
-
         Intent intent = getIntent();
 
         isCaller = intent.getBooleanExtra("is_caller", false);
-        long peerUID = intent.getLongExtra("peer_uid", 0);
-
+        peerUID = intent.getLongExtra("peer_uid", 0);
         if (peerUID == 0) {
             Log.e(TAG, "peer uid is 0");
+            finish();
             return;
         }
-
         peer = loadUser(peerUID);
         if (peer == null) {
             Log.e(TAG, "load user fail");
+            finish();
             return;
         }
+        peerName = peer.name;
 
-        if (!TextUtils.isEmpty(peer.avatar)) {
-            Picasso.with(getBaseContext())
-                    .load(peer.avatar)
-                    .placeholder(R.drawable.avatar_contact)
-                    .into(header);
-        }
+
 
         voipSession = new VOIPSession(Token.getInstance().uid, peerUID);
         voipSession.setObserver(this);
-        voipSession.holePunch();
-
         VOIPService.getInstance().pushVOIPObserver(this.voipSession);
+        VOIPService.getInstance().addRTObserver(this);
 
-        if (isCaller) {
-            this.history.flag = History.FLAG_OUT;
-            handUpButton.setVisibility(View.VISIBLE);
-            acceptButton.setVisibility(View.GONE);
-            refuseButton.setVisibility(View.GONE);
-
-            dial();
-
-            try {
-                AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.call);
-                player = new MediaPlayer();
-                player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-                afd.close();
-                player.setLooping(true);
-                player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-
-                AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-                am.setSpeakerphoneOn(false);
-                am.setMode(AudioManager.STREAM_MUSIC);
-                player.prepare();
-                player.start();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        } else {
-            handUpButton.setVisibility(View.GONE);
-            acceptButton.setVisibility(View.VISIBLE);
-            refuseButton.setVisibility(View.VISIBLE);
-
-            try {
-                AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.start);
-                player = new MediaPlayer();
-                player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-                afd.close();
-                player.setLooping(true);
-                player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-                am.setSpeakerphoneOn(true);
-                am.setMode(AudioManager.STREAM_MUSIC);
-                player.prepare();
-                player.start();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
         this.history.createTimestamp = getNow();
         this.history.peerUID = peerUID;
     }
@@ -227,41 +119,19 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
 
     @Override
     protected void onDestroy () {
-        if (this.voip != null) {
-            Log.e(TAG, "voip is not null");
-            System.exit(1);
-        }
         VOIPState state = VOIPState.getInstance();
         state.state = VOIPState.VOIP_WAITING;
 
         VOIPService.getInstance().popVOIPObserver(this.voipSession);
+        VOIPService.getInstance().removeRTObserver(this);
+
         HistoryDB.getInstance().addHistory(this.history);
         Notification n = new Notification(this.history, "history");
         NotificationCenter.defaultCenter().postNotification(n);
         super.onDestroy();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_voip, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -323,10 +193,54 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
 
 
     protected void dial() {
+        this.history.flag = History.FLAG_OUT;
+        handUpButton.setVisibility(View.VISIBLE);
+        acceptButton.setVisibility(View.GONE);
+        refuseButton.setVisibility(View.GONE);
 
+        try {
+            AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.call);
+            player = new MediaPlayer();
+            player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            afd.close();
+            player.setLooping(true);
+            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+            AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+            am.setSpeakerphoneOn(false);
+            am.setMode(AudioManager.STREAM_MUSIC);
+            player.prepare();
+            player.start();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void waitAccept() {
+        handUpButton.setVisibility(View.GONE);
+        acceptButton.setVisibility(View.VISIBLE);
+        refuseButton.setVisibility(View.VISIBLE);
+
+        try {
+            AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.start);
+            player = new MediaPlayer();
+            player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            afd.close();
+            player.setLooping(true);
+            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+            am.setSpeakerphoneOn(true);
+            am.setMode(AudioManager.STREAM_MUSIC);
+            player.prepare();
+            player.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     protected void startStream() {
+        super.startStream();
         durationTextView.setVisibility(View.VISIBLE);
         this.duration = 0;
         this.durationTimer = new Timer() {
@@ -334,7 +248,6 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
             protected void fire() {
                 VOIPActivity.this.duration += 1;
                 String text = String.format("%02d:%02d", VOIPActivity.this.duration/60, VOIPActivity.this.duration%60);
-                Log.i(TAG, "ddd:" + text);
                 durationTextView.setText(text);
             }
         };
@@ -343,6 +256,7 @@ public class VOIPActivity extends Activity implements VOIPSession.VOIPSessionObs
     }
 
     protected void stopStream() {
+        super.stopStream();
         this.durationTimer.suspend();
         this.durationTimer = null;
     }
