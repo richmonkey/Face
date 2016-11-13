@@ -153,6 +153,9 @@ public class VOIPVideoActivity extends VOIPActivity {
         remoteRenderScreen.setOnClickListener(listener);
         remoteRenderers.add(remoteRenderScreen);
 
+        localRender.setVisibility(View.GONE);
+        remoteRenderScreen.setVisibility(View.GONE);
+
 
         // Create video renderers.
         rootEglBase = EglBase.create();
@@ -240,6 +243,9 @@ public class VOIPVideoActivity extends VOIPActivity {
 
     protected void startStream() {
         super.startStream();
+
+        localRender.setVisibility(View.VISIBLE);
+        remoteRenderScreen.setVisibility(View.VISIBLE);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
