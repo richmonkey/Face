@@ -1,171 +1,214 @@
 package io.gobelieve.voip_demo;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
-import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Switch;
 
-import com.beetle.VOIPCapture;
-import com.beetle.VOIPEngine;
-import com.beetle.im.BytePacket;
-import com.beetle.voip.VOIPSession;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
+
+import com.beetle.im.RTMessage;
+import com.beetle.voip.VOIPService;
+
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.webrtc.Camera1Enumerator;
+import org.webrtc.Camera2Enumerator;
+import org.webrtc.CameraEnumerator;
+import org.webrtc.EglBase;
+import org.webrtc.FileVideoCapturer;
+import org.webrtc.IceCandidate;
+import org.webrtc.PeerConnection;
 import org.webrtc.RendererCommon;
+import org.webrtc.SessionDescription;
+import org.webrtc.StatsReport;
+import org.webrtc.SurfaceViewRenderer;
+import org.webrtc.VideoCapturer;
+import org.webrtc.VideoFileRenderer;
 import org.webrtc.VideoRenderer;
-import org.webrtc.VideoRendererGui;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
-import static android.os.SystemClock.uptimeMillis;
+import java.io.IOException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * Created by houxh on 15/9/8.
  */
-public class VOIPVideoActivity extends VOIPActivity {
+public class VOIPVideoActivity extends VOIPActivity  {
 
-    private VideoRenderer localRender;
-    private VideoRenderer remoteRender;
+    // Local preview screen position before call is connected.
+    private static final int LOCAL_X_CONNECTING = 0;
+    private static final int LOCAL_Y_CONNECTING = 0;
+    private static final int LOCAL_WIDTH_CONNECTING = 100;
+    private static final int LOCAL_HEIGHT_CONNECTING = 100;
+    // Local preview screen position after call is connected.
+    private static final int LOCAL_X_CONNECTED = 72;
+    private static final int LOCAL_Y_CONNECTED = 72;
+    private static final int LOCAL_WIDTH_CONNECTED = 25;
+    private static final int LOCAL_HEIGHT_CONNECTED = 25;
+    // Remote video screen position
+    private static final int REMOTE_X = 0;
+    private static final int REMOTE_Y = 0;
+    private static final int REMOTE_WIDTH = 100;
+    private static final int REMOTE_HEIGHT = 100;
 
-    private VOIPCapture capture;
+
+    protected PercentFrameLayout localRenderLayout;
+    protected PercentFrameLayout remoteRenderLayout;
+    protected RendererCommon.ScalingType scalingType;
+
+
+    protected Handler sHandler;
+
+    Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            int flags;
+            int curApiVersion = android.os.Build.VERSION.SDK_INT;
+            // This work only for android 4.4+
+            if (curApiVersion >= Build.VERSION_CODES.KITKAT) {
+                // This work only for android 4.4+
+                // hide navigation bar permanently in android activity
+                // touch the screen, the navigation bar will not show
+                flags = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN;
+
+            } else {
+                // touch the screen, the navigation bar will show
+                flags = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+            }
+
+            // must be executed in main thread :)
+            getWindow().getDecorView().setSystemUiVisibility(flags);
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.activity_voip_video);
-
-        GLSurfaceView renderView = (GLSurfaceView) findViewById(R.id.render);
-        VideoRendererGui.setView(renderView, null);
-
-        try {
-            remoteRender = VideoRendererGui.createGui(0, 0, 100, 100, RendererCommon.ScalingType.SCALE_ASPECT_FIT, false);
-            localRender = VideoRendererGui.createGui(70, 75, 25, 25, RendererCommon.ScalingType.SCALE_ASPECT_FIT, false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        capture = new VOIPCapture(true, remoteRender.nativeVideoRenderer);
-        capture.nativeInit();
-        capture.startCapture();
-
+        getIntent().putExtra(EXTRA_VIDEO_CALL, true);
         super.onCreate(savedInstanceState);
 
+        sHandler = new Handler();
+        sHandler.post(mHideRunnable);
+        final View decorView = getWindow().getDecorView();
+        View.OnSystemUiVisibilityChangeListener sl = new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int visibility)
+            {
+                sHandler.post(mHideRunnable);
+            }
+        };
+        decorView.setOnSystemUiVisibilityChangeListener(sl);
+
+        handUpButton = (Button)findViewById(R.id.hang_up);
+        acceptButton = (ImageButton)findViewById(R.id.accept);
+        refuseButton = (ImageButton)findViewById(R.id.refuse);
+        durationTextView = (TextView)findViewById(R.id.duration);
+
+        ImageView header = (ImageView)findViewById(R.id.header);
+        header.setImageResource(R.drawable.avatar_contact);
+
+        scalingType = RendererCommon.ScalingType.SCALE_ASPECT_FILL;
+
+        // Create UI controls.
+        localRender = (SurfaceViewRenderer) findViewById(R.id.local_video_view);
+        remoteRenderScreen = (SurfaceViewRenderer) findViewById(R.id.remote_video_view);
+        localRenderLayout = (PercentFrameLayout) findViewById(R.id.local_video_layout);
+        remoteRenderLayout = (PercentFrameLayout) findViewById(R.id.remote_video_layout);
+
+        // Show/hide call control fragment on view click.
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        };
+
+        localRender.setOnClickListener(listener);
+        remoteRenderScreen.setOnClickListener(listener);
+        remoteRenderers.add(remoteRenderScreen);
+
+
+        // Create video renderers.
+        rootEglBase = EglBase.create();
+        localRender.init(rootEglBase.getEglBaseContext(), null);
+
+        remoteRenderScreen.init(rootEglBase.getEglBaseContext(), null);
+
+        localRender.setZOrderMediaOverlay(true);
+
+        updateVideoView();
+
+        if (isCaller) {
+            dial();
+        } else {
+            waitAccept();
+        }
     }
 
     protected void dial() {
+        super.dial();
+
         this.voipSession.dialVideo();
     }
 
-    protected void startStream() {
-        super.startStream();
-
-        if (capture != null) {
-            capture.stopCapture();
-            capture.destroyNative();
-            capture = null;
-        }
-
-
-        if (this.voip != null) {
-            Log.w(TAG, "voip is active");
-            return;
-        }
-
-        try {
-            if (this.voipSession.localNatMap != null && this.voipSession.localNatMap.ip != 0) {
-                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.localNatMap.ip)).getHostAddress();
-                int port = this.voipSession.localNatMap.port;
-                Log.i(TAG, "local nat map:" + ip + ":" + port);
-            }
-            if (this.voipSession.peerNatMap != null && this.voipSession.peerNatMap.ip != 0) {
-                String ip = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.peerNatMap.ip)).getHostAddress();
-                int port = this.voipSession.peerNatMap.port;
-                Log.i(TAG, "peer nat map:" + ip + ":" + port);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (isP2P()) {
-            Log.i(TAG, "start p2p stream");
-        } else {
-            Log.i(TAG, "start stream");
-        }
-
-        long selfUID = currentUID;
-        String relayIP = this.voipSession.getRelayIP();
-        if (relayIP == null) {
-            relayIP = "121.42.143.50";
-        }
-        Log.i(TAG, "relay ip:" + relayIP);
-        String peerIP = "";
-        int peerPort = 0;
-        try {
-            if (isP2P()) {
-                peerIP = InetAddress.getByAddress(BytePacket.unpackInetAddress(this.voipSession.peerNatMap.ip)).getHostAddress();
-                peerPort = this.voipSession.peerNatMap.port;
-                Log.i(TAG, "peer ip:" + peerIP + " port:" + peerPort);
-            }
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-
-        this.voip = new VOIPEngine(this.isCaller, true, token, selfUID, peerUID, relayIP, VOIPSession.VOIP_PORT,
-                peerIP, peerPort, localRender.nativeVideoRenderer, remoteRender.nativeVideoRenderer);
-        this.voip.initNative();
-        this.voip.start();
-
-
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        audioManager.setSpeakerphoneOn(true);
-    }
-
-    protected void stopStream() {
-        super.stopStream();
-
-
-        if (this.voip == null) {
-            Log.w(TAG, "voip is inactive");
-            return;
-        }
-        boolean p2p = this.voip.isP2P();
-        Log.i(TAG, "stop stream p2p:" + p2p);
-        this.voip.stop();
-        this.voip.destroyNative();
-        this.voip = null;
-
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    }
-
-    public void switchCamera(View v ) {
-        if (this.voip != null) {
-            this.voip.switchCamera();
-        }
+    protected void waitAccept() {
+        super.waitAccept();
     }
 
     @Override
     protected void onDestroy () {
-        if (this.voip != null) {
-            Log.e(TAG, "voip is not null");
-            System.exit(1);
-        }
-        if (capture != null) {
-            capture.stopCapture();
-            capture.destroyNative();
-            capture = null;
-        }
-        VideoRendererGui.dispose();
         super.onDestroy();
     }
+
+
+    protected void updateVideoView() {
+        remoteRenderLayout.setPosition(REMOTE_X, REMOTE_Y, REMOTE_WIDTH, REMOTE_HEIGHT);
+        remoteRenderScreen.setScalingType(scalingType);
+        remoteRenderScreen.setMirror(false);
+
+        if (iceConnected) {
+            localRenderLayout.setPosition(
+                    LOCAL_X_CONNECTED, LOCAL_Y_CONNECTED, LOCAL_WIDTH_CONNECTED, LOCAL_HEIGHT_CONNECTED);
+            localRender.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+        } else {
+            localRenderLayout.setPosition(
+                    LOCAL_X_CONNECTING, LOCAL_Y_CONNECTING, LOCAL_WIDTH_CONNECTING, LOCAL_HEIGHT_CONNECTING);
+            localRender.setScalingType(scalingType);
+        }
+        localRender.setMirror(true);
+
+        localRender.requestLayout();
+        remoteRenderScreen.requestLayout();
+    }
+
 }
