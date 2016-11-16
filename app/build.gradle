@@ -37,10 +37,7 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.0.1'
-    compile 'com.google.code.gson:gson:2.+'
-    compile 'com.netflix.rxjava:rxjava-core:0.17.+'
     compile 'com.netflix.rxjava:rxjava-android:0.17.+'
-    compile 'com.squareup.okhttp:okhttp:2.1.+'
     compile 'com.squareup.retrofit:retrofit:1.7.+'
     compile 'com.squareup.picasso:picasso:2.4.+'
     compile 'com.squareup:otto:1.3.5'
@@ -48,7 +45,7 @@ dependencies {
     compile project(':voipsession')
     compile project(':imsdk')
     compile files('src/main/jniLibs/HwPush_SDK_V2559.jar')
-    compile files('src/main/jniLibs/MiPush_SDK_Client_2_2_16.jar')
+    compile files('src/main/jniLibs/MiPush_SDK_Client_3_1_2.jar')
     compile files('src/main/jniLibs/base_java.jar')
     compile files('src/main/jniLibs/libjingle_peerconnection_java.jar')
 }
