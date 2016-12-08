@@ -35,6 +35,11 @@
 	<string>This app requires access to contacts.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app requires access to microphone.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>jitsi.ttf</string>
+		<string>FontAwesome.ttf</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array/>
 	<key>UIRequiredDeviceCapabilities</key>

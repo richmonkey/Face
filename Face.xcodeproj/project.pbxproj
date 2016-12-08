@@ -21,14 +21,16 @@
 		48C7A13F1A065BDA0020E7F6 /* start.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 48C7A13C1A065BDA0020E7F6 /* start.mp3 */; };
 		48C7A1431A06650D0020E7F6 /* HistoryTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 48C7A1411A06650D0020E7F6 /* HistoryTableViewCell.m */; };
 		48C7A1441A06650D0020E7F6 /* HistoryTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 48C7A1421A06650D0020E7F6 /* HistoryTableViewCell.xib */; };
+		6D0C9BA21DF7398700582D38 /* libRNVectorIcons.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D0C9BA11DF7397600582D38 /* libRNVectorIcons.a */; };
+		6D0C9BB11DF73AA700582D38 /* libReactNativePermissions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D0C9BB01DF73A8C00582D38 /* libReactNativePermissions.a */; };
+		6D0C9BC41DF73BAE00582D38 /* libRCTWebRTC.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D0C9BC31DF73B8300582D38 /* libRCTWebRTC.a */; };
+		6D0C9BC71DF7A9B300582D38 /* ConferenceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D0C9BC61DF7A9B300582D38 /* ConferenceViewController.m */; };
 		6D401BCB1AAC7BAB0041ABC6 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D401BCA1AAC7BAB0041ABC6 /* GLKit.framework */; };
 		6D401C101AAC7E420041ABC6 /* libvoipsession.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D401BF51AAC7D300041ABC6 /* libvoipsession.a */; };
 		6D401C201AAC925C0041ABC6 /* apns.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6D401C1F1AAC925C0041ABC6 /* apns.caf */; };
 		6D45D81C1DD899D800FCAC19 /* RTCIceCandidate+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D45D8171DD899D800FCAC19 /* RTCIceCandidate+JSON.m */; };
 		6D45D81D1DD899D800FCAC19 /* RTCSessionDescription+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D45D8191DD899D800FCAC19 /* RTCSessionDescription+JSON.m */; };
 		6D45D81E1DD899D800FCAC19 /* WebRTCViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D45D81B1DD899D800FCAC19 /* WebRTCViewController.m */; };
-		6D45D8201DD89B8600FCAC19 /* WebRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D45D81F1DD89B8600FCAC19 /* WebRTC.framework */; };
-		6D45D8221DD89C5900FCAC19 /* WebRTC.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6D45D81F1DD89B8600FCAC19 /* WebRTC.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6D45D8261DD89DE000FCAC19 /* ARDSDPUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D45D8251DD89DE000FCAC19 /* ARDSDPUtils.m */; };
 		6D45D8291DD89DF100FCAC19 /* ARDSignalingMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D45D8281DD89DF100FCAC19 /* ARDSignalingMessage.m */; };
 		6D45D82C1DD89E0200FCAC19 /* ARDUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D45D82B1DD89E0200FCAC19 /* ARDUtilities.m */; };
@@ -38,6 +40,10 @@
 		6D4D55E11BA4033800247208 /* VideoToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D4D55E01BA4033800247208 /* VideoToolbox.framework */; };
 		6D4D55E81BA412AC00247208 /* VOIPVideoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D4D55E51BA412AC00247208 /* VOIPVideoViewController.m */; };
 		6D4D55E91BA412AC00247208 /* VOIPVoiceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D4D55E71BA412AC00247208 /* VOIPVoiceViewController.m */; };
+		6DAD3F241DF7B76C00C70602 /* FontAwesome.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6DAD3F221DF7B6D900C70602 /* FontAwesome.ttf */; };
+		6DAD3F261DF7CA0600C70602 /* jitsi.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6DAD3F251DF7CA0200C70602 /* jitsi.ttf */; };
+		6DAD3F351DF8FF9000C70602 /* WebRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DAD3F341DF8FF9000C70602 /* WebRTC.framework */; };
+		6DAD3F361DF900A400C70602 /* WebRTC.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6DAD3F341DF8FF9000C70602 /* WebRTC.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6DF3996819EB9AAE009B03C4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DF3996719EB9AAE009B03C4 /* Foundation.framework */; };
 		6DF3996A19EB9AAE009B03C4 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DF3996919EB9AAE009B03C4 /* CoreGraphics.framework */; };
 		6DF3996C19EB9AAE009B03C4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DF3996B19EB9AAE009B03C4 /* UIKit.framework */; };
@@ -89,6 +95,27 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		6D0C9BA01DF7397600582D38 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6D0C9B9C1DF7397500582D38 /* RNVectorIcons.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 5DBEB1501B18CEA900B34395;
+			remoteInfo = RNVectorIcons;
+		};
+		6D0C9BAF1DF73A8C00582D38 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6D0C9BAB1DF73A8C00582D38 /* ReactNativePermissions.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 9D23B34F1C767B80008B4819;
+			remoteInfo = ReactNativePermissions;
+		};
+		6D0C9BC21DF73B8300582D38 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6D0C9BBE1DF73B8300582D38 /* RCTWebRTC.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 35A2221F1CB493700015FD5C;
+			remoteInfo = RCTWebRTC;
+		};
 		6D401BF41AAC7D300041ABC6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6D401BEF1AAC7D2F0041ABC6 /* voipsession.xcodeproj */;
@@ -126,7 +153,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				6D45D8221DD89C5900FCAC19 /* WebRTC.framework in Embed Frameworks */,
+				6DAD3F361DF900A400C70602 /* WebRTC.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -157,6 +184,11 @@
 		48DC1A111A0686F6004EC222 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		48DC1A121A0686F6004EC222 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		64B6B7C48E8406B8C0E07BDA /* Pods-Face.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Face.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Face/Pods-Face.debug.xcconfig"; sourceTree = "<group>"; };
+		6D0C9B9C1DF7397500582D38 /* RNVectorIcons.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNVectorIcons.xcodeproj; path = "node_modules/react-native-vector-icons/RNVectorIcons.xcodeproj"; sourceTree = "<group>"; };
+		6D0C9BAB1DF73A8C00582D38 /* ReactNativePermissions.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ReactNativePermissions.xcodeproj; path = "node_modules/react-native-permissions/ReactNativePermissions.xcodeproj"; sourceTree = "<group>"; };
+		6D0C9BBE1DF73B8300582D38 /* RCTWebRTC.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTWebRTC.xcodeproj; path = "node_modules/react-native-webrtc/ios/RCTWebRTC.xcodeproj"; sourceTree = "<group>"; };
+		6D0C9BC51DF7A9B300582D38 /* ConferenceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConferenceViewController.h; sourceTree = "<group>"; };
+		6D0C9BC61DF7A9B300582D38 /* ConferenceViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConferenceViewController.m; sourceTree = "<group>"; };
 		6D2E3FB81C7B6C4400707C00 /* libimsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libimsdk.a; path = "../../../Library/Developer/Xcode/DerivedData/Face-ceszylxmdojypuduierdlregqnrc/Build/Products/Debug-iphoneos/libimsdk.a"; sourceTree = "<group>"; };
 		6D401BCA1AAC7BAB0041ABC6 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		6D401BEF1AAC7D2F0041ABC6 /* voipsession.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = voipsession.xcodeproj; path = Face/backend/voipsession/voipsession.xcodeproj; sourceTree = "<group>"; };
@@ -167,7 +199,6 @@
 		6D45D8191DD899D800FCAC19 /* RTCSessionDescription+JSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RTCSessionDescription+JSON.m"; sourceTree = "<group>"; };
 		6D45D81A1DD899D800FCAC19 /* WebRTCViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebRTCViewController.h; sourceTree = "<group>"; };
 		6D45D81B1DD899D800FCAC19 /* WebRTCViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebRTCViewController.m; sourceTree = "<group>"; };
-		6D45D81F1DD89B8600FCAC19 /* WebRTC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebRTC.framework; path = Face/backend/voip/WebRTC.framework; sourceTree = "<group>"; };
 		6D45D8241DD89DE000FCAC19 /* ARDSDPUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARDSDPUtils.h; sourceTree = "<group>"; };
 		6D45D8251DD89DE000FCAC19 /* ARDSDPUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARDSDPUtils.m; sourceTree = "<group>"; };
 		6D45D8271DD89DF100FCAC19 /* ARDSignalingMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARDSignalingMessage.h; sourceTree = "<group>"; };
@@ -184,6 +215,9 @@
 		6D4D55E51BA412AC00247208 /* VOIPVideoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VOIPVideoViewController.m; sourceTree = "<group>"; };
 		6D4D55E61BA412AC00247208 /* VOIPVoiceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VOIPVoiceViewController.h; sourceTree = "<group>"; };
 		6D4D55E71BA412AC00247208 /* VOIPVoiceViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VOIPVoiceViewController.m; sourceTree = "<group>"; };
+		6DAD3F221DF7B6D900C70602 /* FontAwesome.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = FontAwesome.ttf; path = "node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
+		6DAD3F251DF7CA0200C70602 /* jitsi.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = jitsi.ttf; path = Face/jitsi.ttf; sourceTree = "<group>"; };
+		6DAD3F341DF8FF9000C70602 /* WebRTC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebRTC.framework; path = "node_modules/react-native-webrtc/ios/WebRTC.framework"; sourceTree = "<group>"; };
 		6DF3996419EB9AAE009B03C4 /* Face.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Face.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6DF3996719EB9AAE009B03C4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		6DF3996919EB9AAE009B03C4 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -268,17 +302,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D0C9BC41DF73BAE00582D38 /* libRCTWebRTC.a in Frameworks */,
+				6D0C9BB11DF73AA700582D38 /* libReactNativePermissions.a in Frameworks */,
+				6D0C9BA21DF7398700582D38 /* libRNVectorIcons.a in Frameworks */,
 				6D4D55E11BA4033800247208 /* VideoToolbox.framework in Frameworks */,
 				6D401C101AAC7E420041ABC6 /* libvoipsession.a in Frameworks */,
 				6D401BCB1AAC7BAB0041ABC6 /* GLKit.framework in Frameworks */,
 				6DF39BC919ED72D7009B03C4 /* libsqlite3.dylib in Frameworks */,
 				6DF3996C19EB9AAE009B03C4 /* UIKit.framework in Frameworks */,
+				6DAD3F351DF8FF9000C70602 /* WebRTC.framework in Frameworks */,
 				6DF3996819EB9AAE009B03C4 /* Foundation.framework in Frameworks */,
 				6DF39B2D19EBB649009B03C4 /* AVFoundation.framework in Frameworks */,
 				6DF3996A19EB9AAE009B03C4 /* CoreGraphics.framework in Frameworks */,
 				6DF39B2B19EBB617009B03C4 /* AudioToolbox.framework in Frameworks */,
 				6DF39B2919EBB607009B03C4 /* CoreMedia.framework in Frameworks */,
-				6D45D8201DD89B8600FCAC19 /* WebRTC.framework in Frameworks */,
 				FF2C36ED43B7D873029D7CD6 /* libPods-Face.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -333,9 +370,36 @@
 		6D03316A1AAB7375004AA39F /* Projects */ = {
 			isa = PBXGroup;
 			children = (
+				6D0C9BBE1DF73B8300582D38 /* RCTWebRTC.xcodeproj */,
+				6D0C9BAB1DF73A8C00582D38 /* ReactNativePermissions.xcodeproj */,
+				6D0C9B9C1DF7397500582D38 /* RNVectorIcons.xcodeproj */,
 				6D401BEF1AAC7D2F0041ABC6 /* voipsession.xcodeproj */,
 			);
 			name = Projects;
+			sourceTree = "<group>";
+		};
+		6D0C9B9D1DF7397500582D38 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6D0C9BA11DF7397600582D38 /* libRNVectorIcons.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6D0C9BAC1DF73A8C00582D38 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6D0C9BB01DF73A8C00582D38 /* libReactNativePermissions.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6D0C9BBF1DF73B8300582D38 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6D0C9BC31DF73B8300582D38 /* libRCTWebRTC.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		6D401BF01AAC7D2F0041ABC6 /* Products */ = {
@@ -347,9 +411,19 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		6DAD3F1B1DF7B67700C70602 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				6DAD3F251DF7CA0200C70602 /* jitsi.ttf */,
+				6DAD3F221DF7B6D900C70602 /* FontAwesome.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 		6DF3995B19EB9AAE009B03C4 = {
 			isa = PBXGroup;
 			children = (
+				6DAD3F1B1DF7B67700C70602 /* Resources */,
 				6DF3996D19EB9AAE009B03C4 /* Face */,
 				6DF3998F19EB9AAE009B03C4 /* FaceTests */,
 				6D03316A1AAB7375004AA39F /* Projects */,
@@ -371,11 +445,11 @@
 		6DF3996619EB9AAE009B03C4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				6D45D81F1DD89B8600FCAC19 /* WebRTC.framework */,
 				6D2E3FB81C7B6C4400707C00 /* libimsdk.a */,
+				6DF39BC819ED72D7009B03C4 /* libsqlite3.dylib */,
+				6DAD3F341DF8FF9000C70602 /* WebRTC.framework */,
 				6D4D55E01BA4033800247208 /* VideoToolbox.framework */,
 				6D401BCA1AAC7BAB0041ABC6 /* GLKit.framework */,
-				6DF39BC819ED72D7009B03C4 /* libsqlite3.dylib */,
 				6DF39B2C19EBB649009B03C4 /* AVFoundation.framework */,
 				6DF39B2A19EBB617009B03C4 /* AudioToolbox.framework */,
 				6DF39B2819EBB607009B03C4 /* CoreMedia.framework */,
@@ -511,6 +585,8 @@
 				4813DC811A05FCFB004598F3 /* ConversationHistoryViewController.m */,
 				4813DC831A060447004598F3 /* SettingViewController.h */,
 				4813DC841A060447004598F3 /* SettingViewController.m */,
+				6D0C9BC51DF7A9B300582D38 /* ConferenceViewController.h */,
+				6D0C9BC61DF7A9B300582D38 /* ConferenceViewController.m */,
 			);
 			path = controller;
 			sourceTree = "<group>";
@@ -575,6 +651,7 @@
 				6DF3996019EB9AAE009B03C4 /* Sources */,
 				6DF3996119EB9AAE009B03C4 /* Frameworks */,
 				6DF3996219EB9AAE009B03C4 /* Resources */,
+				6D0C9B991DF7389200582D38 /* Bundle React Native code and images */,
 				6D45D8231DD89C5900FCAC19 /* Embed Frameworks */,
 				D9E8E65BADDA324B8C7B45AF /* [CP] Embed Pods Frameworks */,
 				160DA47FBF0FB09678B57CBA /* [CP] Copy Pods Resources */,
@@ -643,6 +720,18 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = 6D0C9BBF1DF73B8300582D38 /* Products */;
+					ProjectRef = 6D0C9BBE1DF73B8300582D38 /* RCTWebRTC.xcodeproj */;
+				},
+				{
+					ProductGroup = 6D0C9BAC1DF73A8C00582D38 /* Products */;
+					ProjectRef = 6D0C9BAB1DF73A8C00582D38 /* ReactNativePermissions.xcodeproj */;
+				},
+				{
+					ProductGroup = 6D0C9B9D1DF7397500582D38 /* Products */;
+					ProjectRef = 6D0C9B9C1DF7397500582D38 /* RNVectorIcons.xcodeproj */;
+				},
+				{
 					ProductGroup = 6D401BF01AAC7D2F0041ABC6 /* Products */;
 					ProjectRef = 6D401BEF1AAC7D2F0041ABC6 /* voipsession.xcodeproj */;
 				},
@@ -656,6 +745,27 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		6D0C9BA11DF7397600582D38 /* libRNVectorIcons.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNVectorIcons.a;
+			remoteRef = 6D0C9BA01DF7397600582D38 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6D0C9BB01DF73A8C00582D38 /* libReactNativePermissions.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libReactNativePermissions.a;
+			remoteRef = 6D0C9BAF1DF73A8C00582D38 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6D0C9BC31DF73B8300582D38 /* libRCTWebRTC.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTWebRTC.a;
+			remoteRef = 6D0C9BC21DF73B8300582D38 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		6D401BF51AAC7D300041ABC6 /* libvoipsession.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -686,6 +796,8 @@
 				6DF3998319EB9AAE009B03C4 /* Images.xcassets in Resources */,
 				6DF3997219EB9AAE009B03C4 /* InfoPlist.strings in Resources */,
 				6DF39AA919EBA88E009B03C4 /* ContactHeaderView.xib in Resources */,
+				6DAD3F241DF7B76C00C70602 /* FontAwesome.ttf in Resources */,
+				6DAD3F261DF7CA0600C70602 /* jitsi.ttf in Resources */,
 				48C7A13E1A065BDA0020E7F6 /* end.mp3 in Resources */,
 				4825ACDF1BA42A0E006D3730 /* DailCompView.xib in Resources */,
 				6D401C201AAC925C0041ABC6 /* apns.caf in Resources */,
@@ -738,6 +850,20 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Face/Pods-Face-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		6D0C9B991DF7389200582D38 /* Bundle React Native code and images */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Bundle React Native code and images";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export NODE_BINARY=node\n./node_modules/react-native/packager/react-native-xcode.sh\n";
+		};
 		D9E8E65BADDA324B8C7B45AF /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -784,6 +910,7 @@
 				6D4D55E91BA412AC00247208 /* VOIPVoiceViewController.m in Sources */,
 				6D45D82D1DD8A43900FCAC19 /* PublicFunc.m in Sources */,
 				6DF39A0119EBA624009B03C4 /* APIRequest.m in Sources */,
+				6D0C9BC71DF7A9B300582D38 /* ConferenceViewController.m in Sources */,
 				6DF3997819EB9AAE009B03C4 /* AppDelegate.m in Sources */,
 				4877C0501A067FCF00CCF1DC /* AboutViewController.m in Sources */,
 				6DF39BB319ECFD5F009B03C4 /* History.m in Sources */,
@@ -950,6 +1077,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Face/backend/voip",
+					"$(PROJECT_DIR)/node_modules/react-native-webrtc/ios",
 				);
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -974,7 +1102,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.beetle.face;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "f21180e9-9a02-41f0-a364-c5d75796031f";
+				PROVISIONING_PROFILE = "aaebac94-51a0-4a13-86ea-f341c46beb99";
 				USER_HEADER_SEARCH_PATHS = Face/backend/;
 				VALID_ARCHS = "armv7 arm64 armv7s";
 				WRAPPER_EXTENSION = app;
@@ -996,6 +1124,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Face/backend/voip",
+					"$(PROJECT_DIR)/node_modules/react-native-webrtc/ios",
 				);
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1019,7 +1148,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.beetle.face;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "3e655ff9-84e8-49b8-88c3-5bb7534c0d9f";
+				PROVISIONING_PROFILE = "cb146789-4710-4377-94a1-672ca55db0ce";
 				USER_HEADER_SEARCH_PATHS = Face/backend/;
 				VALID_ARCHS = "armv7 arm64 armv7s";
 				WRAPPER_EXTENSION = app;

@@ -21,7 +21,7 @@
 #import "UIView+Toast.h"
 
 #import "DailCompView.h"
-
+#import "ConferenceViewController.h"
 
 #import <voipsession/VOIPService.h>
 
@@ -265,6 +265,11 @@ typedef enum {
  */
 -(void)phoneingByUser:(User*)user andConnectType:(ConnectType)type{
     if ([[VOIPService instance] connectState] == STATE_CONNECTED) {
+        ConferenceViewController *controller = [[ConferenceViewController alloc] init];
+        [self presentViewController:controller animated:YES completion:nil];
+        
+        return;
+        
         switch (type) {
             case ConnectVideoType:
             {
