@@ -10,25 +10,51 @@
 #import "RCTBundleURLProvider.h"
 #import "RCTRootView.h"
 
-@interface ConferenceViewController ()
+#import "RCTBridgeModule.h"
+
+
+
+@interface ConferenceViewController ()<RCTBridgeModule>
 
 @end
 
-@implementation ConferenceViewController
 
+
+
+
+
+@implementation ConferenceViewController
+RCT_EXPORT_MODULE();
+
+RCT_EXPORT_METHOD(dismiss)
+{
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+
+- (dispatch_queue_t)methodQueue
+{
+    return dispatch_get_main_queue();
+}
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    
+    RCTBridgeModuleProviderBlock provider = ^NSArray<id<RCTBridgeModule>> *{
+        return @[self];
+    };
     
     NSURL *jsCodeLocation
     = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios"
                                                      fallbackResource:nil];
-    RCTRootView *rootView
-    = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
-                                  moduleName:@"App"
-                           initialProperties:nil
-                               launchOptions:nil];
+    
+    
+    RCTBridge *bridge = [[RCTBridge alloc] initWithBundleURL:jsCodeLocation
+                                              moduleProvider:provider
+                                               launchOptions:nil];
+    
+   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"App" initialProperties:nil];
+    
+ 
     
     // Set a background color which is in accord with the JavaScript and Android
     // parts of the application and causes less perceived visual flicker than the

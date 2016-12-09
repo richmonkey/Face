@@ -25,6 +25,7 @@
 		6D0C9BB11DF73AA700582D38 /* libReactNativePermissions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D0C9BB01DF73A8C00582D38 /* libReactNativePermissions.a */; };
 		6D0C9BC41DF73BAE00582D38 /* libRCTWebRTC.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D0C9BC31DF73B8300582D38 /* libRCTWebRTC.a */; };
 		6D0C9BC71DF7A9B300582D38 /* ConferenceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D0C9BC61DF7A9B300582D38 /* ConferenceViewController.m */; };
+		6D0DA8811DF9601C00845568 /* libRNSound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D0DA87D1DF9600600845568 /* libRNSound.a */; };
 		6D401BCB1AAC7BAB0041ABC6 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D401BCA1AAC7BAB0041ABC6 /* GLKit.framework */; };
 		6D401C101AAC7E420041ABC6 /* libvoipsession.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D401BF51AAC7D300041ABC6 /* libvoipsession.a */; };
 		6D401C201AAC925C0041ABC6 /* apns.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6D401C1F1AAC925C0041ABC6 /* apns.caf */; };
@@ -116,6 +117,13 @@
 			remoteGlobalIDString = 35A2221F1CB493700015FD5C;
 			remoteInfo = RCTWebRTC;
 		};
+		6D0DA87C1DF9600600845568 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6D0DA8761DF9600600845568 /* RNSound.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 19825A1E1BD4A89800EE0337;
+			remoteInfo = RNSound;
+		};
 		6D401BF41AAC7D300041ABC6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6D401BEF1AAC7D2F0041ABC6 /* voipsession.xcodeproj */;
@@ -189,6 +197,7 @@
 		6D0C9BBE1DF73B8300582D38 /* RCTWebRTC.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTWebRTC.xcodeproj; path = "node_modules/react-native-webrtc/ios/RCTWebRTC.xcodeproj"; sourceTree = "<group>"; };
 		6D0C9BC51DF7A9B300582D38 /* ConferenceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConferenceViewController.h; sourceTree = "<group>"; };
 		6D0C9BC61DF7A9B300582D38 /* ConferenceViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConferenceViewController.m; sourceTree = "<group>"; };
+		6D0DA8761DF9600600845568 /* RNSound.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNSound.xcodeproj; path = "node_modules/react-native-sound/RNSound.xcodeproj"; sourceTree = "<group>"; };
 		6D2E3FB81C7B6C4400707C00 /* libimsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libimsdk.a; path = "../../../Library/Developer/Xcode/DerivedData/Face-ceszylxmdojypuduierdlregqnrc/Build/Products/Debug-iphoneos/libimsdk.a"; sourceTree = "<group>"; };
 		6D401BCA1AAC7BAB0041ABC6 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		6D401BEF1AAC7D2F0041ABC6 /* voipsession.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = voipsession.xcodeproj; path = Face/backend/voipsession/voipsession.xcodeproj; sourceTree = "<group>"; };
@@ -302,6 +311,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D0DA8811DF9601C00845568 /* libRNSound.a in Frameworks */,
 				6D0C9BC41DF73BAE00582D38 /* libRCTWebRTC.a in Frameworks */,
 				6D0C9BB11DF73AA700582D38 /* libReactNativePermissions.a in Frameworks */,
 				6D0C9BA21DF7398700582D38 /* libRNVectorIcons.a in Frameworks */,
@@ -370,6 +380,7 @@
 		6D03316A1AAB7375004AA39F /* Projects */ = {
 			isa = PBXGroup;
 			children = (
+				6D0DA8761DF9600600845568 /* RNSound.xcodeproj */,
 				6D0C9BBE1DF73B8300582D38 /* RCTWebRTC.xcodeproj */,
 				6D0C9BAB1DF73A8C00582D38 /* ReactNativePermissions.xcodeproj */,
 				6D0C9B9C1DF7397500582D38 /* RNVectorIcons.xcodeproj */,
@@ -398,6 +409,14 @@
 			isa = PBXGroup;
 			children = (
 				6D0C9BC31DF73B8300582D38 /* libRCTWebRTC.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6D0DA8771DF9600600845568 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6D0DA87D1DF9600600845568 /* libRNSound.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -728,6 +747,10 @@
 					ProjectRef = 6D0C9BAB1DF73A8C00582D38 /* ReactNativePermissions.xcodeproj */;
 				},
 				{
+					ProductGroup = 6D0DA8771DF9600600845568 /* Products */;
+					ProjectRef = 6D0DA8761DF9600600845568 /* RNSound.xcodeproj */;
+				},
+				{
 					ProductGroup = 6D0C9B9D1DF7397500582D38 /* Products */;
 					ProjectRef = 6D0C9B9C1DF7397500582D38 /* RNVectorIcons.xcodeproj */;
 				},
@@ -764,6 +787,13 @@
 			fileType = archive.ar;
 			path = libRCTWebRTC.a;
 			remoteRef = 6D0C9BC21DF73B8300582D38 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6D0DA87D1DF9600600845568 /* libRNSound.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNSound.a;
+			remoteRef = 6D0DA87C1DF9600600845568 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		6D401BF51AAC7D300041ABC6 /* libvoipsession.a */ = {

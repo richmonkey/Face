@@ -1,6 +1,13 @@
 import React, { Component } from 'react';
+import { View, TouchableHighlight } from 'react-native'; 
 import { connect as reactReduxConnect } from 'react-redux';
 import Permissions from 'react-native-permissions';
+
+import { ColorPalette } from '../../base/styles';
+import { Icon } from '../../base/fontIcons';
+
+
+var Sound = require('react-native-sound');
 
 import {
     connect,
@@ -22,7 +29,9 @@ import {
     participantRoleChanged
 } from '../../base/participants';
 
-
+import {
+    ToolbarButton,
+} from "../../toolbar";
 import {
     createLocalTracks,
     destroyLocalTracks,
@@ -70,10 +79,15 @@ import { Toolbar } from '../../toolbar';
 
 import { styles } from './styles';
 
+var ConferenceViewController = require('react-native').NativeModules.ConferenceViewController;
 /**
  * The timeout in milliseconds after which the toolbar will be hidden.
  */
 const TOOLBAR_TIMEOUT_MS = 5000;
+
+const SESSION_DIAL = "dial";
+const SESSION_ACCEPT = "accept";
+const SESSION_CONNECTED = "connected";
 
 /**
  * The conference page of the application.
@@ -89,7 +103,8 @@ class Conference extends Component {
     constructor(props) {
         super(props);
 
-        this.state = { toolbarVisible: false };
+        var sessionState = this.props.isInitiator ? SESSION_DIAL : SESSION_ACCEPT;
+        this.state = { toolbarVisible: false, sessionState:sessionState };
 
         /**
          * The numerical ID of the timeout in milliseconds after which the
@@ -102,6 +117,9 @@ class Conference extends Component {
 
         // Bind event handlers so they are only bound once for every instance.
         this._onClick = this._onClick.bind(this);
+        this._onCancel = this._onCancel.bind(this);
+        this._onRefuse = this._onRefuse.bind(this);
+        this._onAccept = this._onAccept.bind(this);
     }
 
 
@@ -112,6 +130,22 @@ class Conference extends Component {
      * @returns {void}
      */
     componentWillMount() {
+        if (!this.props.isInitiator) {
+            return;
+        } else {
+            this.startConference();
+        }
+    }
+
+    componentDidMount() {
+        if (this.props.isInitiator) {
+            this.play("CallConnected.mp3");
+        } else {
+            this.play("start.mp3");
+        }
+    }
+
+    startConference() {
         var url = this.props.url || 'https://jitsi.goubuli.mobi/100';
         const { domain, room } = _getRoomAndDomainFromUrlString(url);
         
@@ -130,7 +164,7 @@ class Conference extends Component {
                 // two times.
                 dispatch(setRoom(room));
                 dispatch(setConfig(config));
-
+                
                 console.log("set domain:", domain);
                 console.log("set room:", room);
                 console.log("set config:", config);
@@ -146,7 +180,7 @@ class Conference extends Component {
 
         this.props.dispatch(localParticipantJoined());
     }
-
+    
     requestPermission(permission) {
         return Permissions.getPermissionStatus(permission)
                           .then(response => {
@@ -200,6 +234,21 @@ class Conference extends Component {
      * @returns {ReactElement}
      */
     render() {
+        console.log("session state:", this.state.sessionState);
+        
+        if (this.state.sessionState == SESSION_DIAL) {
+            return this.renderDial();
+        } else if (this.state.sessionState == SESSION_ACCEPT) {
+            return this.renderAccept();
+        } else if (this.state.sessionState == SESSION_CONNECTED) {
+            return this.renderConference();
+        }
+        console.log("xxxxxxxx");
+        return null;
+    }
+
+    //通话界面
+    renderConference() {
         const toolbarVisible = this.state.toolbarVisible;
 
         return (
@@ -213,11 +262,158 @@ class Conference extends Component {
                          onHangup={this._onHangup.bind(this)} />
                 <FilmStrip visible = { !toolbarVisible } />
             </Container>
+        ); 
+    }
+    
+    //呼叫界面
+    renderDial() {
+        console.log("render dial");
+        return (
+            <View style={{flex:1, backgroundColor:"white", justifyContent: 'center',}}>
+                <TouchableHighlight onPress={this._onCancel}
+                                    style = {{
+                                        backgroundColor:"blue",
+                                        borderRadius: 35,
+                                        height:60,
+                                        width: 60,
+                                        justifyContent: 'center'
+                                        }}
+                                    underlayColor="red" >
+                    <Icon
+                        name = 'hangup'
+                        size={30}
+                        style = {{
+                            alignSelf: 'center',
+                            fontSize: 24
+                        }}
+                    />
+                </TouchableHighlight>
+            </View>
         );
     }
 
+    //接听界面
+    renderAccept() {
+        console.log("render accept");
+        return (
+            <View style={{flex:1, flexDirection:"row", backgroundColor:"white", justifyContent: 'center', alignItems: 'center' }}>
+                <TouchableHighlight onPress={this._onRefuse}
+                                    style = {{
+                                        backgroundColor:"blue",
+                                        borderRadius: 35,
+                                        height:60,
+                                        width: 60,
+                                        justifyContent: 'center'
+                                    }}
+                                    underlayColor="red" >
+                    <Icon
+                        name = 'hangup'
+                        size={30}
+                        style = {{
+                            alignSelf: 'center',
+                            fontSize: 24
+                        }}
+                    />
+                </TouchableHighlight>
+
+
+                <TouchableHighlight onPress={this._onAccept}
+                                    style = {{
+                                        backgroundColor:"blue",
+                                        borderRadius: 35,
+                                        height:60,
+                                        width: 60,
+                                        justifyContent: 'center'
+                                    }}
+                                    underlayColor="red" >
+                    <Icon
+                        name = 'microphone'
+                        size={30}
+                        style = {{
+                            alignSelf: 'center',
+                            fontSize: 24
+                        }}
+                    />
+                </TouchableHighlight>
+
+                
+            </View>
+        );        
+    }
+
+    _onCancel() {
+        console.log("cancel...");
+        if (this.whoosh) {
+            this.whoosh.stop();
+            this.whoosh.release();
+            this.whoosh = null;
+        }
+        
+        ConferenceViewController.dismiss();
+    }
+
+    _onAccept() {
+        console.log("accept...");
+
+        if (this.whoosh) {
+            this.whoosh.stop();
+            this.whoosh.release();
+            this.whoosh = null;
+        }
+        
+        this.setState({sessionState:SESSION_CONNECTED});
+
+        this.startConference();
+    }
+
+    _onRefuse() {
+        console.log("refuse...");
+        
+        if (this.whoosh) {
+            this.whoosh.stop();
+            this.whoosh.release();
+            this.whoosh = null;
+        }
+        
+        ConferenceViewController.dismiss();
+    }
+    
     _onHangup() {
         console.log("on hangup...");
+        ConferenceViewController.dismiss();
+    }
+
+    play(name) {
+        console.log("play:" + name);
+        // Load the sound file 'whoosh.mp3' from the app bundle
+        // See notes below about preloading sounds within initialization code below.
+        var whoosh = new Sound(name, Sound.MAIN_BUNDLE);
+        
+        // Loop indefinitely until stop() is called        
+        whoosh.setNumberOfLoops(-1);
+        whoosh.prepare((error) => {
+            if (error) {
+                console.log('failed to load the sound', error);
+            } else { // loaded successfully
+                console.log('duration in seconds: ' + whoosh.getDuration() +
+                            'number of channels: ' + whoosh.getNumberOfChannels());
+                // Get properties of the player instance
+                console.log('volume: ' + whoosh.getVolume());
+                console.log('pan: ' + whoosh.getPan());
+                console.log('loops: ' + whoosh.getNumberOfLoops());
+                
+                whoosh.play((success) => {
+                    if (success) {
+                        console.log('successfully finished playing');
+                    } else {
+                        console.log('playback failed due to audio decoding errors');
+                    }
+                });
+            }
+        });
+
+    
+        this.whoosh = whoosh;
     }
 
     /**
@@ -302,11 +498,23 @@ class Conference extends Component {
 
         conference.on(
             JitsiConferenceEvents.USER_JOINED,
-            (id, user) => dispatch(participantJoined({
-                id,
-                name: user.getDisplayName(),
-                role: user.getRole()
-            })));
+            (id, user) => {
+                console.log("user join:" + id +
+                            " name:" + user.getDisplayName());
+                if (this.props.isInitiator) {
+                    if (this.whoosh) {
+                        this.whoosh.stop();
+                        this.whoosh.release();
+                        this.whoosh = null;
+                    }
+                    this.setState({sessionState:SESSION_CONNECTED});
+                }
+                dispatch(participantJoined({
+                    id,
+                    name: user.getDisplayName(),
+                    role: user.getRole()
+                }))
+            });
         conference.on(
             JitsiConferenceEvents.USER_LEFT,
             id => dispatch(participantLeft(id)));

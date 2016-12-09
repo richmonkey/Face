@@ -55,7 +55,7 @@ export class App extends AbstractApp {
         /* eslint-disable brace-style, react/jsx-no-bind */
         return (
             <Provider store = { store }>
-                <Conference store= {store} />
+                <Conference isInitiator={false} store= {store} />
             </Provider>
         );
 
