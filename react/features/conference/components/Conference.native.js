@@ -14,6 +14,12 @@ import {
     disconnect
 } from '../../base/connection';
 
+import {
+    MEDIA_TYPE,
+    toggleCameraFacingMode,
+    toggleAudioMuted,
+    toggleVideoMuted
+} from '../../base/media';
 
 import {
     localParticipantJoined,
@@ -29,9 +35,7 @@ import {
     participantRoleChanged
 } from '../../base/participants';
 
-import {
-    ToolbarButton,
-} from "../../toolbar";
+
 import {
     createLocalTracks,
     destroyLocalTracks,
@@ -75,7 +79,7 @@ const JitsiConferenceEvents = JitsiMeetJS.events.conference;
 import { Container } from '../../base/react';
 import { FilmStrip } from '../../filmStrip';
 import { LargeVideo } from '../../largeVideo';
-import { Toolbar } from '../../toolbar';
+import { Toolbar, ToolbarButton } from '../../toolbar';
 
 import { styles } from './styles';
 
@@ -120,6 +124,12 @@ class Conference extends Component {
         this._onCancel = this._onCancel.bind(this);
         this._onRefuse = this._onRefuse.bind(this);
         this._onAccept = this._onAccept.bind(this);
+
+        this._onHangup = this._onHangup.bind(this);
+        this._toggleAudio = this._toggleAudio.bind(this);
+        this._toggleVideo = this._toggleVideo.bind(this);
+        this._toggleCameraFacingMode = this._toggleCameraFacingMode.bind(this);
+
     }
 
 
@@ -247,6 +257,134 @@ class Conference extends Component {
         return null;
     }
 
+
+    getAudioButtonStyles() {
+        var mediaIcon = {
+            audioIcon: 'microphone',
+            audioMutedIcon: 'mic-disabled',
+            videoIcon: 'webCam',
+            videoMutedIcon: 'camera-disabled'
+        };
+
+        var state = this.props.store.getState();
+        
+        const media = state['features/base/media'];
+
+        
+        var audioMuted =  media.audio.muted;
+        var videoMuted =  media.video.muted;
+        
+        if (audioMuted) {
+            buttonStyle = {
+                ...styles.toolbarButton,
+                backgroundColor: ColorPalette.buttonUnderlay
+            };
+            
+            iconName = mediaIcon['audioMutedIcon'];
+            iconStyle = styles.whiteIcon;
+            
+        } else {
+            buttonStyle = styles.toolbarButton;
+            iconName = mediaIcon['audioIcon'];
+            iconStyle = styles.icon;
+        }
+        
+        return {
+            buttonStyle,
+            iconName,
+            iconStyle
+        };
+    }
+
+    getVideoButtonStyles() {
+        var mediaIcon = {
+            audioIcon: 'microphone',
+            audioMutedIcon: 'mic-disabled',
+            videoIcon: 'webCam',
+            videoMutedIcon: 'camera-disabled'
+        };
+
+        var state = this.props.store.getState();
+        const media = state['features/base/media'];
+        
+        var audioMuted =  media.audio.muted;
+        var videoMuted =  media.video.muted;
+
+        
+        if (videoMuted) {
+            buttonStyle = {
+                ...styles.toolbarButton,
+                backgroundColor: ColorPalette.buttonUnderlay
+            };
+            
+            iconName = mediaIcon['videoMutedIcon'];
+            iconStyle = styles.whiteIcon;
+            
+        } else {
+            buttonStyle = styles.toolbarButton;
+            iconName = mediaIcon['videoIcon'];
+            iconStyle = styles.icon;
+        }
+
+        
+        return {
+            buttonStyle,
+            iconName,
+            iconStyle
+        };
+    }
+
+    
+    renderToolBar() {
+        const toolbarVisible = this.state.toolbarVisible;
+        
+        const audioButtonStyles = this.getAudioButtonStyles();
+        const videoButtonStyles = this.getVideoButtonStyles();
+        const underlayColor = ColorPalette.buttonUnderlay;
+
+        /* eslint-disable react/jsx-handler-names */
+
+        return (
+            <Container
+                style = { styles.toolbarContainer }
+                visible = { toolbarVisible }>
+
+                <View style = { styles.toggleCameraFacingModeContainer }>
+                    <ToolbarButton
+                        iconName = 'reload'
+                        iconstyle = { styles.whiteIcon }
+                        onClick = { this._toggleCameraFacingMode }
+                        style = { styles.toggleCameraFacingModeButton }
+                        underlayColor = 'transparent' />
+                </View>
+                <View style = { styles.toolbarButtonsContainer }>
+                    <ToolbarButton
+                        iconName = { audioButtonStyles.iconName }
+                        iconStyle = { audioButtonStyles.iconStyle }
+                        onClick = { this._toggleAudio }
+                        style = { audioButtonStyles.buttonStyle } />
+                    <ToolbarButton
+                        iconName = 'hangup'
+                        iconStyle = { styles.whiteIcon }
+                        onClick = { this._onHangup }
+                        style = {{
+                            ...styles.toolbarButton,
+                            backgroundColor: ColorPalette.jitsiRed
+                        }}
+                        underlayColor = { underlayColor } />
+                    <ToolbarButton
+                        iconName = { videoButtonStyles.iconName }
+                        iconStyle = { videoButtonStyles.iconStyle }
+                        onClick = { this._toggleVideo }
+                        style = { videoButtonStyles.buttonStyle } />
+                </View>
+            </Container>
+        );
+
+        /* eslint-enable react/jsx-handler-names */
+    }
+    
+
     //通话界面
     renderConference() {
         const toolbarVisible = this.state.toolbarVisible;
@@ -258,8 +396,8 @@ class Conference extends Component {
                 touchFeedback = { false }>
 
                 <LargeVideo />
-                <Toolbar visible = { toolbarVisible } 
-                         onHangup={this._onHangup.bind(this)} />
+                {this.renderToolBar()}
+
                 <FilmStrip visible = { !toolbarVisible } />
             </Container>
         ); 
@@ -382,6 +520,38 @@ class Conference extends Component {
         console.log("on hangup...");
         ConferenceViewController.dismiss();
     }
+
+    /**
+     * Dispatches action to toggle the mute state of the audio/microphone.
+     *
+     * @protected
+     * @returns {void}
+     */
+    _toggleAudio() {
+        this.props.dispatch(toggleAudioMuted());
+    }
+
+    /**
+     * Dispatches action to toggle the mute state of the video/camera.
+     *
+     * @protected
+     * @returns {void}
+     */
+    _toggleVideo() {
+        this.props.dispatch(toggleVideoMuted());
+    }
+
+    /**
+     * Switches between the front/user-facing and rear/environment-facing
+     * cameras.
+     *
+     * @private
+     * @returns {void}
+     */
+    _toggleCameraFacingMode() {
+        this.props.dispatch(toggleCameraFacingMode());
+    }
+    
 
     play(name) {
         console.log("play:" + name);
@@ -572,4 +742,6 @@ Conference.propTypes = {
     dispatch: React.PropTypes.func
 };
 
-export default reactReduxConnect()(Conference);
+export default reactReduxConnect(function(state) {
+    return state;
+})(Conference);
