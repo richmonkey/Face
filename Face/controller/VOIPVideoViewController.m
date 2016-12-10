@@ -194,7 +194,29 @@
     [self.voip dialVideo];
 }
 
+//http://stackoverflow.com/questions/24595579/how-to-redirect-audio-to-speakers-in-the-apprtc-ios-example
+- (void)didSessionRouteChange:(NSNotification *)notification
+{
+    NSDictionary *interuptionDict = notification.userInfo;
+    NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
+    NSLog(@"route change:%zd", routeChangeReason);
+    switch (routeChangeReason) {
+        case AVAudioSessionRouteChangeReasonCategoryChange: {
+            // Set speaker as default route
+            NSError* error;
+            [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
+        }
+            break;
+            
+        default:
+            break;
+    }
+}
+
 - (void)startStream {
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:nil];
+    
     [super startStream];
     [self tapAction:nil];
     [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
@@ -205,6 +227,7 @@
 
 
 -(void)stopStream {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionRouteChangeNotification object:nil];
     [super stopStream];
 
     

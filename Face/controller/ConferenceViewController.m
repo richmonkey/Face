@@ -36,31 +36,30 @@ RCT_EXPORT_METHOD(dismiss)
 {
     return dispatch_get_main_queue();
 }
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
     RCTBridgeModuleProviderBlock provider = ^NSArray<id<RCTBridgeModule>> *{
         return @[self];
     };
     
-    NSURL *jsCodeLocation
-    = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios"
-                                                     fallbackResource:nil];
+    NSURL *jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios"
+                                                                           fallbackResource:nil];
     
     
     RCTBridge *bridge = [[RCTBridge alloc] initWithBundleURL:jsCodeLocation
                                               moduleProvider:provider
                                                launchOptions:nil];
     
-   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"App" initialProperties:nil];
+    NSDictionary *props = @{@"isInitiator":[NSNumber numberWithBool:self.isInitiator],
+                            @"conferenceID":[NSNumber numberWithLongLong:self.conferenceID]};
     
- 
+    RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"App" initialProperties:props];
     
     // Set a background color which is in accord with the JavaScript and Android
     // parts of the application and causes less perceived visual flicker than the
     // default background color.
-    rootView.backgroundColor
-    = [[UIColor alloc] initWithRed:.07f green:.07f blue:.07f alpha:1];
+    rootView.backgroundColor = [[UIColor alloc] initWithRed:.07f green:.07f blue:.07f alpha:1];
 
     self.view = rootView;
     

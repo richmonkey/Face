@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, TouchableHighlight } from 'react-native'; 
+import { View, TouchableHighlight, Image } from 'react-native'; 
 import { connect as reactReduxConnect } from 'react-redux';
 import Permissions from 'react-native-permissions';
 
@@ -153,10 +153,23 @@ class Conference extends Component {
         } else {
             this.play("start.mp3");
         }
+
+        //60s timeout
+        this.timer = setTimeout(
+            () => {
+                if (this.whoosh) {
+                    this.whoosh.stop();
+                    this.whoosh.release();
+                    this.whoosh = null;
+                }
+                ConferenceViewController.dismiss();
+            },
+            60*1000
+        );
     }
 
     startConference() {
-        var url = this.props.url || 'https://jitsi.goubuli.mobi/100';
+        var url = 'https://jitsi.goubuli.mobi/' + this.props.conferenceID;
         const { domain, room } = _getRoomAndDomainFromUrlString(url);
         
         var dispatch = this.props.dispatch;
@@ -227,8 +240,15 @@ class Conference extends Component {
      * @returns {void}
      */
     componentWillUnmount() {
+        console.log("conference component will unmount");
         this._clearToolbarTimeout();
+        if (this.timer) {
+            clearTimeout(this.timer);
+            this.timer = null;
+        }
+        
 
+        
         var dispatch = this.props.dispatch;
         dispatch(localParticipantLeft());
 
@@ -389,7 +409,7 @@ class Conference extends Component {
     renderConference() {
         const toolbarVisible = this.state.toolbarVisible;
 
-        return (
+        var component = (
             <Container
                 onClick = { this._onClick }
                 style = { styles.conference }
@@ -400,32 +420,30 @@ class Conference extends Component {
 
                 <FilmStrip visible = { !toolbarVisible } />
             </Container>
-        ); 
+        );
+        return component;
     }
     
     //呼叫界面
     renderDial() {
         console.log("render dial");
         return (
-            <View style={{flex:1, backgroundColor:"white", justifyContent: 'center',}}>
-                <TouchableHighlight onPress={this._onCancel}
-                                    style = {{
-                                        backgroundColor:"blue",
-                                        borderRadius: 35,
-                                        height:60,
-                                        width: 60,
-                                        justifyContent: 'center'
-                                        }}
-                                    underlayColor="red" >
-                    <Icon
-                        name = 'hangup'
-                        size={30}
-                        style = {{
-                            alignSelf: 'center',
-                            fontSize: 24
-                        }}
-                    />
-                </TouchableHighlight>
+            <View style={{flex:1, backgroundColor:"white"}}>
+                <View style={{flex:1}} />
+                <View style={{flex:1, flexDirection:"row", justifyContent:'center', alignItems: 'center'}}>
+                    <TouchableHighlight onPress={this._onCancel}
+                                        style = {{
+                                            backgroundColor:"blue",
+                                            borderRadius: 35,
+                                            height:60,
+                                            width: 60,
+                                            justifyContent: 'center'
+                                            }}
+                                        underlayColor="red" >
+                        
+                        <Image source={{uri: 'Call_hangup'}} style={{alignSelf: 'center', width: 60, height: 60}} />
+                    </TouchableHighlight>
+                </View>
             </View>
         );
     }
@@ -434,47 +452,38 @@ class Conference extends Component {
     renderAccept() {
         console.log("render accept");
         return (
-            <View style={{flex:1, flexDirection:"row", backgroundColor:"white", justifyContent: 'center', alignItems: 'center' }}>
-                <TouchableHighlight onPress={this._onRefuse}
-                                    style = {{
-                                        backgroundColor:"blue",
-                                        borderRadius: 35,
-                                        height:60,
-                                        width: 60,
-                                        justifyContent: 'center'
-                                    }}
-                                    underlayColor="red" >
-                    <Icon
-                        name = 'hangup'
-                        size={30}
-                        style = {{
-                            alignSelf: 'center',
-                            fontSize: 24
-                        }}
-                    />
-                </TouchableHighlight>
+            <View style={{flex:1, backgroundColor:"white"}}>
+                <View style={{flex:1}} />
+                <View style={{flex:1, flexDirection:"row", justifyContent:'space-around', alignItems: 'center' }}>
 
+                    
+                    <TouchableHighlight onPress={this._onRefuse}
+                                        style = {{
+                                            backgroundColor:"blue",
+                                            borderRadius: 35,
+                                            height:60,
+                                            width: 60,
+                                            justifyContent: 'center'
+                                        }}
+                                        underlayColor="red">
 
-                <TouchableHighlight onPress={this._onAccept}
-                                    style = {{
-                                        backgroundColor:"blue",
-                                        borderRadius: 35,
-                                        height:60,
-                                        width: 60,
-                                        justifyContent: 'center'
-                                    }}
-                                    underlayColor="red" >
-                    <Icon
-                        name = 'microphone'
-                        size={30}
-                        style = {{
-                            alignSelf: 'center',
-                            fontSize: 24
-                        }}
-                    />
-                </TouchableHighlight>
+                        <Image source={{uri: 'Call_hangup'}} style={{alignSelf: 'center', width: 60, height: 60}} />
+                        
+                    </TouchableHighlight>
+                    
 
-                
+                    <TouchableHighlight onPress={this._onAccept}
+                                        style = {{
+                                            backgroundColor:"blue",
+                                            borderRadius: 35,
+                                            height:60,
+                                            width: 60,
+                                            justifyContent: 'center'
+                                        }} >
+                        <Image source={{uri: 'Call_Ans'}} style={{alignSelf: 'center', width: 60, height: 60}} />
+
+                    </TouchableHighlight>
+                </View>
             </View>
         );        
     }
@@ -486,19 +495,16 @@ class Conference extends Component {
             this.whoosh.release();
             this.whoosh = null;
         }
-        
         ConferenceViewController.dismiss();
     }
 
     _onAccept() {
         console.log("accept...");
-
         if (this.whoosh) {
             this.whoosh.stop();
             this.whoosh.release();
             this.whoosh = null;
-        }
-        
+        }        
         this.setState({sessionState:SESSION_CONNECTED});
 
         this.startConference();
@@ -506,13 +512,11 @@ class Conference extends Component {
 
     _onRefuse() {
         console.log("refuse...");
-        
         if (this.whoosh) {
             this.whoosh.stop();
             this.whoosh.release();
             this.whoosh = null;
         }
-        
         ConferenceViewController.dismiss();
     }
     
@@ -634,6 +638,9 @@ class Conference extends Component {
             _addLocalTracksToConference(conference, localTracks);
         }
 
+        if (this.props.name) {
+            conference.setDisplayName(this.props.name);
+        }
         dispatch(conferenceJoined(conference))
     }
 

@@ -9,5 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface ConferenceViewController : UIViewController
-
+@property(nonatomic, assign) BOOL isInitiator;//当前用户是发起者
+@property(nonatomic, assign) int64_t conferenceID;//会议号
+@property(nonatomic) NSArray *partipants;//参会者id
 @end

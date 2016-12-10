@@ -118,6 +118,7 @@ static void ABChangeCallback(ABAddressBookRef addressBook, CFDictionaryRef info,
             PhoneNumber *phoneNumber = [[PhoneNumber alloc] initWithPhoneNumber:phone];
             User *u = [[UserDB instance] loadUserWithNumber:phoneNumber];
             if (u) {
+                u.name = contact.contactName;
                 [users addObject:u];
             }
         }

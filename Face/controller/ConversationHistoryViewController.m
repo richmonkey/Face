@@ -9,6 +9,7 @@
 #import "ConversationHistoryViewController.h"
 #import "History.h"
 #import "HistoryDB.h"
+#import "ContactDB.h"
 #import "UserDB.h"
 #import "User.h"
 #import "PublicFunc.h"
@@ -31,7 +32,7 @@ static NSString *HISTORYSTR = @"historyCell";
 @property (strong,nonatomic) UITableView *tableView;
 @property (strong,nonatomic) NSMutableArray *historys;
 @property (strong ,nonatomic) UILabel  *emputyLabel;
-@property (strong,nonatomic) IMUser *selectedUser;
+@property (strong,nonatomic) User *selectedUser;
 
 @end
 
@@ -109,10 +110,12 @@ static NSString *HISTORYSTR = @"historyCell";
     NSString *durationStr = [NSString stringWithFormat:@"%@",[PublicFunc getTimeStrFromSeconds:callDuration]];
     [cell.durationLabel setText:durationStr];
     
-    IMUser *theUser =  [[UserDB instance] loadUser:history.peerUID];
+    User *theUser =  [[UserDB instance] loadUser:history.peerUID];
     if (!theUser) {
         [cell.nameLabel setText:@"未知用户"];
     }else{
+        ABContact *c = [[ContactDB instance] loadContactWithNumber:theUser.phoneNumber];
+        theUser.name = c.contactName;
         [cell.nameLabel setText:theUser.displayName];
     }
     

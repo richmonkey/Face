@@ -21,6 +21,7 @@
 #import "UIView+Toast.h"
 #import <voipsession/voipcommand.h>
 #import "APIRequest.h"
+#import "ConferenceViewController.h"
 
 @interface MainTabBarController ()
 @property(nonatomic)dispatch_source_t refreshTimer;
@@ -101,7 +102,7 @@
     [[self tabBar] setBarTintColor: RGBACOLOR(245, 245, 246, 1)];
     
     [[VOIPService instance] pushVOIPObserver:self];
-    
+    [[VOIPService instance] addSystemMessageObserver:self];
     
     UIApplication *application = [UIApplication sharedApplication];
     UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeAlert
@@ -230,6 +231,36 @@
     } else if (command.cmd == VOIP_COMMAND_DIAL_VIDEO) {
         VOIPVideoViewController *controller = [[VOIPVideoViewController alloc] initWithCallerUID:ctl.sender];
         [self presentViewController:controller animated:YES completion:nil];
+    }
+}
+
+
+-(void)onSystemMessage:(NSString*)sm {
+    const char *utf8 = [sm UTF8String];
+    if (utf8 == nil) return;
+    NSData *data = [NSData dataWithBytes:utf8 length:strlen(utf8)];
+    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+    
+    
+    NSDictionary *conf = [dict objectForKey:@"conference"];
+    if (!conf) {
+        return;
+    }
+    
+    int now = (int)time(NULL);
+    int ts = [[conf objectForKey:@"timestamp"] intValue];
+    
+    //50s之内发出的会议邀请
+    if (now - ts > 0 && now - ts < 50) {
+        int64_t cid = [[conf objectForKey:@"id"] longLongValue];
+        NSArray *partipants = [conf objectForKey:@"partipants"];
+        ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
+        ctrl.isInitiator = NO;
+        ctrl.conferenceID = cid;
+        ctrl.partipants = partipants;
+        
+        [self presentViewController:ctrl animated:YES completion:nil];
+        
     }
 }
 

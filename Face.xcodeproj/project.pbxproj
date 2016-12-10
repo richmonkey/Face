@@ -45,6 +45,8 @@
 		6DAD3F261DF7CA0600C70602 /* jitsi.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6DAD3F251DF7CA0200C70602 /* jitsi.ttf */; };
 		6DAD3F351DF8FF9000C70602 /* WebRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DAD3F341DF8FF9000C70602 /* WebRTC.framework */; };
 		6DAD3F361DF900A400C70602 /* WebRTC.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6DAD3F341DF8FF9000C70602 /* WebRTC.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		6DC861811DFBB76500A8AF24 /* ConferenceCreatorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6DC861801DFBB76500A8AF24 /* ConferenceCreatorViewController.m */; };
+		6DC8618F1DFBEEBD00A8AF24 /* libToast.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DC8618E1DFBEEBD00A8AF24 /* libToast.a */; };
 		6DF3996819EB9AAE009B03C4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DF3996719EB9AAE009B03C4 /* Foundation.framework */; };
 		6DF3996A19EB9AAE009B03C4 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DF3996919EB9AAE009B03C4 /* CoreGraphics.framework */; };
 		6DF3996C19EB9AAE009B03C4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DF3996B19EB9AAE009B03C4 /* UIKit.framework */; };
@@ -145,6 +147,13 @@
 			remoteGlobalIDString = 6D401BD41AAC7D2F0041ABC6;
 			remoteInfo = voipsession;
 		};
+		6DC8618C1DFBEEAD00A8AF24 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6DC861881DFBEEAD00A8AF24 /* RCTToast.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 327633421BFAAD7E004DA88E;
+			remoteInfo = RCTToast;
+		};
 		6DF3998D19EB9AAE009B03C4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6DF3995C19EB9AAE009B03C4 /* Project object */;
@@ -227,6 +236,10 @@
 		6DAD3F221DF7B6D900C70602 /* FontAwesome.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = FontAwesome.ttf; path = "node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
 		6DAD3F251DF7CA0200C70602 /* jitsi.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = jitsi.ttf; path = Face/jitsi.ttf; sourceTree = "<group>"; };
 		6DAD3F341DF8FF9000C70602 /* WebRTC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebRTC.framework; path = "node_modules/react-native-webrtc/ios/WebRTC.framework"; sourceTree = "<group>"; };
+		6DC8617F1DFBB76500A8AF24 /* ConferenceCreatorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConferenceCreatorViewController.h; sourceTree = "<group>"; };
+		6DC861801DFBB76500A8AF24 /* ConferenceCreatorViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConferenceCreatorViewController.m; sourceTree = "<group>"; };
+		6DC861881DFBEEAD00A8AF24 /* RCTToast.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTToast.xcodeproj; path = "node_modules/react-native-toast/ios/RCTToast.xcodeproj"; sourceTree = "<group>"; };
+		6DC8618E1DFBEEBD00A8AF24 /* libToast.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libToast.a; path = "../../../Library/Developer/Xcode/DerivedData/Face-dlfemuadtpuzgqfbtizqppvlwron/Build/Products/Debug-iphoneos/Toast/libToast.a"; sourceTree = "<group>"; };
 		6DF3996419EB9AAE009B03C4 /* Face.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Face.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6DF3996719EB9AAE009B03C4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		6DF3996919EB9AAE009B03C4 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -311,6 +324,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6DC8618F1DFBEEBD00A8AF24 /* libToast.a in Frameworks */,
 				6D0DA8811DF9601C00845568 /* libRNSound.a in Frameworks */,
 				6D0C9BC41DF73BAE00582D38 /* libRCTWebRTC.a in Frameworks */,
 				6D0C9BB11DF73AA700582D38 /* libReactNativePermissions.a in Frameworks */,
@@ -380,6 +394,7 @@
 		6D03316A1AAB7375004AA39F /* Projects */ = {
 			isa = PBXGroup;
 			children = (
+				6DC861881DFBEEAD00A8AF24 /* RCTToast.xcodeproj */,
 				6D0DA8761DF9600600845568 /* RNSound.xcodeproj */,
 				6D0C9BBE1DF73B8300582D38 /* RCTWebRTC.xcodeproj */,
 				6D0C9BAB1DF73A8C00582D38 /* ReactNativePermissions.xcodeproj */,
@@ -439,6 +454,14 @@
 			name = Resources;
 			sourceTree = "<group>";
 		};
+		6DC861891DFBEEAD00A8AF24 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6DC8618D1DFBEEAD00A8AF24 /* libRCTToast.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		6DF3995B19EB9AAE009B03C4 = {
 			isa = PBXGroup;
 			children = (
@@ -464,6 +487,7 @@
 		6DF3996619EB9AAE009B03C4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6DC8618E1DFBEEBD00A8AF24 /* libToast.a */,
 				6D2E3FB81C7B6C4400707C00 /* libimsdk.a */,
 				6DF39BC819ED72D7009B03C4 /* libsqlite3.dylib */,
 				6DAD3F341DF8FF9000C70602 /* WebRTC.framework */,
@@ -606,6 +630,8 @@
 				4813DC841A060447004598F3 /* SettingViewController.m */,
 				6D0C9BC51DF7A9B300582D38 /* ConferenceViewController.h */,
 				6D0C9BC61DF7A9B300582D38 /* ConferenceViewController.m */,
+				6DC8617F1DFBB76500A8AF24 /* ConferenceCreatorViewController.h */,
+				6DC861801DFBB76500A8AF24 /* ConferenceCreatorViewController.m */,
 			);
 			path = controller;
 			sourceTree = "<group>";
@@ -739,6 +765,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = 6DC861891DFBEEAD00A8AF24 /* Products */;
+					ProjectRef = 6DC861881DFBEEAD00A8AF24 /* RCTToast.xcodeproj */;
+				},
+				{
 					ProductGroup = 6D0C9BBF1DF73B8300582D38 /* Products */;
 					ProjectRef = 6D0C9BBE1DF73B8300582D38 /* RCTWebRTC.xcodeproj */;
 				},
@@ -808,6 +838,13 @@
 			fileType = wrapper.cfbundle;
 			path = voipsessionTests.xctest;
 			remoteRef = 6D401BF61AAC7D300041ABC6 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6DC8618D1DFBEEAD00A8AF24 /* libRCTToast.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTToast.a;
+			remoteRef = 6DC8618C1DFBEEAD00A8AF24 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -882,7 +919,7 @@
 		};
 		6D0C9B991DF7389200582D38 /* Bundle React Native code and images */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
@@ -890,9 +927,9 @@
 			name = "Bundle React Native code and images";
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\n./node_modules/react-native/packager/react-native-xcode.sh\n";
+			shellScript = "export NODE_BINARY=node\n#./node_modules/react-native/packager/react-native-xcode.sh\n";
 		};
 		D9E8E65BADDA324B8C7B45AF /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -917,6 +954,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6DF399F719EBA345009B03C4 /* Config.m in Sources */,
+				6DC861811DFBB76500A8AF24 /* ConferenceCreatorViewController.m in Sources */,
 				6DF399C419EBA30B009B03C4 /* ContactDB.m in Sources */,
 				4813DC821A05FCFB004598F3 /* ConversationHistoryViewController.m in Sources */,
 				6D45D8261DD89DE000FCAC19 /* ARDSDPUtils.m in Sources */,

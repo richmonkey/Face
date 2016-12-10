@@ -8,8 +8,10 @@
 #import "ContactViewController.h"
 #import "UserPresent.h"
 #import "APIRequest.h"
+#import "ConferenceCreatorViewController.h"
+#import "ConferenceViewController.h"
 
-@interface ContactListTableViewController()
+@interface ContactListTableViewController()<ConferenceCreatorViewControllerDelegate>
 @property (nonatomic) NSArray *contacts;
 @property (nonatomic) NSMutableArray *filteredArray;
 @property (nonatomic) NSMutableArray *sectionArray;
@@ -75,6 +77,13 @@
     [self loadData];
     [self requestUsers];
     self.updateStateTimer = [NSTimer scheduledTimerWithTimeInterval:3600 target:self selector:@selector(updateUserState:) userInfo:nil repeats:YES];
+    
+    UIBarButtonItem *barButtonItemRight =[[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"conference_addicon"]
+                                                                          style:UIBarButtonItemStylePlain
+                                                                         target:self
+                                                                         action:@selector(onConferenceAddClick:)];
+    [self.navigationItem setRightBarButtonItem:barButtonItemRight];
+    
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -82,6 +91,27 @@
     [self.selectedTableView deselectRowAtIndexPath:self.selectedIndexPath animated:YES];
     self.selectedIndexPath = nil;
     self.selectedTableView = nil;
+}
+
+-(void)onConferenceAddClick:(id)sender {
+    NSLog(@"on conference add");
+    ConferenceCreatorViewController *ctrl = [[ConferenceCreatorViewController alloc] init];
+    ctrl.delegate = self;
+    [self presentViewController:ctrl animated:YES completion:nil];
+}
+
+#pragma mark ConferenceCreatorViewControllerDelegate
+-(void)onConferenceCancel {
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+-(void)onConferenceCreated:(int64_t)conferenceID partipants:(NSArray*)partipants {
+    [self dismissViewControllerAnimated:NO completion:nil];
+    ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
+    ctrl.isInitiator = YES;
+    ctrl.conferenceID = conferenceID;
+    ctrl.partipants = partipants;
+    
+    [self presentViewController:ctrl animated:YES completion:nil];
 }
 
 -(NSString*)getSectionName:(NSString*)string {
@@ -148,7 +178,7 @@
                         }];
 }
 
--(void)loadData{
+-(void)loadData{ 
     self.contacts = [[ContactDB instance] contactsArray];
 
     self.filteredArray =  [NSMutableArray array];

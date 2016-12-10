@@ -126,7 +126,7 @@ typedef enum {
             cell = [ContactIMUserTableViewCell fromXib];
         }
         
-        IMUser *u = [self.contact.users objectAtIndex:indexPath.row];
+        User *u = [self.contact.users objectAtIndex:indexPath.row];
         [cell.phoneNumberLabel setText:u.phoneNumber.number];
         if (u.state.length > 0) {
             [cell.personnalStatusLabel setText:u.state];
@@ -241,7 +241,7 @@ typedef enum {
 
 -(void) handleHeadViewImage:(ContactHeaderView *)headerView{
     if ([self.contact.users count] > 0) {
-        for(IMUser* usr in self.contact.users) {
+        for(User* usr in self.contact.users) {
             if (usr.avatarURL.length > 0) {
                [headerView.headView sd_setImageWithURL:[[NSURL alloc] initWithString:usr.avatarURL] placeholderImage:[UIImage imageNamed:@"PersonalChat"]];
             }
