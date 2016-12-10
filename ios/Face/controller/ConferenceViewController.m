@@ -28,6 +28,8 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(dismiss)
 {
+    RCTRootView *rootView = (RCTRootView*)self.view;
+    [rootView.bridge invalidate];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 

@@ -407,6 +407,7 @@ class Conference extends Component {
 
     //通话界面
     renderConference() {
+        console.log("render conference");
         const toolbarVisible = this.state.toolbarVisible;
 
         var component = (

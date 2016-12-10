@@ -33,14 +33,14 @@ DEPENDENCIES:
   - JSBadgeView
   - leveldb-library (~> 1.18.2)
   - MBProgressHUD
-  - React/Core (from `./node_modules/react-native`)
-  - React/RCTActionSheet (from `./node_modules/react-native`)
-  - React/RCTGeolocation (from `./node_modules/react-native`)
-  - React/RCTImage (from `./node_modules/react-native`)
-  - React/RCTNetwork (from `./node_modules/react-native`)
-  - React/RCTText (from `./node_modules/react-native`)
-  - React/RCTVibration (from `./node_modules/react-native`)
-  - React/RCTWebSocket (from `./node_modules/react-native`)
+  - React/Core (from `../node_modules/react-native`)
+  - React/RCTActionSheet (from `../node_modules/react-native`)
+  - React/RCTGeolocation (from `../node_modules/react-native`)
+  - React/RCTImage (from `../node_modules/react-native`)
+  - React/RCTNetwork (from `../node_modules/react-native`)
+  - React/RCTText (from `../node_modules/react-native`)
+  - React/RCTVibration (from `../node_modules/react-native`)
+  - React/RCTWebSocket (from `../node_modules/react-native`)
   - ReflectionView
   - SDWebImage
   - Toast
@@ -48,7 +48,7 @@ DEPENDENCIES:
 
 EXTERNAL SOURCES:
   React:
-    :path: ./node_modules/react-native
+    :path: ../node_modules/react-native
 
 SPEC CHECKSUMS:
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
@@ -61,6 +61,6 @@ SPEC CHECKSUMS:
   Toast: 14a93686d6c8bfe2727afd342414e35660a8a1f3
   UIImageView-Letters: dc75ea479e4d280fbe6c3e00daa62918da3e8d64
 
-PODFILE CHECKSUM: b009667c85d71a97907c5b840e32e666954e45b4
+PODFILE CHECKSUM: 29c8259cde68b89a4967949ad3b72999186a36be
 
 COCOAPODS: 1.1.1
