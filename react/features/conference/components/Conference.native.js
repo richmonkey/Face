@@ -141,31 +141,48 @@ class Conference extends Component {
      */
     componentWillMount() {
         if (!this.props.isInitiator) {
-            return;
+            this.play("CallConnected.mp3");
+
+            
+            //60s timeout
+            this.timer = setTimeout(
+                () => {
+                    if (this.whoosh) {
+                        this.whoosh.stop();
+                        this.whoosh.release();
+                        this.whoosh = null;
+                    }
+                    ConferenceViewController.dismiss();
+                },
+                60*1000
+            );
         } else {
+            this.play("start.mp3");
             this.startConference();
+
+            //60s timeout
+            this.timer = setTimeout(
+                () => {
+                    if (this.whoosh) {
+                        this.whoosh.stop();
+                        this.whoosh.release();
+                        this.whoosh = null;
+                    }
+
+                    var dispatch = this.props.dispatch;
+                    dispatch(localParticipantLeft());
+
+                    dispatch(disconnect())
+                        .then(() => dispatch(destroyLocalTracks()))
+                        .then(() => dispatch(disposeLib()))
+                        .then(() => ConferenceViewController.dismiss());
+                },
+                60*1000
+            );
         }
     }
 
     componentDidMount() {
-        if (this.props.isInitiator) {
-            this.play("CallConnected.mp3");
-        } else {
-            this.play("start.mp3");
-        }
-
-        //60s timeout
-        this.timer = setTimeout(
-            () => {
-                if (this.whoosh) {
-                    this.whoosh.stop();
-                    this.whoosh.release();
-                    this.whoosh = null;
-                }
-                ConferenceViewController.dismiss();
-            },
-            60*1000
-        );
     }
 
     startConference() {
@@ -248,13 +265,6 @@ class Conference extends Component {
         }
         
 
-        
-        var dispatch = this.props.dispatch;
-        dispatch(localParticipantLeft());
-
-        dispatch(disconnect())
-            .then(() => dispatch(destroyLocalTracks()))
-            .then(() => dispatch(disposeLib()));
     }
 
     /**
@@ -523,7 +533,13 @@ class Conference extends Component {
     
     _onHangup() {
         console.log("on hangup...");
-        ConferenceViewController.dismiss();
+        var dispatch = this.props.dispatch;
+        dispatch(localParticipantLeft());
+
+        dispatch(disconnect())
+            .then(() => dispatch(destroyLocalTracks()))
+            .then(() => dispatch(disposeLib()))
+            .then(() => ConferenceViewController.dismiss());
     }
 
     /**
@@ -684,6 +700,10 @@ class Conference extends Component {
                         this.whoosh.stop();
                         this.whoosh.release();
                         this.whoosh = null;
+                    }
+                    if (this.timer) {
+                        clearTimeout(this.timer);
+                        this.timer = null;
                     }
                     this.setState({sessionState:SESSION_CONNECTED});
                 }
