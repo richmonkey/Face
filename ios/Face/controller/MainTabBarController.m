@@ -23,6 +23,72 @@
 #import "APIRequest.h"
 #import "ConferenceViewController.h"
 
+
+
+@interface SyncKeyHandler : NSObject<IMSyncKeyHandler>
+@property(nonatomic, copy) NSString *fileName;
+@property(nonatomic, readonly) int64_t syncKey;
+
+
+-(id)initWithFileName:(NSString*)fileName;
+
+@end
+
+
+@interface SyncKeyHandler()
+@property(nonatomic, strong) NSMutableDictionary *dict;
+@end
+
+@implementation SyncKeyHandler
+
+
+-(id)initWithFileName:(NSString*)fileName {
+    self = [super init];
+    if (self) {
+        self.fileName = fileName;
+        [self load];
+    }
+    return self;
+}
+-(void)load {
+    NSAssert(self.fileName.length > 0, @"");
+    NSDictionary *dict = [self loadDictionary];
+    self.dict = [NSMutableDictionary dictionaryWithDictionary:dict];
+}
+
+-(BOOL)saveSyncKey:(int64_t)syncKey {
+    NSAssert(self.fileName.length > 0, @"");
+    [self.dict setObject:[NSNumber numberWithLongLong:syncKey] forKey:@"sync_key"];
+    [self storeDictionary:self.dict];
+    return YES;
+}
+
+-(BOOL)saveGroupSyncKey:(int64_t)syncKey gid:(int64_t)gid {
+    return YES;
+}
+
+
+-(int64_t)syncKey {
+    return [[self.dict objectForKey:@"sync_key"] longLongValue];
+}
+
+
+
+-(void)storeDictionary:(NSDictionary*) dictionaryToStore {
+    if (dictionaryToStore != nil) {
+        [dictionaryToStore writeToFile:self.fileName atomically:YES];
+    }
+}
+
+-(NSDictionary*)loadDictionary {
+    NSDictionary* panelLibraryContent = [NSDictionary dictionaryWithContentsOfFile:self.fileName];
+    return panelLibraryContent;
+}
+
+@end
+
+
+
 @interface MainTabBarController ()
 @property(nonatomic)dispatch_source_t refreshTimer;
 @property(nonatomic)int refreshFailCount;
@@ -92,6 +158,15 @@
     [self startRefreshTimer];
 
     [VOIPService instance].token = [Token instance].accessToken;
+    [VOIPService instance].uid = [Token instance].uid;
+    NSString *dbPath = [self getDocumentPath];
+    NSString *fileName = [NSString stringWithFormat:@"%@/synckey", dbPath];
+    SyncKeyHandler *handler = [[SyncKeyHandler alloc] initWithFileName:fileName];
+    [VOIPService instance].syncKeyHandler = handler;
+    
+    [VOIPService instance].syncKey = [handler syncKey];
+    NSLog(@"sync key:%lld", [handler syncKey]);
+    
     [[VOIPService instance] start];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
@@ -112,6 +187,13 @@
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didRegisterForRemoteNotificationsWithDeviceToken:) name:@"didRegisterForRemoteNotificationsWithDeviceToken" object:nil];
 }
+
+-(NSString*)getDocumentPath {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *basePath = ([paths count] > 0) ? [paths objectAtIndex:0] : nil;
+    return basePath;
+}
+
 
 -(void)didRegisterForRemoteNotificationsWithDeviceToken:(NSNotification*)notification {
     NSData *deviceToken = (NSData*)notification.object;
@@ -236,6 +318,7 @@
 
 
 -(void)onSystemMessage:(NSString*)sm {
+    NSLog(@"system message:%@", sm);
     const char *utf8 = [sm UTF8String];
     if (utf8 == nil) return;
     NSData *data = [NSData dataWithBytes:utf8 length:strlen(utf8)];

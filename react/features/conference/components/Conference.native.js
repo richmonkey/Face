@@ -1,5 +1,11 @@
 import React, { Component } from 'react';
-import { View, TouchableHighlight, Image } from 'react-native'; 
+import {
+    View,
+    TouchableHighlight,
+    Image,
+    Platform
+} from 'react-native';
+
 import { connect as reactReduxConnect } from 'react-redux';
 import Permissions from 'react-native-permissions';
 
@@ -83,7 +89,16 @@ import { Toolbar, ToolbarButton } from '../../toolbar';
 
 import { styles } from './styles';
 
-var ConferenceViewController = require('react-native').NativeModules.ConferenceViewController;
+import { NativeModules } from 'react-native';
+var IsAndroid = (Platform.OS == 'android');
+var native;
+if (IsAndroid) {
+    native = NativeModules.ConferenceActivity;
+} else {
+    native = NativeModules.ConferenceViewController;
+}
+
+
 /**
  * The timeout in milliseconds after which the toolbar will be hidden.
  */
@@ -107,6 +122,9 @@ class Conference extends Component {
     constructor(props) {
         super(props);
 
+        console.log("is initiator:", this.props.isInitiator);
+        console.log("conference id:", this.props.conferenceID);
+        
         var sessionState = this.props.isInitiator ? SESSION_DIAL : SESSION_ACCEPT;
         this.state = { toolbarVisible: false, sessionState:sessionState };
 
@@ -141,7 +159,7 @@ class Conference extends Component {
      */
     componentWillMount() {
         if (!this.props.isInitiator) {
-            this.play("CallConnected.mp3");
+            this.play("call.mp3");
 
             
             //60s timeout
@@ -152,7 +170,7 @@ class Conference extends Component {
                         this.whoosh.release();
                         this.whoosh = null;
                     }
-                    ConferenceViewController.dismiss();
+                    native.dismiss();
                 },
                 60*1000
             );
@@ -175,7 +193,7 @@ class Conference extends Component {
                     dispatch(disconnect())
                         .then(() => dispatch(destroyLocalTracks()))
                         .then(() => dispatch(disposeLib()))
-                        .then(() => ConferenceViewController.dismiss());
+                        .then(() => native.dismiss());
                 },
                 60*1000
             );
@@ -506,7 +524,7 @@ class Conference extends Component {
             this.whoosh.release();
             this.whoosh = null;
         }
-        ConferenceViewController.dismiss();
+        native.dismiss();
     }
 
     _onAccept() {
@@ -528,7 +546,7 @@ class Conference extends Component {
             this.whoosh.release();
             this.whoosh = null;
         }
-        ConferenceViewController.dismiss();
+        native.dismiss();
     }
     
     _onHangup() {
@@ -539,7 +557,7 @@ class Conference extends Component {
         dispatch(disconnect())
             .then(() => dispatch(destroyLocalTracks()))
             .then(() => dispatch(disposeLib()))
-            .then(() => ConferenceViewController.dismiss());
+            .then(() => native.dismiss());
     }
 
     /**

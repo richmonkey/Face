@@ -93,6 +93,20 @@
             android:label="@string/app_name" >
         </activity>
 
+        <activity
+            android:name="com.beetle.face.activity.ConferenceCreatorActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name" >
+        </activity>
+
+        <activity
+            android:name="com.beetle.face.activity.ConferenceActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name" >
+        </activity>
+
+
+
         <receiver android:name=".BootReceiver">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

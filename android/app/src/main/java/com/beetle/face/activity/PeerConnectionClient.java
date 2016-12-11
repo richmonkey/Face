@@ -1002,7 +1002,7 @@ public class PeerConnectionClient {
             return;
         }
         Log.d(TAG, "changeCaptureFormat: " + width + "x" + height + "@" + framerate);
-        videoSource.adaptOutputFormat(width, height, framerate);
+        //videoSource.adaptOutputFormat(width, height, framerate);
     }
 
     // Implementation detail: observe ICE & stream changes and react accordingly.

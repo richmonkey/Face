@@ -1,15 +1,29 @@
 apply plugin: 'com.android.application'
 
+apply from: '../../node_modules/react-native/react.gradle'
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "com.beetle.face"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 21
         versionCode 16
         versionName "1.6"
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'x86'
+        }
+        packagingOptions {
+            // The project react-native does not provide 64-bit binaries at the
+            // time of this writing. Unfortunately, packaging any 64-bit
+            // binaries into the .apk will crash the app at runtime on 64-bit
+            // platforms.
+            exclude 'lib/x86_64/libjingle_peerconnection_so.so'
+            exclude 'lib/arm64-v8a/libjingle_peerconnection_so.so'
+        }
     }
     signingConfigs {
         app {
@@ -42,10 +56,17 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.4.+'
     compile 'com.squareup:otto:1.3.5'
     compile 'com.jakewharton:butterknife:6.0.+'
+    compile 'com.facebook.react:react-native:+'
+
+    compile project(':react-native-permissions')
+    compile project(':react-native-vector-icons')
+    compile project(':react-native-webrtc')
+    compile project(':react-native-toast')
+    compile project(':react-native-sound')
     compile project(':voipsession')
     compile project(':imsdk')
+
     compile files('src/main/jniLibs/HwPush_SDK_V2559.jar')
     compile files('src/main/jniLibs/MiPush_SDK_Client_3_1_2.jar')
-    compile files('src/main/jniLibs/base_java.jar')
-    compile files('src/main/jniLibs/libjingle_peerconnection_java.jar')
 }
+apply from: '../../node_modules/react-native-vector-icons/fonts.gradle'

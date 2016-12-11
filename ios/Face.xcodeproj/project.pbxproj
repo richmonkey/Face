@@ -16,7 +16,7 @@
 		4877C0521A067FCF00CCF1DC /* CotactMeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4877C04A1A067FCF00CCF1DC /* CotactMeViewController.m */; };
 		4877C0531A067FCF00CCF1DC /* CotactMeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4877C04B1A067FCF00CCF1DC /* CotactMeViewController.xib */; };
 		4877C0561A067FCF00CCF1DC /* SettingViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4877C04F1A067FCF00CCF1DC /* SettingViewController.xib */; };
-		48C7A13D1A065BDA0020E7F6 /* CallConnected.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 48C7A13A1A065BDA0020E7F6 /* CallConnected.mp3 */; };
+		48C7A13D1A065BDA0020E7F6 /* call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 48C7A13A1A065BDA0020E7F6 /* call.mp3 */; };
 		48C7A13E1A065BDA0020E7F6 /* end.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 48C7A13B1A065BDA0020E7F6 /* end.mp3 */; };
 		48C7A13F1A065BDA0020E7F6 /* start.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 48C7A13C1A065BDA0020E7F6 /* start.mp3 */; };
 		48C7A1431A06650D0020E7F6 /* HistoryTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 48C7A1411A06650D0020E7F6 /* HistoryTableViewCell.m */; };
@@ -193,7 +193,7 @@
 		4877C04A1A067FCF00CCF1DC /* CotactMeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CotactMeViewController.m; sourceTree = "<group>"; };
 		4877C04B1A067FCF00CCF1DC /* CotactMeViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = CotactMeViewController.xib; sourceTree = "<group>"; };
 		4877C04F1A067FCF00CCF1DC /* SettingViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SettingViewController.xib; sourceTree = "<group>"; };
-		48C7A13A1A065BDA0020E7F6 /* CallConnected.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = CallConnected.mp3; sourceTree = "<group>"; };
+		48C7A13A1A065BDA0020E7F6 /* call.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = call.mp3; sourceTree = "<group>"; };
 		48C7A13B1A065BDA0020E7F6 /* end.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = end.mp3; sourceTree = "<group>"; };
 		48C7A13C1A065BDA0020E7F6 /* start.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = start.mp3; sourceTree = "<group>"; };
 		48C7A1401A06650D0020E7F6 /* HistoryTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HistoryTableViewCell.h; sourceTree = "<group>"; };
@@ -386,7 +386,7 @@
 			isa = PBXGroup;
 			children = (
 				6D401C1F1AAC925C0041ABC6 /* apns.caf */,
-				48C7A13A1A065BDA0020E7F6 /* CallConnected.mp3 */,
+				48C7A13A1A065BDA0020E7F6 /* call.mp3 */,
 				48C7A13B1A065BDA0020E7F6 /* end.mp3 */,
 				48C7A13C1A065BDA0020E7F6 /* start.mp3 */,
 			);
@@ -856,7 +856,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				48C7A13D1A065BDA0020E7F6 /* CallConnected.mp3 in Resources */,
+				48C7A13D1A065BDA0020E7F6 /* call.mp3 in Resources */,
 				6DF39AB319EBA92E009B03C4 /* ContactPhoneTableViewCell.xib in Resources */,
 				4877C0511A067FCF00CCF1DC /* AboutViewController.xib in Resources */,
 				4877C0561A067FCF00CCF1DC /* SettingViewController.xib in Resources */,

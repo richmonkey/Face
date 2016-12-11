@@ -28,14 +28,14 @@ import org.webrtc.Camera1Enumerator;
 import org.webrtc.Camera2Enumerator;
 import org.webrtc.CameraEnumerator;
 import org.webrtc.EglBase;
-import org.webrtc.FileVideoCapturer;
+//import org.webrtc.FileVideoCapturer;
 import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnection;
 import org.webrtc.SessionDescription;
 import org.webrtc.StatsReport;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoCapturer;
-import org.webrtc.VideoFileRenderer;
+//import org.webrtc.VideoFileRenderer;
 import org.webrtc.VideoRenderer;
 
 
@@ -102,7 +102,6 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
 
     protected EglBase rootEglBase;
     protected SurfaceViewRenderer localRender;
-    protected VideoFileRenderer videoFileRenderer;
     protected final List<VideoRenderer.Callbacks> remoteRenderers =
             new ArrayList<VideoRenderer.Callbacks>();
     protected SurfaceViewRenderer remoteRenderScreen;
@@ -163,11 +162,11 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
 
 
     private boolean useCamera2() {
-        return Camera2Enumerator.isSupported(this) && getIntent().getBooleanExtra(EXTRA_CAMERA2, true);
+        return Camera2Enumerator.isSupported() && getIntent().getBooleanExtra(EXTRA_CAMERA2, true);
     }
 
     private boolean captureToTexture() {
-        return getIntent().getBooleanExtra(EXTRA_CAPTURETOTEXTURE_ENABLED, false);
+        return getIntent().getBooleanExtra(EXTRA_CAPTURETOTEXTURE_ENABLED, true);
     }
 
     private VideoCapturer createCameraCapturer(CameraEnumerator enumerator) {
@@ -296,10 +295,7 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
             localRender.release();
             localRender = null;
         }
-        if (videoFileRenderer != null) {
-            videoFileRenderer.release();
-            videoFileRenderer = null;
-        }
+
         if (remoteRenderScreen != null) {
             remoteRenderScreen.release();
             remoteRenderScreen = null;
@@ -333,14 +329,7 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
     private VideoCapturer createVideoCapturer() {
         VideoCapturer videoCapturer = null;
         String videoFileAsCamera = getIntent().getStringExtra(EXTRA_VIDEO_FILE_AS_CAMERA);
-        if (videoFileAsCamera != null) {
-            try {
-                videoCapturer = new FileVideoCapturer(videoFileAsCamera);
-            } catch (IOException e) {
-                reportError("Failed to open video file for emulated camera");
-                return null;
-            }
-        } else if (useCamera2()) {
+        if (useCamera2()) {
             if (!captureToTexture()) {
                 reportError(getString(R.string.camera2_texture_only_error));
                 return null;

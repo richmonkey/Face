@@ -9,6 +9,8 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.beetle.face.activity.ConferenceActivity;
+import com.beetle.face.activity.ConferenceCreatorActivity;
 import com.beetle.face.activity.VOIPVideoActivity;
 import com.beetle.face.activity.VOIPVoiceActivity;
 import com.beetle.face.api.IMHttpFactory;
@@ -18,6 +20,7 @@ import com.beetle.face.model.HistoryDB;
 import com.beetle.face.tools.event.BusProvider;
 import com.beetle.face.tools.event.DeviceTokenEvent;
 import com.beetle.face.tools.event.LoginSuccessEvent;
+import com.beetle.im.SystemMessageObserver;
 import com.beetle.im.VOIPControl;
 import com.beetle.im.VOIPObserver;
 import com.beetle.voip.VOIPCommand;
@@ -28,7 +31,11 @@ import com.huawei.android.pushagent.api.PushManager;
 import com.squareup.otto.Subscribe;
 import com.xiaomi.mipush.sdk.MiPushClient;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 import rx.android.schedulers.AndroidSchedulers;
@@ -37,7 +44,7 @@ import rx.functions.Action1;
 /**
  * Created by houxh on 14-12-31.
  */
-public class FaceApplication  extends Application implements VOIPObserver {
+public class FaceApplication  extends Application implements VOIPObserver, SystemMessageObserver {
     private final static String TAG = "face";
 
     @Override
@@ -79,6 +86,7 @@ public class FaceApplication  extends Application implements VOIPObserver {
             im.setToken(Token.getInstance().accessToken);
             im.start();
             im.pushVOIPObserver(this);
+            im.addSystemObserver(this);
             if (isHuaweiDevice()) {
                 initHuaweiPush();
             } else {
@@ -156,6 +164,34 @@ public class FaceApplication  extends Application implements VOIPObserver {
                 state.state = VOIPState.VOIP_TALKING;
                 startActivity(intent);
             }
+        }
+    }
+
+    private int getNow() {
+        Date now = new Date();
+        return (int)(now.getTime()/1000);
+    }
+
+    @Override
+    public void onSystemMessage(String sm) {
+        try {
+            int now = getNow();
+            JSONObject obj = new JSONObject(sm);
+            if (!obj.has("conference")) {
+                return;
+            }
+            JSONObject j = obj.getJSONObject("conference");
+            int ts = j.getInt("timestamp");
+            //50s内发起的呼叫
+            if (now - ts > 0 && now - ts < 50) {
+                long conferenceID = j.getLong("id");
+                Intent intent = new Intent(this, ConferenceActivity.class);
+                intent.putExtra("is_initiator", false);
+                intent.putExtra("conference_id", (long)conferenceID);
+                startActivity(intent);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 

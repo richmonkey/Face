@@ -15,7 +15,8 @@ import {
     BackAndroid,
     TextInput,
     Alert,
-    View
+    View,
+    Platform
 } from 'react-native';
 
 var Toast = require('react-native-toast');
@@ -24,6 +25,13 @@ import NavigationBar from 'react-native-navbar';
 import { NativeModules } from 'react-native';
 import Spinner from 'react-native-loading-spinner-overlay';
 
+var IsAndroid = (Platform.OS == 'android');
+var native;
+if (IsAndroid) {
+    native = NativeModules.ConferenceCreatorActivity;
+} else {
+    native = NativeModules.ConferenceCreatorViewController;
+}
 
 class ConferenceCreator extends Component {
     constructor(props) {
@@ -68,8 +76,7 @@ class ConferenceCreator extends Component {
                 if (response.status == 200) {
                     console.log("response json:", responseJson);
 
-                    var ctrl = NativeModules.ConferenceCreatorViewController;
-                    ctrl.onCreate(responseJson.id, userIDs);
+                    native.onCreate(responseJson.id, userIDs);
                 } else {
                     console.log(responseJson.meta.message);
                     Toast.showLongBottom.bind(null, responseJson.meta.message);
@@ -80,8 +87,6 @@ class ConferenceCreator extends Component {
             this.hideSpinner();
             Toast.showLongBottom.bind(null, '' + error);
         });
-
-        //ctrl.onCreate();
     }
     
     handleCreate() {
@@ -103,8 +108,7 @@ class ConferenceCreator extends Component {
     }
 
     handleCancel() {
-        var ctrl = NativeModules.ConferenceCreatorViewController;
-        ctrl.onCancel();
+        native.onCancel();
     }
 
     showSpinner() {
