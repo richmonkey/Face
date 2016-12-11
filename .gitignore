@@ -5,3 +5,7 @@ project.xcworkspace
 Pods
 Face.xcworkspace
 node_modules
+/android/local.properties
+/android/.idea/workspace.xml
+/android/.idea/libraries
+.gradle
