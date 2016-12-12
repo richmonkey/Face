@@ -2,6 +2,8 @@ package com.beetle.voip;
 
 
 import android.util.Log;
+
+import com.beetle.im.IMService;
 import com.beetle.im.Timer;
 import com.beetle.im.VOIPControl;
 import com.beetle.im.VOIPObserver;
@@ -263,7 +265,7 @@ public class VOIPSession implements VOIPObserver {
         VOIPCommand command = new VOIPCommand();
         command.cmd = cmd;
         ctl.content = command.getContent();
-        VOIPService.getInstance().sendVOIPControl(ctl);
+        IMService.getInstance().sendVOIPControl(ctl);
     }
 
     private void sendDial() {
@@ -282,7 +284,7 @@ public class VOIPSession implements VOIPObserver {
         command.dialCount = this.dialCount + 1;
         ctl.content = command.getContent();
 
-        boolean r = VOIPService.getInstance().sendVOIPControl(ctl);
+        boolean r = IMService.getInstance().sendVOIPControl(ctl);
         if (r) {
             this.dialCount = this.dialCount + 1;
         } else {
@@ -314,7 +316,7 @@ public class VOIPSession implements VOIPObserver {
 
 
         ctl.content = command.getContent();
-        VOIPService.getInstance().sendVOIPControl(ctl);
+        IMService.getInstance().sendVOIPControl(ctl);
     }
 
     private void sendTalking(long receiver) {
@@ -324,7 +326,7 @@ public class VOIPSession implements VOIPObserver {
         VOIPCommand command = new VOIPCommand();
         command.cmd = VOIPCommand.VOIP_COMMAND_TALKING;
         ctl.content = command.getContent();
-        VOIPService.getInstance().sendVOIPControl(ctl);
+        IMService.getInstance().sendVOIPControl(ctl);
     }
 
     private void sendDialAccept() {
@@ -335,7 +337,7 @@ public class VOIPSession implements VOIPObserver {
         command.cmd = VOIPCommand.VOIP_COMMAND_ACCEPT;
         ctl.content = command.getContent();
 
-        VOIPService.getInstance().sendVOIPControl(ctl);
+        IMService.getInstance().sendVOIPControl(ctl);
     }
 
     private void sendDialRefuse() {

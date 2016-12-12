@@ -45,7 +45,7 @@ import com.beetle.face.service.ForegroundService;
 import com.beetle.face.tools.Notification;
 import com.beetle.face.tools.NotificationCenter;
 import com.beetle.face.tools.Rom;
-import com.beetle.voip.VOIPService;
+import com.beetle.im.IMService;
 import com.beetle.im.Timer;
 
 import com.squareup.picasso.Picasso;
@@ -544,7 +544,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         }
 
         VOIPState state = VOIPState.getInstance();
-        if (VOIPService.getInstance().getConnectState() != VOIPService.ConnectState.STATE_CONNECTED) {
+        if (IMService.getInstance().getConnectState() != IMService.ConnectState.STATE_CONNECTED) {
             Toast.makeText(getApplicationContext(), "网络未链接",
                     Toast.LENGTH_SHORT).show();
             return;
@@ -725,7 +725,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     protected void onTokenRefreshed(Token token) {
         int now = getNow();
 
-        VOIPService.getInstance().setToken(token.accessToken);
+        IMService.getInstance().setToken(token.accessToken);
 
         Token t = Token.getInstance();
         t.accessToken = token.accessToken;

@@ -14,7 +14,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.beetle.face.R;
-import com.beetle.voip.VOIPService;
+import com.beetle.face.model.SyncKeyHandler;
+import com.beetle.im.IMService;
 import com.beetle.face.Token;
 import com.beetle.face.api.IMHttp;
 import com.beetle.face.api.IMHttpFactory;
@@ -25,6 +26,8 @@ import com.beetle.face.tools.event.BusProvider;
 import com.beetle.face.tools.event.LoginSuccessEvent;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -64,6 +67,27 @@ public class VerifyActivity extends AccountActivity implements TextView.OnEditor
         return (int)(t/1000);
     }
 
+    void startIMService() {
+        IMService im = IMService.getInstance();
+        im.setToken(Token.getInstance().accessToken);
+        im.setUID(Token.getInstance().uid);
+
+        SyncKeyHandler handler = new SyncKeyHandler(this.getApplicationContext(), "sync_key");
+        handler.load();
+
+        HashMap<Long, Long> groupSyncKeys = handler.getSuperGroupSyncKeys();
+        IMService.getInstance().clearSuperGroupSyncKeys();
+        for (Map.Entry<Long, Long> e : groupSyncKeys.entrySet()) {
+            IMService.getInstance().addSuperGroupSyncKey(e.getKey(), e.getValue());
+            Log.i(TAG, "group id:" + e.getKey() + "sync key:" + e.getValue());
+        }
+        IMService.getInstance().setSyncKey(handler.getSyncKey());
+        Log.i(TAG, "sync key:" + handler.getSyncKey());
+        IMService.getInstance().setSyncKeyHandler(handler);
+
+        im.start();
+    }
+
     @OnClick(R.id.btn_login)
     void onLogin() {
         final String code = verifyCode.getText().toString();
@@ -99,9 +123,8 @@ public class VerifyActivity extends AccountActivity implements TextView.OnEditor
                         u.zone = "86";
                         UserDB.getInstance().addUser(u);
 
-                        VOIPService im = VOIPService.getInstance();
-                        im.setToken(token.accessToken);
-                        im.start();
+
+                        startIMService();
 
                         Intent intent = new Intent(VerifyActivity.this, MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

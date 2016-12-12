@@ -377,7 +377,7 @@
 - (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag {
     NSLog(@"player finished");
     if (!self.isConnected) {
-        [self.player play];
+//        [self.player play];
     }
 }
 
@@ -387,27 +387,22 @@
 
 
 -(void)playDialIn {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error: nil];
     NSString *path = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"start.mp3"];
     NSURL *u = [NSURL fileURLWithPath:path];
     self.player = [[AVAudioPlayer alloc] initWithContentsOfURL:u error:nil];
     [self.player setDelegate:self];
-    
+    self.player.numberOfLoops = -1;
     [self.player play];
 }
 
 -(void)playDialOut {
-    
-    NSString *path = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"CallConnected.mp3"];
-    BOOL r = [[NSFileManager defaultManager] fileExistsAtPath:path];
-    NSLog(@"exist:%d", r);
-    
-    AVAudioSession *session = [AVAudioSession sharedInstance];
-    [session setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
-    
+    NSString *path = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"call.mp3"];
     NSURL *u = [NSURL fileURLWithPath:path];
     self.player = [[AVAudioPlayer alloc] initWithContentsOfURL:u error:nil];
     [self.player setDelegate:self];
-    
+    self.player.numberOfLoops = -1;
     [self.player play];
 }
 
@@ -426,7 +421,7 @@
 -(void)waitAccept {
     self.hangUpButton.hidden = YES;
     [[UIDevice currentDevice] setProximityMonitoringEnabled:YES];
-    [self playDialOut];
+    [self playDialIn];
 }
 
 /**

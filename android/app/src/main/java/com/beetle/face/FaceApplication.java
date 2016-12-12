@@ -17,14 +17,15 @@ import com.beetle.face.api.IMHttpFactory;
 import com.beetle.face.api.body.PostDeviceToken;
 import com.beetle.face.model.ContactDB;
 import com.beetle.face.model.HistoryDB;
+import com.beetle.face.model.SyncKeyHandler;
 import com.beetle.face.tools.event.BusProvider;
 import com.beetle.face.tools.event.DeviceTokenEvent;
 import com.beetle.face.tools.event.LoginSuccessEvent;
+import com.beetle.im.IMService;
 import com.beetle.im.SystemMessageObserver;
 import com.beetle.im.VOIPControl;
 import com.beetle.im.VOIPObserver;
 import com.beetle.voip.VOIPCommand;
-import com.beetle.voip.VOIPService;
 
 import com.google.code.p.leveldb.LevelDB;
 import com.huawei.android.pushagent.api.PushManager;
@@ -36,7 +37,9 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -70,31 +73,50 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
 
         HistoryDB.initDatabase(getApplicationContext());
 
-        VOIPService im =  VOIPService.getInstance();
+        IMService im =  IMService.getInstance();
         im.setHost(Config.SDK_HOST);
-        im.setIsSync(false);
 
         String androidID = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
         im.setDeviceID(androidID);
         im.registerConnectivityChangeReceiver(getApplicationContext());
 
+        im.pushVOIPObserver(this);
+        im.addSystemObserver(this);
+
         BusProvider.getInstance().register(this);
 
         //already login
         if (Token.getInstance().uid > 0) {
-            im.setToken(Token.getInstance().accessToken);
-            im.start();
-            im.pushVOIPObserver(this);
-            im.addSystemObserver(this);
+            startIMService();
+
             if (isHuaweiDevice()) {
                 initHuaweiPush();
             } else {
                 initXiaomiPush();
             }
         }
+    }
 
+    void startIMService() {
+        IMService im = IMService.getInstance();
+        im.setToken(Token.getInstance().accessToken);
+        im.setUID(Token.getInstance().uid);
 
+        SyncKeyHandler handler = new SyncKeyHandler(this.getApplicationContext(), "sync_key");
+        handler.load();
+
+        HashMap<Long, Long> groupSyncKeys = handler.getSuperGroupSyncKeys();
+        IMService.getInstance().clearSuperGroupSyncKeys();
+        for (Map.Entry<Long, Long> e : groupSyncKeys.entrySet()) {
+            IMService.getInstance().addSuperGroupSyncKey(e.getKey(), e.getValue());
+            Log.i(TAG, "group id:" + e.getKey() + "sync key:" + e.getValue());
+        }
+        IMService.getInstance().setSyncKey(handler.getSyncKey());
+        Log.i(TAG, "sync key:" + handler.getSyncKey());
+        im.setSyncKeyHandler(handler);
+
+        im.start();
     }
 
     private boolean isAppProcess() {
@@ -119,7 +141,7 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
     @Subscribe
     public void onLoginSuccess(LoginSuccessEvent event) {
         Log.i(TAG, "application on login success");
-        VOIPService im =  VOIPService.getInstance();
+        IMService im =  IMService.getInstance();
         im.setToken(Token.getInstance().accessToken);
         im.start();
         im.pushVOIPObserver(this);
@@ -175,6 +197,7 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
     @Override
     public void onSystemMessage(String sm) {
         try {
+            Log.i(TAG, "system message:" + sm);
             int now = getNow();
             JSONObject obj = new JSONObject(sm);
             if (!obj.has("conference")) {
@@ -182,10 +205,12 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
             }
             JSONObject j = obj.getJSONObject("conference");
             int ts = j.getInt("timestamp");
+            long initiator = j.getLong("initiator");
             //50s内发起的呼叫
-            if (now - ts > 0 && now - ts < 50) {
+            if (now - ts > -10 && now - ts < 50 && initiator != Token.getInstance().uid) {
                 long conferenceID = j.getLong("id");
                 Intent intent = new Intent(this, ConferenceActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("is_initiator", false);
                 intent.putExtra("conference_id", (long)conferenceID);
                 startActivity(intent);

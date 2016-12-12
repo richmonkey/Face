@@ -1,11 +1,17 @@
 package com.beetle.face.activity;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Window;
+import android.view.WindowManager;
 
 
 import com.beetle.face.BuildConfig;
@@ -43,6 +49,7 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
 
     private ReactRootView mReactRootView;
     private ReactInstanceManager mReactInstanceManager;
+    private MusicIntentReceiver headsetReceiver;
 
     public class ConferenceModule extends ReactContextBaseJavaModule {
         public ConferenceModule(ReactApplicationContext reactContext) {
@@ -65,6 +72,16 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
             ConferenceActivity.this.finish();
         }
 
+        @ReactMethod
+        public void enableSpeaker() {
+            AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+            if (!audioManager.isWiredHeadsetOn()) {
+                audioManager.setSpeakerphoneOn(true);
+            } else {
+                audioManager.setSpeakerphoneOn(false);
+            }
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        }
     }
 
     class ConferencePackage implements ReactPackage {
@@ -94,6 +111,17 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        getWindow().addFlags( WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+
         super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
@@ -129,6 +157,10 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
         props.putBoolean("isInitiator", isInitiator);
         mReactRootView.startReactApplication(mReactInstanceManager, "App", props);
         setContentView(mReactRootView);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        headsetReceiver = new MusicIntentReceiver();
     }
 
     @Override
@@ -140,7 +172,7 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
     @Override
     protected void onPause() {
         super.onPause();
-
+        unregisterReceiver(headsetReceiver);
         if (mReactInstanceManager != null) {
             mReactInstanceManager.onHostPause();
         }
@@ -150,15 +182,20 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
     protected void onResume() {
         super.onResume();
 
+        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        registerReceiver(headsetReceiver, filter);
+
         if (mReactInstanceManager != null) {
             mReactInstanceManager.onHostResume(this, this);
         }
     }
 
+
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (mReactInstanceManager != null) {
             mReactInstanceManager.onHostDestroy();
         }
@@ -182,5 +219,27 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
             return true;
         }
         return super.onKeyUp(keyCode, event);
+    }
+
+    private class MusicIntentReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
+                AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                int state = intent.getIntExtra("state", -1);
+                switch (state) {
+                    case 0:
+                        Log.d(TAG, "Headset is unplugged");
+                        audioManager.setSpeakerphoneOn(true);
+                        break;
+                    case 1:
+                        Log.d(TAG, "Headset is plugged");
+                        audioManager.setSpeakerphoneOn(false);
+                        break;
+                    default:
+                        Log.d(TAG, "I have no idea what the headset state is");
+                }
+            }
+        }
     }
 }

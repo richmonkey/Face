@@ -75,10 +75,9 @@ class ConferenceCreator extends Component {
                 this.hideSpinner();
                 if (response.status == 200) {
                     console.log("response json:", responseJson);
-
                     native.onCreate(responseJson.id, userIDs);
                 } else {
-                    console.log(responseJson.meta.message);
+                    console.log("response error:", responseJson);
                     Toast.showLongBottom.bind(null, responseJson.meta.message);
                 }
             });

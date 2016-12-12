@@ -211,11 +211,12 @@ class Conference extends Component {
         // Update domain without waiting for config to be loaded to prevent
         // race conditions when we will start to load config multiple times.
         dispatch(setDomain(domain));
-
+        this.props.dispatch(localParticipantJoined());
+        
         // If domain has changed, that means we need to load new config
         // for that new domain and set it, and only after that we can
         // navigate to different route.
-        loadConfig(`https://${domain}`)
+        return loadConfig(`https://${domain}`)
             .then(config => {
                 // We set room name only here to prevent race conditions on
                 // app start to not make app re-render conference page for
@@ -230,13 +231,9 @@ class Conference extends Component {
             .then(() => this.requestPermission('camera'))
             .then(() => this.requestPermission('microphone'))
             .then(() => dispatch(initLib()))
-            .then(() => dispatch(createLocalTracks()))
             .then(() => dispatch(connect()))
             .then(() => this.createConference())
             .then((conference) => this._setupConferenceListeners(conference));
-
-
-        this.props.dispatch(localParticipantJoined());
     }
     
     requestPermission(permission) {
@@ -533,10 +530,20 @@ class Conference extends Component {
             this.whoosh.stop();
             this.whoosh.release();
             this.whoosh = null;
-        }        
+        }
+
+        if (this.timer) {
+            clearTimeout(this.timer);
+            this.timer = null;
+        }
+
         this.setState({sessionState:SESSION_CONNECTED});
 
-        this.startConference();
+        //native.enableSpeaker();
+        
+        var dispatch = this.props.dispatch;
+        var p = this.startConference();
+        p.then(() => dispatch(createLocalTracks()));
     }
 
     _onRefuse() {
@@ -546,6 +553,12 @@ class Conference extends Component {
             this.whoosh.release();
             this.whoosh = null;
         }
+
+        if (this.timer) {
+            clearTimeout(this.timer);
+            this.timer = null;
+        }
+        
         native.dismiss();
     }
     
@@ -553,7 +566,6 @@ class Conference extends Component {
         console.log("on hangup...");
         var dispatch = this.props.dispatch;
         dispatch(localParticipantLeft());
-
         dispatch(disconnect())
             .then(() => dispatch(destroyLocalTracks()))
             .then(() => dispatch(disposeLib()))
@@ -679,6 +691,45 @@ class Conference extends Component {
         dispatch(conferenceJoined(conference))
     }
 
+
+    participantJoined(id, user) {
+        var dispatch = this.props.dispatch;
+        console.log("user join:" + id +
+                    " name:" + user.getDisplayName());
+        if (this.props.isInitiator &&
+            this.state.sessionState != SESSION_CONNECTED) {
+            if (this.whoosh) {
+                this.whoosh.stop();
+                this.whoosh.release();
+                this.whoosh = null;
+            }
+            if (this.timer) {
+                clearTimeout(this.timer);
+                this.timer = null;
+            }
+            dispatch(createLocalTracks());
+            this.setState({sessionState:SESSION_CONNECTED});
+        }
+        return dispatch(participantJoined({
+            id,
+            name: user.getDisplayName(),
+            role: user.getRole()
+        }))        
+    }
+
+    participantLeft(id) {
+        var dispatch = this.props.dispatch;
+        dispatch(participantLeft(id));
+
+
+        var store = this.props.store;
+        var state = store.getState();
+        var participants = state['features/base/participants'];
+        if (participants.length == 1 && participants[0].local) {
+            //其他人全部离开
+            this._onHangup();
+        }
+    }
     /**
      * Setup various conference event handlers.
      *
@@ -710,30 +761,10 @@ class Conference extends Component {
 
         conference.on(
             JitsiConferenceEvents.USER_JOINED,
-            (id, user) => {
-                console.log("user join:" + id +
-                            " name:" + user.getDisplayName());
-                if (this.props.isInitiator) {
-                    if (this.whoosh) {
-                        this.whoosh.stop();
-                        this.whoosh.release();
-                        this.whoosh = null;
-                    }
-                    if (this.timer) {
-                        clearTimeout(this.timer);
-                        this.timer = null;
-                    }
-                    this.setState({sessionState:SESSION_CONNECTED});
-                }
-                dispatch(participantJoined({
-                    id,
-                    name: user.getDisplayName(),
-                    role: user.getRole()
-                }))
-            });
+            (id, user) => this.participantJoined(id, user));
         conference.on(
             JitsiConferenceEvents.USER_LEFT,
-            id => dispatch(participantLeft(id)));
+            id => this.participantLeft(id));
         conference.on(
             JitsiConferenceEvents.USER_ROLE_CHANGED,
             (id, role) => dispatch(participantRoleChanged(id, role)));

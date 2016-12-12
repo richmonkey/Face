@@ -189,6 +189,12 @@
     
 }
 
+-(void)playDialOut {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error: nil];
+    [super playDialOut];
+}
+
 - (void)dial {
     [super dial];
     [self.voip dialVideo];
@@ -200,21 +206,20 @@
     NSDictionary *interuptionDict = notification.userInfo;
     NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
     NSLog(@"route change:%zd", routeChangeReason);
-    switch (routeChangeReason) {
-        case AVAudioSessionRouteChangeReasonCategoryChange: {
-            // Set speaker as default route
-            NSError* error;
-            [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
-        }
-            break;
-            
-        default:
-            break;
+    if (![self isHeadsetPluggedIn] && ![self isLoudSpeaker]) {
+        NSError* error;
+        [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
     }
 }
 
+-(BOOL)isLoudSpeaker {
+    AVAudioSession* session = [AVAudioSession sharedInstance];
+    AVAudioSessionCategoryOptions options = session.categoryOptions;
+    BOOL enabled = options & AVAudioSessionCategoryOptionDefaultToSpeaker;
+    return enabled;
+}
+
 - (void)startStream {
-    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:nil];
     
     [super startStream];

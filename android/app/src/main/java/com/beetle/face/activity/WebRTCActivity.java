@@ -16,9 +16,9 @@ import android.widget.Toast;
 
 
 import com.beetle.face.api.types.User;
+import com.beetle.im.IMService;
 import com.beetle.im.RTMessage;
 import com.beetle.im.RTMessageObserver;
-import com.beetle.voip.VOIPService;
 
 
 import org.json.JSONArray;
@@ -489,7 +489,7 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
         rt.content = json.toString();
 
         Log.i(TAG, "send rt message:" + rt.content);
-        VOIPService.getInstance().sendRTMessage(rt);
+        IMService.getInstance().sendRTMessage(rt);
     }
 
     public void sendOfferSdp(final SessionDescription sdp) {

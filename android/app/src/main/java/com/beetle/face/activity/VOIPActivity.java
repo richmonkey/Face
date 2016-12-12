@@ -22,6 +22,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.beetle.im.IMService;
 import com.beetle.voip.VOIPSession;
 import com.beetle.face.R;
 import com.beetle.face.Token;
@@ -35,7 +36,6 @@ import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.UserDB;
 import com.beetle.face.tools.Notification;
 import com.beetle.face.tools.NotificationCenter;
-import com.beetle.voip.VOIPService;
 import com.squareup.picasso.Picasso;
 import java.util.Date;
 import com.beetle.im.Timer;
@@ -96,8 +96,8 @@ public class VOIPActivity extends WebRTCActivity implements VOIPSession.VOIPSess
 
         voipSession = new VOIPSession(Token.getInstance().uid, peerUID);
         voipSession.setObserver(this);
-        VOIPService.getInstance().pushVOIPObserver(this.voipSession);
-        VOIPService.getInstance().addRTObserver(this);
+        IMService.getInstance().pushVOIPObserver(this.voipSession);
+        IMService.getInstance().addRTObserver(this);
 
         this.history.createTimestamp = getNow();
         this.history.peerUID = peerUID;
@@ -122,8 +122,8 @@ public class VOIPActivity extends WebRTCActivity implements VOIPSession.VOIPSess
         VOIPState state = VOIPState.getInstance();
         state.state = VOIPState.VOIP_WAITING;
 
-        VOIPService.getInstance().popVOIPObserver(this.voipSession);
-        VOIPService.getInstance().removeRTObserver(this);
+        IMService.getInstance().popVOIPObserver(this.voipSession);
+        IMService.getInstance().removeRTObserver(this);
 
         HistoryDB.getInstance().addHistory(this.history);
         Notification n = new Notification(this.history, "history");

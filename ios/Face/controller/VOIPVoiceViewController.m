@@ -59,6 +59,12 @@
     // Dispose of any resources that can be recreated.
 }
 
+-(void)playDialOut {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:0 error: nil];
+    [super playDialOut];
+}
+
 - (void)dial {
     [super dial];
     [self.voip dial];

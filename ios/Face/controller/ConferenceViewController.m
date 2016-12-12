@@ -12,6 +12,7 @@
 
 #import "RCTBridgeModule.h"
 
+#import <AVFoundation/AVFoundation.h>
 
 
 @interface ConferenceViewController ()<RCTBridgeModule>
@@ -24,19 +25,68 @@
 
 
 @implementation ConferenceViewController
+
+
 RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(dismiss)
 {
+
+    [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
+    
     RCTRootView *rootView = (RCTRootView*)self.view;
     [rootView.bridge invalidate];
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+RCT_EXPORT_METHOD(enableSpeaker)
+{
+    NSError* error;
+    [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:nil];
+}
+
+
+//http://stackoverflow.com/questions/24595579/how-to-redirect-audio-to-speakers-in-the-apprtc-ios-example
+- (void)didSessionRouteChange:(NSNotification *)notification
+{
+    NSDictionary *interuptionDict = notification.userInfo;
+    NSInteger routeChangeReason = [[interuptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
+    NSLog(@"route change:%zd", routeChangeReason);
+    if (![self isHeadsetPluggedIn] && ![self isLoudSpeaker]) {
+        NSError* error;
+        [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
+    }
+}
+
+- (BOOL)isHeadsetPluggedIn {
+    AVAudioSessionRouteDescription *route = [[AVAudioSession sharedInstance] currentRoute];
+    
+    BOOL headphonesLocated = NO;
+    for( AVAudioSessionPortDescription *portDescription in route.outputs )
+    {
+        headphonesLocated |= ( [portDescription.portType isEqualToString:AVAudioSessionPortHeadphones] );
+    }
+    return headphonesLocated;
+}
+
+
+-(BOOL)isLoudSpeaker {
+    AVAudioSession* session = [AVAudioSession sharedInstance];
+    AVAudioSessionCategoryOptions options = session.categoryOptions;
+    BOOL enabled = options & AVAudioSessionCategoryOptionDefaultToSpeaker;
+    return enabled;
 }
 
 
 - (dispatch_queue_t)methodQueue
 {
     return dispatch_get_main_queue();
+}
+
+
+-(void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)viewDidLoad {
@@ -64,8 +114,11 @@ RCT_EXPORT_METHOD(dismiss)
     rootView.backgroundColor = [[UIColor alloc] initWithRed:.07f green:.07f blue:.07f alpha:1];
 
     self.view = rootView;
-    
+
+    [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
 }
+
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

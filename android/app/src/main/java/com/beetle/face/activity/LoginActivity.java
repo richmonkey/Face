@@ -23,8 +23,8 @@ import com.beetle.face.api.types.User;
 import com.beetle.face.model.UserDB;
 import com.beetle.face.tools.event.BusProvider;
 import com.beetle.face.tools.event.LoginSuccessEvent;
+import com.beetle.im.IMService;
 import com.beetle.im.Timer;
-import com.beetle.voip.VOIPService;
 
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -152,7 +152,7 @@ public class LoginActivity extends AccountActivity implements TextView.OnEditorA
             @Override
             protected void fire() {
                 long now = getNow();
-                if (now - beginQuery >= 60) {
+                if (now - beginQuery >= 2) {
                     Log.i(TAG, "read verify code from sms timeout");
                     dialog.dismiss();
                     queryTimer.suspend();
@@ -202,7 +202,7 @@ public class LoginActivity extends AccountActivity implements TextView.OnEditorA
                         u.zone = "86";
                         UserDB.getInstance().addUser(u);
 
-                        VOIPService im = VOIPService.getInstance();
+                        IMService im = IMService.getInstance();
                         im.setToken(token.accessToken);
                         im.start();
 

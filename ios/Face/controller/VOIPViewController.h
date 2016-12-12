@@ -33,7 +33,8 @@
 -(id)initWithCallerUID:(int64_t)uid;
 
 
-
+-(void)playDialOut;
+-(BOOL)isHeadsetPluggedIn;
 -(int)setLoudspeakerStatus:(BOOL)enable;
 -(void)dial;
 -(void)waitAccept;

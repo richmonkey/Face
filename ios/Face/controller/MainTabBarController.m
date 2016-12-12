@@ -333,8 +333,9 @@
     int now = (int)time(NULL);
     int ts = [[conf objectForKey:@"timestamp"] intValue];
     
+    int64_t initiator = [[conf objectForKey:@"initiator"] longLongValue];
     //50s之内发出的会议邀请
-    if (now - ts > 0 && now - ts < 50) {
+    if (now - ts >= -10 && now - ts < 50 && initiator != [Token instance].uid) {
         int64_t cid = [[conf objectForKey:@"id"] longLongValue];
         NSArray *partipants = [conf objectForKey:@"partipants"];
         ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];

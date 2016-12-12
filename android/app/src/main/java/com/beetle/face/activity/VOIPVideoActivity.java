@@ -3,7 +3,10 @@ package com.beetle.face.activity;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.KeyguardManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
@@ -56,7 +59,7 @@ public class VOIPVideoActivity extends VOIPActivity {
 
     private View controlView;
     private Handler sHandler;
-
+    private MusicIntentReceiver headsetReceiver;
 
     Runnable mHideRunnable = new Runnable() {
         @Override
@@ -173,6 +176,8 @@ public class VOIPVideoActivity extends VOIPActivity {
             waitAccept();
         }
 
+        headsetReceiver = new MusicIntentReceiver();
+
     }
 
 
@@ -249,7 +254,11 @@ public class VOIPVideoActivity extends VOIPActivity {
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        audioManager.setSpeakerphoneOn(true);
+        if (!audioManager.isWiredHeadsetOn()) {
+            audioManager.setSpeakerphoneOn(true);
+        } else {
+            audioManager.setSpeakerphoneOn(false);
+        }
         audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
 
         headView.setVisibility(View.GONE);
@@ -260,4 +269,39 @@ public class VOIPVideoActivity extends VOIPActivity {
         super.stopStream();
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
+
+    @Override
+    public void onResume() {
+        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        registerReceiver(headsetReceiver, filter);
+        super.onResume();
+    }
+    @Override
+    public void onPause() {
+        unregisterReceiver(headsetReceiver);
+        super.onPause();
+    }
+
+    private class MusicIntentReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
+                AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                int state = intent.getIntExtra("state", -1);
+                switch (state) {
+                    case 0:
+                        Log.d(TAG, "Headset is unplugged");
+                        audioManager.setSpeakerphoneOn(true);
+                        break;
+                    case 1:
+                        Log.d(TAG, "Headset is plugged");
+                        audioManager.setSpeakerphoneOn(false);
+                        break;
+                    default:
+                        Log.d(TAG, "I have no idea what the headset state is");
+                }
+            }
+        }
+    }
+
 }

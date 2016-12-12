@@ -25,7 +25,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
-import com.beetle.voip.VOIPService;
+import com.beetle.im.IMService;
+
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
@@ -47,7 +48,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Runnable myRunnable = new Runnable() {
             @Override
             public void run() {
-                VOIPService.getInstance().sendHeartbeat();
+                IMService.getInstance().sendHeartbeat();
             }
         };
         mainHandler.post(myRunnable);

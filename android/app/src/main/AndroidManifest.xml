@@ -105,6 +105,8 @@
             android:label="@string/app_name" >
         </activity>
 
+        <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
+
 
 
         <receiver android:name=".BootReceiver">
