@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 
-import { appNavigate } from '../../app';
 import {
     toggleAudioMuted,
     toggleVideoMuted
@@ -90,7 +89,7 @@ export class AbstractToolbar extends Component {
      * @returns {void}
      */
     _toggleAudio() {
-        this.props.dispatch(toggleAudioMuted());
+        this.props.toggleAudio && this.props.toggleAudio();
     }
 
     /**
@@ -100,7 +99,7 @@ export class AbstractToolbar extends Component {
      * @returns {void}
      */
     _toggleVideo() {
-        this.props.dispatch(toggleVideoMuted());
+        this.props.toggleVideo && this.props.toggleVideo();
     }
 }
 

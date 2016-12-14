@@ -6,7 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.support.v7.app.AppCompatActivity;
+import android.os.Handler;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -15,21 +15,14 @@ import android.view.WindowManager;
 
 
 import com.beetle.face.BuildConfig;
-import com.beetle.face.Config;
-import com.beetle.face.Token;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.ReactRootView;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeArray;
-import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.common.LifecycleState;
 import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
 import com.facebook.react.shell.MainReactPackage;
@@ -51,6 +44,7 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
     private ReactInstanceManager mReactInstanceManager;
     private MusicIntentReceiver headsetReceiver;
 
+    private Handler mainHandler;
     public class ConferenceModule extends ReactContextBaseJavaModule {
         public ConferenceModule(ReactApplicationContext reactContext) {
             super(reactContext);
@@ -64,12 +58,24 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
 
         @ReactMethod
         public void dismiss() {
-            ConferenceActivity.this.finish();
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    ConferenceActivity.this.finish();
+                }
+            };
+            mainHandler.post(r);
         }
 
         @ReactMethod
         public void onHangUp() {
-            ConferenceActivity.this.finish();
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    ConferenceActivity.this.finish();
+                }
+            };
+            mainHandler.post(r);
         }
 
         @ReactMethod
@@ -81,6 +87,19 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
                 audioManager.setSpeakerphoneOn(false);
             }
             audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        }
+
+
+        @ReactMethod
+        public void invalidate() {
+
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    ConferenceActivity.this.mReactRootView.invalidate();
+                }
+            };
+            mainHandler.post(r);
         }
     }
 
@@ -131,6 +150,7 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
             finish();
             return;
         }
+        Log.i(TAG, "conference id:" + conferenceID);
 
         boolean isInitiator = intent.getBooleanExtra("is_initiator", false);
 
@@ -161,6 +181,7 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         headsetReceiver = new MusicIntentReceiver();
+        mainHandler = new Handler(getMainLooper());
     }
 
     @Override

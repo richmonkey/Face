@@ -99,7 +99,7 @@ class Toolbar extends AbstractToolbar {
      * @returns {void}
      */
     _toggleCameraFacingMode() {
-        this.props.dispatch(toggleCameraFacingMode());
+        this.props.toggleCameraFacingMode && this.props.toggleCameraFacingMode();
     }
 }
 

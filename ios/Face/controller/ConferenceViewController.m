@@ -95,6 +95,8 @@ RCT_EXPORT_METHOD(enableSpeaker)
         return @[self];
     };
     
+    NSLog(@"conference id:%lld", self.conferenceID);
+    
     NSURL *jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios"
                                                                            fallbackResource:nil];
     

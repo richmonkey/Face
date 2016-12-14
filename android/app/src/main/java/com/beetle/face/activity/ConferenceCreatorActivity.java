@@ -2,7 +2,7 @@ package com.beetle.face.activity;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.os.Handler;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -20,19 +20,11 @@ import com.facebook.react.common.LifecycleState;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.ReactRootView;
-import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.ReactPackage;
-import com.facebook.react.ReactRootView;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeArray;
-import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.react.uimanager.ViewManager;
@@ -46,11 +38,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
 public class ConferenceCreatorActivity extends Activity implements DefaultHardwareBackBtnHandler {
     private final String TAG = "face";
 
     private ReactRootView mReactRootView;
     private ReactInstanceManager mReactInstanceManager;
+
+    private Handler mainHandler;
 
     public class ConferenceCreatorModule extends ReactContextBaseJavaModule {
         public ConferenceCreatorModule(ReactApplicationContext reactContext) {
@@ -64,18 +59,22 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
 
 
         @ReactMethod
-        public void onCreate(float conferenceID, ReadableArray partipants) {
+        public void onCreate(final  float conferenceID, ReadableArray partipants) {
             Log.i(TAG, "on create...");
-            ConferenceCreatorActivity.this.finish();
 
 
-            Intent intent = new Intent(ConferenceCreatorActivity.this, ConferenceActivity.class);
-            intent.putExtra("is_initiator", true);
-            intent.putExtra("conference_id", (long)conferenceID);
-            startActivity(intent);
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    ConferenceCreatorActivity.this.finish();
+                    Intent intent = new Intent(ConferenceCreatorActivity.this, ConferenceActivity.class);
+                    intent.putExtra("is_initiator", true);
+                    intent.putExtra("conference_id", (long)conferenceID);
+                    startActivity(intent);
+                }
+            };
 
-
-
+            mainHandler.post(r);
         }
 
         @ReactMethod
@@ -107,7 +106,6 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
             return modules;
         }
     }
-
 
 
     @Override
@@ -161,6 +159,8 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
         props.putParcelableArrayList("users", users);
         mReactRootView.startReactApplication(mReactInstanceManager, "ConferenceCreator", props);
         setContentView(mReactRootView);
+
+        mainHandler = new Handler(getMainLooper());
     }
 
     @Override

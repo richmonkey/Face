@@ -303,138 +303,34 @@ class Conference extends Component {
     }
 
 
-    getAudioButtonStyles() {
-        var mediaIcon = {
-            audioIcon: 'microphone',
-            audioMutedIcon: 'mic-disabled',
-            videoIcon: 'webCam',
-            videoMutedIcon: 'camera-disabled'
-        };
-
-        var state = this.props.store.getState();
-        
-        const media = state['features/base/media'];
-
-        
-        var audioMuted =  media.audio.muted;
-        var videoMuted =  media.video.muted;
-        
-        if (audioMuted) {
-            buttonStyle = {
-                ...styles.toolbarButton,
-                backgroundColor: ColorPalette.buttonUnderlay
-            };
-            
-            iconName = mediaIcon['audioMutedIcon'];
-            iconStyle = styles.whiteIcon;
-            
-        } else {
-            buttonStyle = styles.toolbarButton;
-            iconName = mediaIcon['audioIcon'];
-            iconStyle = styles.icon;
-        }
-        
-        return {
-            buttonStyle,
-            iconName,
-            iconStyle
-        };
-    }
-
-    getVideoButtonStyles() {
-        var mediaIcon = {
-            audioIcon: 'microphone',
-            audioMutedIcon: 'mic-disabled',
-            videoIcon: 'webCam',
-            videoMutedIcon: 'camera-disabled'
-        };
-
-        var state = this.props.store.getState();
-        const media = state['features/base/media'];
-        
-        var audioMuted =  media.audio.muted;
-        var videoMuted =  media.video.muted;
-
-        
-        if (videoMuted) {
-            buttonStyle = {
-                ...styles.toolbarButton,
-                backgroundColor: ColorPalette.buttonUnderlay
-            };
-            
-            iconName = mediaIcon['videoMutedIcon'];
-            iconStyle = styles.whiteIcon;
-            
-        } else {
-            buttonStyle = styles.toolbarButton;
-            iconName = mediaIcon['videoIcon'];
-            iconStyle = styles.icon;
-        }
-
-        
-        return {
-            buttonStyle,
-            iconName,
-            iconStyle
-        };
-    }
-
-    
-    renderToolBar() {
-        const toolbarVisible = this.state.toolbarVisible;
-        
-        const audioButtonStyles = this.getAudioButtonStyles();
-        const videoButtonStyles = this.getVideoButtonStyles();
-        const underlayColor = ColorPalette.buttonUnderlay;
-
-        /* eslint-disable react/jsx-handler-names */
-
-        return (
-            <Container
-                style = { styles.toolbarContainer }
-                visible = { toolbarVisible }>
-
-                <View style = { styles.toggleCameraFacingModeContainer }>
-                    <ToolbarButton
-                        iconName = 'reload'
-                        iconstyle = { styles.whiteIcon }
-                        onClick = { this._toggleCameraFacingMode }
-                        style = { styles.toggleCameraFacingModeButton }
-                        underlayColor = 'transparent' />
-                </View>
-                <View style = { styles.toolbarButtonsContainer }>
-                    <ToolbarButton
-                        iconName = { audioButtonStyles.iconName }
-                        iconStyle = { audioButtonStyles.iconStyle }
-                        onClick = { this._toggleAudio }
-                        style = { audioButtonStyles.buttonStyle } />
-                    <ToolbarButton
-                        iconName = 'hangup'
-                        iconStyle = { styles.whiteIcon }
-                        onClick = { this._onHangup }
-                        style = {{
-                            ...styles.toolbarButton,
-                            backgroundColor: ColorPalette.jitsiRed
-                        }}
-                        underlayColor = { underlayColor } />
-                    <ToolbarButton
-                        iconName = { videoButtonStyles.iconName }
-                        iconStyle = { videoButtonStyles.iconStyle }
-                        onClick = { this._toggleVideo }
-                        style = { videoButtonStyles.buttonStyle } />
-                </View>
-            </Container>
-        );
-
-        /* eslint-enable react/jsx-handler-names */
-    }
-    
-
     //通话界面
     renderConference() {
         console.log("render conference");
         const toolbarVisible = this.state.toolbarVisible;
+        
+        if (IsAndroid && toolbarVisible) {
+            //!!!!android bug toolbar无法正常显示
+            //使用不同的树结构，webrtcview完全重新构造，这会导致界面闪烁
+            var component = (
+                <View style={{flex:1}}>
+                    <Container
+                        onClick = { this._onClick }
+                        style = { styles.conference }
+                        touchFeedback = { false }>
 
+                        <LargeVideo />
+                        <Toolbar visible = { toolbarVisible }
+                                 toggleCameraFacingMode={this._toggleCameraFacingMode}
+                                 toggleAudio = {this._toggleAudio}
+                                 toggleVideo = {this._toggleVideo}
+                                 onHangup = {this._onHangup} />
+                        <FilmStrip visible = { !toolbarVisible } />
+                    </Container>
+                </View>
+            );
+            return component;
+        }
+        
         var component = (
             <Container
                 onClick = { this._onClick }
@@ -442,8 +338,11 @@ class Conference extends Component {
                 touchFeedback = { false }>
 
                 <LargeVideo />
-                {this.renderToolBar()}
-
+                <Toolbar visible = { toolbarVisible }
+                         toggleCameraFacingMode={this._toggleCameraFacingMode}
+                         toggleAudio = {this._toggleAudio}
+                         toggleVideo = {this._toggleVideo}
+                         onHangup = {this._onHangup} />
                 <FilmStrip visible = { !toolbarVisible } />
             </Container>
         );
@@ -600,6 +499,13 @@ class Conference extends Component {
      * @returns {void}
      */
     _toggleCameraFacingMode() {
+        var state = this.props.store.getState();
+        const media = state['features/base/media'];
+
+        if (media.video.muted) {
+            return;
+        }
+
         this.props.dispatch(toggleCameraFacingMode());
     }
     
