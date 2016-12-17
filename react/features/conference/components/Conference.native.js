@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import {
     View,
+    Text,
+    ScrollView,
     TouchableHighlight,
     Image,
     Platform
@@ -298,10 +300,8 @@ class Conference extends Component {
         } else if (this.state.sessionState == SESSION_CONNECTED) {
             return this.renderConference();
         }
-        console.log("xxxxxxxx");
         return null;
     }
-
 
     //通话界面
     renderConference() {
@@ -354,8 +354,29 @@ class Conference extends Component {
         console.log("render dial");
         return (
             <View style={{flex:1, backgroundColor:"white"}}>
-                <View style={{flex:1}} />
-                <View style={{flex:1, flexDirection:"row", justifyContent:'center', alignItems: 'center'}}>
+                <View style={{flex:1}} >
+                    <ScrollView
+                        contentContainerStyle = {{flex:1,
+                                                  justifyContent:"center",
+                                                  alignItems:"center"}}
+                        style={{flex:1}}
+                        horizontal = { true }
+                        showsHorizontalScrollIndicator = { false }
+                        showsVerticalScrollIndicator = { false } >
+                        {this.props.partipants.map(p => {
+                             return <Image
+                                        style = {{resizeMode:"stretch", width:120, height:120}}
+                                        key = { p.uid }
+                                        source = {p.avatar ? {uri:p.avatar} : require('../../../../img/avatar_contact.png') } />})
+                        }
+                    </ScrollView>
+                </View>
+                <View style={{
+                    flex:1,
+                    flexDirection:"row",
+                    justifyContent:'center',
+                    alignItems: 'center'}}>
+                    
                     <TouchableHighlight onPress={this._onCancel}
                                         style = {{
                                             backgroundColor:"blue",
@@ -366,7 +387,8 @@ class Conference extends Component {
                                             }}
                                         underlayColor="red" >
                         
-                        <Image source={{uri: 'Call_hangup'}} style={{alignSelf: 'center', width: 60, height: 60}} />
+                        <Image source={{uri: 'Call_hangup'}}
+                               style={{width: 60, height: 60}} />
                     </TouchableHighlight>
                 </View>
             </View>
@@ -376,38 +398,76 @@ class Conference extends Component {
     //接听界面
     renderAccept() {
         console.log("render accept");
+
+        var p = this.props.partipants.find(p => p.uid == this.props.initiator);
+
+        if (!p) {
+            return;
+        }
+        
         return (
             <View style={{flex:1, backgroundColor:"white"}}>
-                <View style={{flex:1}} />
-                <View style={{flex:1, flexDirection:"row", justifyContent:'space-around', alignItems: 'center' }}>
+                <View style={{
+                    flex:1,
+                    justifyContent:"center",
+                    alignItems:"center"}}>
+                    <Image
+                        style = {{resizeMode:"stretch", width:120, height:120}}
+                        key = { p.uid }
+                        source = {p.avatar ? {uri:p.avatar} : require('../../../../img/avatar_contact.png') } />
+                    <Text style={{fontSize:32}}>{p.name}</Text>
+                    <Text style={{fontSize:12}}>邀请你进行语音通话</Text>
+                </View>
+                <View style={{flex:1}}>
+                    <View style={{alignItems: 'center'}}>
+                        <Text>
+                            通话成员
+                        </Text>
+                        <View style={{
+                            flex:1,
+                            flexDirection:"row",
+                            justifyContent:"center"}}>
+                            {this.props.partipants.map(p => {
+                                 return <Image
+                                            style = {{resizeMode:"stretch", width:32, height:32}}
+                                            key = { p.uid }
+                                            source = {p.avatar ? {uri:p.avatar} : require('../../../../img/avatar_contact.png') } />})
+                            }
+                        </View>
+                    </View>
+                    <View style={{
+                        flex:1,
+                        flexDirection:"row",
+                        justifyContent:'space-around',
+                        alignItems: 'center' }}>
+                        <TouchableHighlight onPress={this._onRefuse}
+                                            style = {{
+                                                backgroundColor:"blue",
+                                                borderRadius: 35,
+                                                height:60,
+                                                width: 60,
+                                                justifyContent: 'center'
+                                            }}
+                                            underlayColor="red">
 
-                    
-                    <TouchableHighlight onPress={this._onRefuse}
-                                        style = {{
-                                            backgroundColor:"blue",
-                                            borderRadius: 35,
-                                            height:60,
-                                            width: 60,
-                                            justifyContent: 'center'
-                                        }}
-                                        underlayColor="red">
-
-                        <Image source={{uri: 'Call_hangup'}} style={{alignSelf: 'center', width: 60, height: 60}} />
+                            <Image source={{uri: 'Call_hangup'}}
+                                   style={{alignSelf: 'center', width: 60, height: 60}} />
+                            
+                        </TouchableHighlight>
                         
-                    </TouchableHighlight>
-                    
 
-                    <TouchableHighlight onPress={this._onAccept}
-                                        style = {{
-                                            backgroundColor:"blue",
-                                            borderRadius: 35,
-                                            height:60,
-                                            width: 60,
-                                            justifyContent: 'center'
-                                        }} >
-                        <Image source={{uri: 'Call_Ans'}} style={{alignSelf: 'center', width: 60, height: 60}} />
-
-                    </TouchableHighlight>
+                        <TouchableHighlight onPress={this._onAccept}
+                                            style = {{
+                                                backgroundColor:"blue",
+                                                borderRadius: 35,
+                                                height:60,
+                                                width: 60,
+                                                justifyContent: 'center'
+                                            }} >
+                            <Image source={{uri: 'Call_Ans'}}
+                                   style={{alignSelf: 'center', width: 60, height: 60}} />
+                        </TouchableHighlight>
+                    </View>
                 </View>
             </View>
         );        
@@ -437,8 +497,6 @@ class Conference extends Component {
         }
 
         this.setState({sessionState:SESSION_CONNECTED});
-
-        //native.enableSpeaker();
         
         var dispatch = this.props.dispatch;
         var p = this.startConference();

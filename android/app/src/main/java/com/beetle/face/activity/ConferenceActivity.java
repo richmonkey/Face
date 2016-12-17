@@ -8,6 +8,8 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
@@ -15,6 +17,13 @@ import android.view.WindowManager;
 
 
 import com.beetle.face.BuildConfig;
+import com.beetle.face.FaceApplication;
+import com.beetle.face.Token;
+import com.beetle.face.api.types.User;
+import com.beetle.face.model.Contact;
+import com.beetle.face.model.ContactDB;
+import com.beetle.face.model.PhoneNumber;
+import com.beetle.face.model.UserDB;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.ReactRootView;
@@ -32,6 +41,8 @@ import com.oblador.vectoricons.VectorIconsPackage;
 import com.oney.WebRTCModule.WebRTCModulePackage;
 import com.remobile.toast.RCTToastPackage;
 import com.zmxv.RNSound.RNSoundPackage;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -152,7 +163,21 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
         }
         Log.i(TAG, "conference id:" + conferenceID);
 
-        boolean isInitiator = intent.getBooleanExtra("is_initiator", false);
+        long[] partipants = intent.getLongArrayExtra("partipants");
+        if (partipants == null) {
+            Log.i(TAG, "partipants is null");
+            finish();
+            return;
+        }
+
+        long initiator = intent.getLongExtra("initiator", 0);
+        if (initiator == 0) {
+            Log.i(TAG, "initiator id is 0");
+            finish();
+            return;
+        }
+
+        boolean isInitiator = (initiator == Token.getInstance().uid);
 
 
         mReactRootView = new ReactRootView(this);
@@ -175,6 +200,28 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
         Bundle props = new Bundle();
         props.putLong("conferenceID", conferenceID);
         props.putBoolean("isInitiator", isInitiator);
+        props.putLong("initiator", initiator);
+
+        ArrayList<Bundle> users = new ArrayList<Bundle>();
+        for (long p : partipants) {
+            UserDB userDB = UserDB.getInstance();
+            User u = userDB.loadUser(p);
+            if (u != null) {
+                Contact c = ContactDB.getInstance().loadContact(new PhoneNumber(u.zone, u.number));
+                if (c != null && !TextUtils.isEmpty(c.displayName)) {
+                    u.name = c.displayName;
+                } else {
+                    u.name = u.number;
+                }
+                Bundle bundle = new Bundle();
+                bundle.putLong("uid", u.uid);
+                bundle.putString("name", u.name);
+                bundle.putString("avatar", u.avatar);
+                users.add(bundle);
+            }
+        }
+        props.putParcelableArrayList("partipants", users);
+
         mReactRootView.startReactApplication(mReactInstanceManager, "App", props);
         setContentView(mReactRootView);
 

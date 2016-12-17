@@ -59,7 +59,7 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
 
 
         @ReactMethod
-        public void onCreate(final  float conferenceID, ReadableArray partipants) {
+        public void onCreate(final  float conferenceID, final ReadableArray partipants) {
             Log.i(TAG, "on create...");
 
 
@@ -69,7 +69,13 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
                     ConferenceCreatorActivity.this.finish();
                     Intent intent = new Intent(ConferenceCreatorActivity.this, ConferenceActivity.class);
                     intent.putExtra("is_initiator", true);
+                    intent.putExtra("initiator", Token.getInstance().uid);
                     intent.putExtra("conference_id", (long)conferenceID);
+                    long[] users = new long[partipants.size()];
+                    for (int i = 0; i < users.length; i++) {
+                        users[i] = (long)partipants.getDouble(i);
+                    }
+                    intent.putExtra("partipants", users);
                     startActivity(intent);
                 }
             };

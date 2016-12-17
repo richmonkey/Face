@@ -32,6 +32,7 @@ import com.huawei.android.pushagent.api.PushManager;
 import com.squareup.otto.Subscribe;
 import com.xiaomi.mipush.sdk.MiPushClient;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -206,6 +207,12 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
             JSONObject j = obj.getJSONObject("conference");
             int ts = j.getInt("timestamp");
             long initiator = j.getLong("initiator");
+
+            JSONArray array = j.getJSONArray("partipants");
+            long[] partipants = new long[array.length()];
+            for (int i = 0; i < array.length(); i++) {
+                partipants[i] = array.getLong(i);
+            }
             //50s内发起的呼叫
             if (now - ts > -10 && now - ts < 50 && initiator != Token.getInstance().uid) {
                 long conferenceID = j.getLong("id");
@@ -213,6 +220,8 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("is_initiator", false);
                 intent.putExtra("conference_id", (long)conferenceID);
+                intent.putExtra("initiator", initiator);
+                intent.putExtra("partipants", partipants);
                 startActivity(intent);
             }
         } catch (JSONException e) {
