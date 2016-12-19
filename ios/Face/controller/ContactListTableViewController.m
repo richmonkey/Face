@@ -107,7 +107,7 @@
 -(void)onConferenceCreated:(int64_t)conferenceID partipants:(NSArray*)partipants {
     [self dismissViewControllerAnimated:NO completion:nil];
     ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
-    ctrl.isInitiator = YES;
+    ctrl.initiator = [UserPresent instance].uid;
     ctrl.conferenceID = conferenceID;
     ctrl.partipants = partipants;
     

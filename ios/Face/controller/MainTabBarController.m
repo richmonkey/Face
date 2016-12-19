@@ -339,7 +339,7 @@
         int64_t cid = [[conf objectForKey:@"id"] longLongValue];
         NSArray *partipants = [conf objectForKey:@"partipants"];
         ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
-        ctrl.isInitiator = NO;
+        ctrl.initiator = initiator;
         ctrl.conferenceID = cid;
         ctrl.partipants = partipants;
         

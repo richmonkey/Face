@@ -13,7 +13,9 @@
 #import "RCTBridgeModule.h"
 
 #import <AVFoundation/AVFoundation.h>
-
+#import "UserDB.h"
+#import "UserPresent.h"
+#import "ContactDB.h"
 
 @interface ConferenceViewController ()<RCTBridgeModule>
 
@@ -39,12 +41,6 @@ RCT_EXPORT_METHOD(dismiss)
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-RCT_EXPORT_METHOD(enableSpeaker)
-{
-    NSError* error;
-    [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:nil];
-}
 
 
 //http://stackoverflow.com/questions/24595579/how-to-redirect-audio-to-speakers-in-the-apprtc-ios-example
@@ -105,8 +101,30 @@ RCT_EXPORT_METHOD(enableSpeaker)
                                               moduleProvider:provider
                                                launchOptions:nil];
     
-    NSDictionary *props = @{@"isInitiator":[NSNumber numberWithBool:self.isInitiator],
-                            @"conferenceID":[NSNumber numberWithLongLong:self.conferenceID]};
+    NSMutableArray *users = [NSMutableArray array];
+    for (int i = 0; i < self.partipants.count; i++) {
+        NSNumber *uid = [self.partipants objectAtIndex:i];
+        
+        User *u = [[UserDB instance] loadUser:[uid longLongValue]];
+        ContactDB *cdb = [ContactDB instance];
+        if (u.phoneNumber.isValid) {
+            ABContact *contact = [cdb loadContactWithNumber:u.phoneNumber];
+            u.name = contact.contactName;
+        }
+        
+        NSDictionary *user = @{@"uid":uid,
+                               @"name":u.displayName,
+                               @"avatar":u.avatarURL?u.avatarURL:@""
+                               };
+        [users addObject:user];
+    }
+    
+    BOOL isInitiator = ([UserPresent instance].uid == self.initiator);
+    
+    NSDictionary *props = @{@"initiator":[NSNumber numberWithLongLong:self.initiator],
+                            @"isInitiator":[NSNumber numberWithBool:isInitiator],
+                            @"conferenceID":[NSNumber numberWithLongLong:self.conferenceID],
+                            @"partipants":users};
     
     RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"App" initialProperties:props];
     
