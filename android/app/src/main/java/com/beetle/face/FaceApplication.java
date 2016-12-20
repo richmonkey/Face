@@ -22,6 +22,8 @@ import com.beetle.face.tools.event.BusProvider;
 import com.beetle.face.tools.event.DeviceTokenEvent;
 import com.beetle.face.tools.event.LoginSuccessEvent;
 import com.beetle.im.IMService;
+import com.beetle.im.RTMessage;
+import com.beetle.im.RTMessageObserver;
 import com.beetle.im.SystemMessageObserver;
 import com.beetle.im.VOIPControl;
 import com.beetle.im.VOIPObserver;
@@ -37,6 +39,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -48,9 +51,10 @@ import rx.functions.Action1;
 /**
  * Created by houxh on 14-12-31.
  */
-public class FaceApplication  extends Application implements VOIPObserver, SystemMessageObserver {
+public class FaceApplication  extends Application implements VOIPObserver, SystemMessageObserver, RTMessageObserver {
     private final static String TAG = "face";
 
+    private ArrayList<Long> conferenceIDs = new ArrayList<>();
     @Override
     public void onCreate() {
         super.onCreate();
@@ -84,6 +88,7 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
 
         im.pushVOIPObserver(this);
         im.addSystemObserver(this);
+        im.addRTObserver(this);
 
         BusProvider.getInstance().register(this);
 
@@ -197,37 +202,56 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
 
     @Override
     public void onSystemMessage(String sm) {
-        try {
-            Log.i(TAG, "system message:" + sm);
-            int now = getNow();
-            JSONObject obj = new JSONObject(sm);
-            if (!obj.has("conference")) {
-                return;
-            }
-            JSONObject j = obj.getJSONObject("conference");
-            int ts = j.getInt("timestamp");
-            long initiator = j.getLong("initiator");
 
-            JSONArray array = j.getJSONArray("partipants");
+    }
+
+    @Override
+    public void onRTMessage(RTMessage rt) {
+        VOIPState state = VOIPState.getInstance();
+
+        if (state.state != VOIPState.VOIP_WAITING) {
+            return;
+        }
+
+        try {
+            JSONObject json = new JSONObject(rt.content);
+            JSONObject obj = json.getJSONObject("conference");
+
+            long conferenceID = obj.getLong("id");
+            JSONArray array = obj.getJSONArray("partipants");
             long[] partipants = new long[array.length()];
             for (int i = 0; i < array.length(); i++) {
                 partipants[i] = array.getLong(i);
             }
-            //50s内发起的呼叫
-            if (now - ts > -10 && now - ts < 50 && initiator != Token.getInstance().uid) {
-                long conferenceID = j.getLong("id");
-                Intent intent = new Intent(this, ConferenceActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra("is_initiator", false);
-                intent.putExtra("conference_id", (long)conferenceID);
-                intent.putExtra("initiator", initiator);
-                intent.putExtra("partipants", partipants);
-                startActivity(intent);
+            long initiator = obj.getLong("initiator");
+            String command = obj.getString("command");
+
+            if (!command.equals("invite")) {
+                return;
             }
+            if (conferenceIDs.contains(conferenceID)) {
+                return;
+            }
+
+            conferenceIDs.add(conferenceID);
+            //留下100次呼叫记录
+            if (conferenceIDs.size() > 100) {
+                conferenceIDs.remove(0);
+            }
+
+            state.state = VOIPState.VOIP_TALKING;
+            Intent intent = new Intent(this, ConferenceActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("conference_id", conferenceID);
+            intent.putExtra("initiator", initiator);
+            intent.putExtra("partipants", partipants);
+            startActivity(intent);
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
+
 
     private boolean isHuaweiDevice() {
         String os = Build.HOST;

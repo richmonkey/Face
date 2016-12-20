@@ -15,4 +15,7 @@
 @property (strong, nonatomic) UITabBarController* tabBarController;
 @property (nonatomic, copy) NSString *deviceToken;
 
+@property(nonatomic, getter=isTalking) BOOL talking;
+
++(AppDelegate*)instance;
 @end

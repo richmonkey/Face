@@ -91,7 +91,7 @@ import { Toolbar, ToolbarButton } from '../../toolbar';
 
 import { styles } from './styles';
 
-import { NativeModules } from 'react-native';
+import { NativeModules, NativeAppEventEmitter, BackAndroid } from 'react-native';
 var IsAndroid = (Platform.OS == 'android');
 var native;
 if (IsAndroid) {
@@ -130,6 +130,9 @@ class Conference extends Component {
         var sessionState = this.props.isInitiator ? SESSION_DIAL : SESSION_ACCEPT;
         this.state = { toolbarVisible: false, sessionState:sessionState };
 
+        this.canceled = false;
+        this.hangup = false;
+        
         /**
          * The numerical ID of the timeout in milliseconds after which the
          * toolbar will be hidden. To be used with
@@ -150,6 +153,7 @@ class Conference extends Component {
         this._toggleVideo = this._toggleVideo.bind(this);
         this._toggleCameraFacingMode = this._toggleCameraFacingMode.bind(this);
 
+        this._handleBack = this._handleBack.bind(this);
     }
 
 
@@ -160,6 +164,18 @@ class Conference extends Component {
      * @returns {void}
      */
     componentWillMount() {
+
+        this.subscription = NativeAppEventEmitter.addListener(
+            'onRemoteRefuse',
+            (event) => {
+                console.log("on remote refuse");
+                this._onCancel();
+            }
+        );
+
+        BackAndroid.addEventListener('hardwareBackPress', this._handleBack);
+        
+        
         if (!this.props.isInitiator) {
             this.play("call.mp3");
 
@@ -203,6 +219,7 @@ class Conference extends Component {
     }
 
     componentDidMount() {
+        
     }
 
     startConference() {
@@ -280,7 +297,10 @@ class Conference extends Component {
             clearTimeout(this.timer);
             this.timer = null;
         }
-        
+
+        this.subscription.remove();
+
+        BackAndroid.removeEventListener('hardwareBackPress', this._handleBack)
 
     }
 
@@ -473,18 +493,44 @@ class Conference extends Component {
         );        
     }
 
+    _handleBack() {
+        console.log("session state:", this.state.sessionState);
+        
+        if (this.state.sessionState == SESSION_DIAL) {
+            this._onCancel();
+        } else if (this.state.sessionState == SESSION_ACCEPT) {
+            this._onRefuse();
+        } else if (this.state.sessionState == SESSION_CONNECTED) {
+            this._onHangup();
+        }
+
+        //不立刻退出界面
+        return true;
+    }
     _onCancel() {
+        if (this.canceled) {
+            return;
+        }
+
+        this.canceled = true;
         console.log("cancel...");
         if (this.whoosh) {
             this.whoosh.stop();
             this.whoosh.release();
             this.whoosh = null;
         }
-        native.dismiss();
+
+        var dispatch = this.props.dispatch;
+        dispatch(localParticipantLeft());
+        dispatch(disconnect())
+            .then(() => dispatch(disposeLib()))
+            .then(() => native.dismiss());
     }
 
     _onAccept() {
         console.log("accept...");
+
+        native.accept();
         if (this.whoosh) {
             this.whoosh.stop();
             this.whoosh.release();
@@ -505,6 +551,8 @@ class Conference extends Component {
 
     _onRefuse() {
         console.log("refuse...");
+        
+        native.refuse();
         if (this.whoosh) {
             this.whoosh.stop();
             this.whoosh.release();
@@ -520,6 +568,10 @@ class Conference extends Component {
     }
     
     _onHangup() {
+        if (this.hangup) {
+            return;
+        }
+        this.hangup = true;
         console.log("on hangup...");
         var dispatch = this.props.dispatch;
         dispatch(localParticipantLeft());

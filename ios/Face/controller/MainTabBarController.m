@@ -23,6 +23,7 @@
 #import "APIRequest.h"
 #import "ConferenceViewController.h"
 
+#import "AppDelegate.h"
 
 
 @interface SyncKeyHandler : NSObject<IMSyncKeyHandler>
@@ -94,6 +95,9 @@
 @property(nonatomic)int refreshFailCount;
 
 @property(nonatomic) int bindFailCount;
+
+//已经接听过的通话，不再重复接听
+@property(nonatomic) NSMutableArray *conferenceIDs;
 @end
 
 @implementation MainTabBarController
@@ -118,6 +122,7 @@
 {
     [super viewDidLoad];
 
+    self.conferenceIDs = [NSMutableArray array];
     
     ContactListTableViewController* contactViewController = [[ContactListTableViewController alloc] init];
     contactViewController.title = @"通讯录";
@@ -178,6 +183,7 @@
     
     [[VOIPService instance] pushVOIPObserver:self];
     [[VOIPService instance] addSystemMessageObserver:self];
+    [[VOIPService instance] addRTMessageObserver:self];
     
     UIApplication *application = [UIApplication sharedApplication];
     UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeAlert
@@ -317,35 +323,59 @@
 }
 
 
--(void)onSystemMessage:(NSString*)sm {
-    NSLog(@"system message:%@", sm);
-    const char *utf8 = [sm UTF8String];
-    if (utf8 == nil) return;
-    NSData *data = [NSData dataWithBytes:utf8 length:strlen(utf8)];
-    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
-    
-    
-    NSDictionary *conf = [dict objectForKey:@"conference"];
-    if (!conf) {
+-(void)onRTMessage:(RTMessage*)rt {
+    AppDelegate *app = [AppDelegate instance];
+    if (app.isTalking) {
         return;
     }
     
-    int now = (int)time(NULL);
-    int ts = [[conf objectForKey:@"timestamp"] intValue];
-    
-    int64_t initiator = [[conf objectForKey:@"initiator"] longLongValue];
-    //50s之内发出的会议邀请
-    if (now - ts >= -10 && now - ts < 50 && initiator != [Token instance].uid) {
-        int64_t cid = [[conf objectForKey:@"id"] longLongValue];
-        NSArray *partipants = [conf objectForKey:@"partipants"];
-        ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
-        ctrl.initiator = initiator;
-        ctrl.conferenceID = cid;
-        ctrl.partipants = partipants;
-        
-        [self presentViewController:ctrl animated:YES completion:nil];
-        
+    NSLog(@"rt message:%@", rt.content);
+    const char *utf8 = [rt.content UTF8String];
+    if (utf8 == nil) return;
+    NSData *data = [NSData dataWithBytes:utf8 length:strlen(utf8)];
+    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return;
     }
+    if (![dict objectForKey:@"conference"]) {
+        return;
+    }
+    
+    NSDictionary *c = [dict objectForKey:@"conference"];
+
+    int64_t cid = [[c objectForKey:@"id"] longLongValue];
+    int64_t initiator = [[c objectForKey:@"initiator"] longLongValue];
+    NSArray *partipants = [c objectForKey:@"partipants"];
+    NSString *command = [c objectForKey:@"command"];
+    NSLog(@"conference command:%@", command);
+    
+    if (![command isEqualToString:@"invite"]) {
+        return;
+    }
+    
+    if ([self.conferenceIDs containsObject:[NSNumber numberWithLongLong:cid]]) {
+        NSLog(@"call already show");
+        return;
+    }
+    
+    [self.conferenceIDs addObject:[NSNumber numberWithLongLong:cid]];
+
+    //留下100次呼叫记录
+    if (self.conferenceIDs.count > 100) {
+        [self.conferenceIDs removeObjectAtIndex:0];
+    }
+
+    app.talking = YES;
+    ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
+    ctrl.initiator = initiator;
+    ctrl.conferenceID = cid;
+    ctrl.partipants = partipants;
+    
+    [self presentViewController:ctrl animated:YES completion:nil];
+}
+
+-(void)onSystemMessage:(NSString*)sm {
+
 }
 
 @end

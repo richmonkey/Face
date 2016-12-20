@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 #import <voipsession/VOIPService.h>
-@interface MainTabBarController : UITabBarController<VOIPObserver, SystemMessageObserver>
+@interface MainTabBarController : UITabBarController<VOIPObserver, SystemMessageObserver, RTMessageObserver>
 
 @end
