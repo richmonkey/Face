@@ -122,6 +122,7 @@ static NSString * const kARDVideoTrackId = @"ARDAMSv0";
 -(void)stopStream {
     NSLog(@"stop stream");
     [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
+    [self.peerConnection close];
     self.peerConnection = nil;
     RTCStopInternalCapture();
 }
@@ -154,13 +155,10 @@ static NSString * const kARDVideoTrackId = @"ARDAMSv0";
 }
 
 - (RTCRtpSender *)createAudioSender {
-//    RTCMediaConstraints *constraints = [self defaultMediaAudioConstraints];
-//    RTCAudioSource *source = [self.factory audioSourceWithConstraints:constraints];
-//    RTCAudioTrack *track = [self.factory audioTrackWithSource:source
-//                                                      trackId:kARDAudioTrackId];
-    RTCAudioTrack *track = [self.factory audioTrackWithTrackId:kARDAudioTrackId];
-    
-    
+    RTCMediaConstraints *constraints = [self defaultMediaAudioConstraints];
+    RTCAudioSource *source = [self.factory audioSourceWithConstraints:constraints];
+    RTCAudioTrack *track = [self.factory audioTrackWithSource:source
+                                                      trackId:kARDAudioTrackId];
     RTCRtpSender *sender =
     [self.peerConnection senderWithKind:kRTCMediaStreamTrackKindAudio
                                streamId:kARDMediaStreamId];
@@ -203,14 +201,10 @@ static NSString * const kARDVideoTrackId = @"ARDAMSv0";
     return localVideoTrack;
 }
 
-
-//http://stackoverflow.com/questions/32116791/why-does-my-local-video-stream-rotate-during-calls
-#define kCpuOveruseDetection  @"googCpuOveruseDetection"
 - (RTCMediaConstraints *)cameraConstraints {
     NSDictionary *mediaConstraintsDictionary = @{
                                                  kRTCMediaConstraintsMinWidth : @"640",
-                                                 kRTCMediaConstraintsMinHeight : @"480",
-                                                 kCpuOveruseDetection : @"false"
+                                                 kRTCMediaConstraintsMinHeight : @"480"
                                                  };
     
     RTCMediaConstraints *cameraConstraints = [[RTCMediaConstraints alloc]
@@ -221,15 +215,15 @@ static NSString * const kARDVideoTrackId = @"ARDAMSv0";
 }
 
 
-//- (RTCMediaConstraints *)defaultMediaAudioConstraints {
-//    NSString *valueLevelControl = _shouldUseLevelControl ?
-//    kRTCMediaConstraintsValueTrue : kRTCMediaConstraintsValueFalse;
-//    NSDictionary *mandatoryConstraints = @{ kRTCMediaConstraintsLevelControl : valueLevelControl };
-//    RTCMediaConstraints *constraints =
-//    [[RTCMediaConstraints alloc] initWithMandatoryConstraints:mandatoryConstraints
-//                                          optionalConstraints:nil];
-//    return constraints;
-//}
+- (RTCMediaConstraints *)defaultMediaAudioConstraints {
+    NSString *valueLevelControl = _shouldUseLevelControl ?
+    kRTCMediaConstraintsValueTrue : kRTCMediaConstraintsValueFalse;
+    NSDictionary *mandatoryConstraints = @{ kRTCMediaConstraintsLevelControl : valueLevelControl };
+    RTCMediaConstraints *constraints =
+    [[RTCMediaConstraints alloc] initWithMandatoryConstraints:mandatoryConstraints
+                                          optionalConstraints:nil];
+    return constraints;
+}
 
 
 

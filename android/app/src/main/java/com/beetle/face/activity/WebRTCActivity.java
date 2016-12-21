@@ -162,7 +162,7 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
 
 
     private boolean useCamera2() {
-        return Camera2Enumerator.isSupported() && getIntent().getBooleanExtra(EXTRA_CAMERA2, true);
+        return Camera2Enumerator.isSupported(this) && getIntent().getBooleanExtra(EXTRA_CAMERA2, true);
     }
 
     private boolean captureToTexture() {
