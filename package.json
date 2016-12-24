@@ -48,7 +48,7 @@
     "react-native-sound": "github:richmonkey/react-native-sound",
     "react-native-toast": "^1.0.1",
     "react-native-vector-icons": "^2.0.3",
-    "react-native-webrtc": "jitsi/react-native-webrtc",
+    "react-native-webrtc": "github:richmonkey/react-native-webrtc",
     "react-redux": "^4.4.6",
     "react-router": "^3.0.0",
     "react-router-redux": "^4.0.7",
