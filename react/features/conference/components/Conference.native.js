@@ -223,7 +223,7 @@ class Conference extends Component {
     }
 
     startConference() {
-        var url = 'https://jitsi.goubuli.mobi/' + this.props.conferenceID;
+        var url = 'https://jitsi.gobelieve.io/' + this.props.conferenceID;
         const { domain, room } = _getRoomAndDomainFromUrlString(url);
         
         var dispatch = this.props.dispatch;
