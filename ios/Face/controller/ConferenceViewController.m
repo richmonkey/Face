@@ -185,7 +185,48 @@ RCT_EXPORT_METHOD(dismiss)
     } else {
         self.state = CONFERENCE_STATE_WAITING;
     }
+    
+    
+    if (![self isHeadsetPluggedIn] && ![self isLoudSpeaker]) {
+        NSError* error;
+        [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
+    }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:nil];
+    
 }
+
+
+-(int)setLoudspeakerStatus:(BOOL)enable {
+    AVAudioSession* session = [AVAudioSession sharedInstance];
+    NSString* category = session.category;
+    AVAudioSessionCategoryOptions options = session.categoryOptions;
+    // Respect old category options if category is
+    // AVAudioSessionCategoryPlayAndRecord. Otherwise reset it since old options
+    // might not be valid for this category.
+    if ([category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
+        if (enable) {
+            options |= AVAudioSessionCategoryOptionDefaultToSpeaker;
+        } else {
+            options &= ~AVAudioSessionCategoryOptionDefaultToSpeaker;
+        }
+    } else {
+        options = AVAudioSessionCategoryOptionDefaultToSpeaker;
+    }
+    
+    NSError* error = nil;
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord
+             withOptions:options
+                   error:&error];
+    if (error != nil) {
+        NSLog(@"set loudspeaker err:%@", error);
+        return -1;
+    }
+    
+    return 0;
+}
+
+
 
 -(void)sendRTMessage:(NSString*)command to:(int64_t)to {
     NSDictionary *dict = @{@"conference":@{@"id":[NSNumber numberWithLongLong:self.conferenceID],
