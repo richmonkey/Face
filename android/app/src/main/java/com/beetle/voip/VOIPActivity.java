@@ -21,7 +21,7 @@ import static android.os.SystemClock.uptimeMillis;
 
 public class VOIPActivity extends WebRTCActivity implements RTMessageObserver  {
     protected static final String TAG = "face";
-    public static final long APPID = 7;
+    public static long APPID = 1006;
 
     public static long activityCount = 0;
 

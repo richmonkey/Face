@@ -70,6 +70,7 @@ public class FaceApplication  extends Application implements SystemMessageObserv
 
         Log.i(TAG, "app application create");
 
+        VOIPActivity.APPID = 1006;
 
         LevelDB ldb = LevelDB.getDefaultDB();
         String dir = getFilesDir().getAbsoluteFile() + File.separator + "db";
