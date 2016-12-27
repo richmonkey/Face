@@ -12,7 +12,7 @@
 #import "WebRTCViewController.h"
 #import "VOIPService.h"
 
-#define APPID 7
+#define APPID 1006
 @interface VOIPViewController : WebRTCViewController<AVAudioPlayerDelegate, RTMessageObserver>
 +(int64_t)controllerCount;
 
