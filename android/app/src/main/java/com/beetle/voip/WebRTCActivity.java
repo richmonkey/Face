@@ -1,25 +1,17 @@
-package com.beetle.face.activity;
+package com.beetle.voip;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.AudioManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-
 import android.widget.Toast;
 
-
-import com.beetle.face.api.types.User;
-import com.beetle.im.IMService;
-import com.beetle.im.RTMessage;
-import com.beetle.im.RTMessageObserver;
-
+import com.beetle.face.BuildConfig;
+import com.beetle.face.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,17 +20,15 @@ import org.webrtc.Camera1Enumerator;
 import org.webrtc.Camera2Enumerator;
 import org.webrtc.CameraEnumerator;
 import org.webrtc.EglBase;
-//import org.webrtc.FileVideoCapturer;
+import org.webrtc.FileVideoCapturer;
 import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnection;
 import org.webrtc.SessionDescription;
 import org.webrtc.StatsReport;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoCapturer;
-//import org.webrtc.VideoFileRenderer;
+import org.webrtc.VideoFileRenderer;
 import org.webrtc.VideoRenderer;
-
-
 import java.io.IOException;
 
 import java.util.ArrayList;
@@ -46,12 +36,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.beetle.face.R;
+
+
 
 /**
  * Created by houxh on 15/9/8.
  */
-public class WebRTCActivity extends Activity implements PeerConnectionClient.PeerConnectionEvents, RTMessageObserver {
+public class WebRTCActivity extends Activity implements PeerConnectionClient.PeerConnectionEvents {
     public static final String EXTRA_ROOMID = "org.appspot.apprtc.ROOMID";
     public static final String EXTRA_LOOPBACK = "org.appspot.apprtc.LOOPBACK";
     public static final String EXTRA_VIDEO_CALL = "org.appspot.apprtc.VIDEO_CALL";
@@ -102,13 +93,12 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
 
     protected EglBase rootEglBase;
     protected SurfaceViewRenderer localRender;
+    protected VideoFileRenderer videoFileRenderer;
     protected final List<VideoRenderer.Callbacks> remoteRenderers =
             new ArrayList<VideoRenderer.Callbacks>();
     protected SurfaceViewRenderer remoteRenderScreen;
     protected Toast logToast;
 
-
-    protected boolean activityRunning;
 
     protected PeerConnectionClient.PeerConnectionParameters peerConnectionParameters;
 
@@ -118,14 +108,13 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
 
 
     protected boolean isCaller;
-    protected long currentUID;
-    protected long peerUID;
-    protected String token;
+    protected String turnUserName;
+    protected String turnPassword;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         Intent intent = getIntent();
 
         boolean loopback = intent.getBooleanExtra(EXTRA_LOOPBACK, false);
@@ -152,10 +141,7 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
         // Check for mandatory permissions.
         for (String permission : MANDATORY_PERMISSIONS) {
             if (checkCallingOrSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-                Log.i(TAG, "Permission " + permission + " is not granted");
-                setResult(RESULT_CANCELED);
-                finish();
-                return;
+                Log.e(TAG, "Permission " + permission + " is not granted");
             }
         }
     }
@@ -209,10 +195,6 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
 
 
     protected void startStream() {
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        audioManager.setSpeakerphoneOn(true);
         logAndToast("Creating peer connection");
 
         peerConnectionClient = PeerConnectionClient.getInstance();
@@ -223,10 +205,8 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
 
         PeerConnection.IceServer server = new PeerConnection.IceServer("stun:stun.counterpath.net:3478");
 
-        long appid = 1006;
-        long uid = this.currentUID;
-        String username = String.format("%d_%d", appid, uid);
-        String password = token;
+        String username = turnUserName;
+        String password = turnPassword;
         PeerConnection.IceServer server2 = new PeerConnection.IceServer("turn:turn.gobelieve.io:3478?transport=udp", username, password);
 
         peerConnectionClient.clearIceServer();
@@ -249,7 +229,7 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
     }
 
     protected void stopStream() {
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         logAndToast("Remote end hung up; dropping PeerConnection");
         disconnect();
     }
@@ -260,33 +240,20 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
         }
     }
 
-    private void disconnectWithErrorMessage(final String errorMessage) {
-        if (!activityRunning) {
-            Log.e(TAG, "Critical error: " + errorMessage);
-            disconnect();
-        } else {
-            new AlertDialog.Builder(this)
-                    .setTitle(getText(R.string.channel_error_title))
-                    .setMessage(errorMessage)
-                    .setCancelable(false)
-                    .setNeutralButton(R.string.ok,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                    disconnect();
-                                }
-                            })
-                    .create()
-                    .show();
+    public void toogleVideo(View v) {
+        if (peerConnectionClient != null) {
+            peerConnectionClient.toogleVideo();
         }
     }
 
+    public void toogleAudio(View v) {
+        if (peerConnectionClient != null) {
+            peerConnectionClient.toogleAudio();
+        }
+    }
 
     // Disconnect from remote resources, dispose of local resources, and exit.
     private void disconnect() {
-        activityRunning = false;
-
         if (peerConnectionClient != null) {
             peerConnectionClient.close();
             peerConnectionClient = null;
@@ -295,7 +262,10 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
             localRender.release();
             localRender = null;
         }
-
+        if (videoFileRenderer != null) {
+            videoFileRenderer.release();
+            videoFileRenderer = null;
+        }
         if (remoteRenderScreen != null) {
             remoteRenderScreen.release();
             remoteRenderScreen = null;
@@ -312,6 +282,13 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
     // Log |msg| and Toast about it.
     private void logAndToast(String msg) {
         Log.d(TAG, msg);
+        if (BuildConfig.DEBUG) {
+            if (logToast != null) {
+                logToast.cancel();
+            }
+            logToast = Toast.makeText(this, msg, Toast.LENGTH_SHORT);
+            logToast.show();
+        }
     }
 
     private void reportError(final String description) {
@@ -320,7 +297,20 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
             public void run() {
                 if (!isError) {
                     isError = true;
-                    disconnectWithErrorMessage(description);
+
+                    new AlertDialog.Builder(WebRTCActivity.this)
+                            .setTitle(getText(R.string.channel_error_title))
+                            .setMessage(description)
+                            .setCancelable(false)
+                            .setNeutralButton(R.string.ok,
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            dialog.cancel();
+                                        }
+                                    })
+                            .create()
+                            .show();
                 }
             }
         });
@@ -329,7 +319,14 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
     private VideoCapturer createVideoCapturer() {
         VideoCapturer videoCapturer = null;
         String videoFileAsCamera = getIntent().getStringExtra(EXTRA_VIDEO_FILE_AS_CAMERA);
-        if (useCamera2()) {
+        if (videoFileAsCamera != null) {
+            try {
+                videoCapturer = new FileVideoCapturer(videoFileAsCamera);
+            } catch (IOException e) {
+                reportError("Failed to open video file for emulated camera");
+                return null;
+            }
+        } else if (useCamera2()) {
             if (!captureToTexture()) {
                 reportError(getString(R.string.camera2_texture_only_error));
                 return null;
@@ -372,16 +369,8 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
                 json.getString("id"), json.getInt("label"), json.getString("candidate"));
     }
 
-    @Override
-    public void onRTMessage(RTMessage rt) {
-        if (rt.sender != peerUID) {
-            return;
-        }
-
-        Log.i(TAG, "recv rt message:" + rt.content);
+    protected void processP2PMessage(JSONObject json) {
         try {
-            JSONObject json = new JSONObject(rt.content);
-
             String type = json.optString("type");
             if (type.equals("candidate")) {
                 this.onRemoteIceCandidate(toJavaCandidate(json));
@@ -398,7 +387,7 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
                             SessionDescription.Type.fromCanonicalForm(type), json.getString("sdp"));
                     this.onRemoteDescription(sdp);
                 } else {
-                    reportError("Received answer for call initiator: " + rt.content);
+                    reportError("Received answer for call initiator");
                 }
             } else if (type.equals("offer")) {
                 if (!this.isCaller) {
@@ -406,10 +395,10 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
                             SessionDescription.Type.fromCanonicalForm(type), json.getString("sdp"));
                     this.onRemoteDescription(sdp);
                 } else {
-                    reportError("Received offer for call receiver: " + rt.content);
+                    reportError("Received offer for call receiver");
                 }
             } else {
-                reportError("Unexpected WebSocket message: " + rt.content);
+                reportError("Unexpected WebSocket message");
             }
 
         } catch (JSONException e) {
@@ -466,8 +455,6 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
     }
 
 
-
-
     // Should be called from UI thread
     private void callConnected() {
         final long delta = System.currentTimeMillis() - callStartedTimeMs;
@@ -482,21 +469,15 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
         peerConnectionClient.enableStatsEvents(true, STAT_CALLBACK_PERIOD);
     }
 
-    void sendRTMessage(JSONObject json) {
-        RTMessage rt = new RTMessage();
-        rt.sender = this.currentUID;
-        rt.receiver = this.peerUID;
-        rt.content = json.toString();
+    protected void sendP2PMessage(JSONObject json) {
 
-        Log.i(TAG, "send rt message:" + rt.content);
-        IMService.getInstance().sendRTMessage(rt);
     }
 
     public void sendOfferSdp(final SessionDescription sdp) {
         JSONObject json = new JSONObject();
         jsonPut(json, "sdp", sdp.description);
         jsonPut(json, "type", "offer");
-        sendRTMessage(json);
+        sendP2PMessage(json);
     }
 
     // Send local answer SDP to the other participant.
@@ -504,7 +485,7 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
         JSONObject json = new JSONObject();
         jsonPut(json, "sdp", sdp.description);
         jsonPut(json, "type", "answer");
-        sendRTMessage(json);
+        sendP2PMessage(json);
     }
 
     // Send Ice candidate to the other participant.
@@ -514,7 +495,7 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
         jsonPut(json, "label", candidate.sdpMLineIndex);
         jsonPut(json, "id", candidate.sdpMid);
         jsonPut(json, "candidate", candidate.sdp);
-        sendRTMessage(json);
+        sendP2PMessage(json);
     }
 
     // Send removed Ice candidates to the other participant.
@@ -528,8 +509,7 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
         }
         jsonPut(json, "candidates", jsonArray);
 
-        sendRTMessage(json);
-
+        sendP2PMessage(json);
     }
 
     // -----Implementation of PeerConnectionClient.PeerConnectionEvents.---------
@@ -597,7 +577,6 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
             public void run() {
                 logAndToast("ICE disconnected");
                 iceConnected = false;
-                disconnect();
             }
         });
     }
@@ -692,8 +671,6 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
                 encoderStat.append("Actual BR: ").append(actualBitrate).append("\n");
             }
         }
-
-
         Log.i(TAG, encoderStat.toString());
     }
 
@@ -714,7 +691,4 @@ public class WebRTCActivity extends Activity implements PeerConnectionClient.Pee
     public void onPeerConnectionError(final String description) {
         reportError(description);
     }
-
-
-
 }

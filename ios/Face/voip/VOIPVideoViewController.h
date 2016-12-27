@@ -9,5 +9,6 @@
 #import "VOIPViewController.h"
 
 @interface VOIPVideoViewController : VOIPViewController
-
+@property(nonatomic, copy) NSString *peerName;
+@property(nonatomic, copy) NSString *peerAvatar;
 @end

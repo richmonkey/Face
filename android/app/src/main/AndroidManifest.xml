@@ -82,16 +82,7 @@
             android:screenOrientation="portrait"
             android:label="@string/title_activity_verify" >
         </activity>
-        <activity
-            android:name="com.beetle.face.activity.VOIPVoiceActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/app_name" >
-        </activity>
-        <activity
-            android:name="com.beetle.face.activity.VOIPVideoActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/app_name" >
-        </activity>
+
 
         <activity
             android:name="com.beetle.face.activity.ConferenceCreatorActivity"
@@ -100,7 +91,18 @@
         </activity>
 
         <activity
-            android:name="com.beetle.face.activity.ConferenceActivity"
+            android:name="com.beetle.voip.VOIPVoiceActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="com.beetle.voip.VOIPVideoActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name" >
+        </activity>
+
+        <activity
+            android:name="com.beetle.conference.ConferenceActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name" >
         </activity>

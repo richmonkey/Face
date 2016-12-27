@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <voipsession/VOIPService.h>
+#import "VOIPService.h"
 
 @interface SettingViewController : UIViewController <UITableViewDataSource,UITableViewDelegate,TCPConnectionObserver,UIAlertViewDelegate>
 

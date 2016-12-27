@@ -1,4 +1,4 @@
-package com.beetle.face.activity;
+package com.beetle.conference;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -14,15 +14,7 @@ import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
 
-
 import com.beetle.face.BuildConfig;
-import com.beetle.face.Token;
-import com.beetle.face.VOIPState;
-import com.beetle.face.api.types.User;
-import com.beetle.face.model.Contact;
-import com.beetle.face.model.ContactDB;
-import com.beetle.face.model.PhoneNumber;
-import com.beetle.face.model.UserDB;
 import com.beetle.im.IMService;
 import com.beetle.im.RTMessage;
 import com.beetle.im.RTMessageObserver;
@@ -57,7 +49,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.RunnableFuture;
 
 import static android.os.SystemClock.uptimeMillis;
 
@@ -68,17 +59,14 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
     private final int STATE_ACCEPTED = 2;
     private final int STATE_REFUSED = 3;
 
-
-    private final String COMMAND_INVITE = "invite";
-    private final String COMMAND_WAIT = "waiting";
-    private final String COMMAND_ACCEPT = "accept";
-    private final String COMMAND_REFUSE = "refuse";
+    public static long activityCount = 0;
 
     private ReactRootView mReactRootView;
     private ReactInstanceManager mReactInstanceManager;
     private MusicIntentReceiver headsetReceiver;
 
-    private long conferenceID;
+    private long currentUID;
+    private String channelID;
     private long initiator;
     private long[] partipants;
     private HashMap<Long, Integer> partipantStates;
@@ -209,19 +197,44 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
         super.onCreate(savedInstanceState);
+        activityCount++;
 
         Intent intent = getIntent();
-        long conferenceID = intent.getLongExtra("conference_id", 0);
-        if (conferenceID == 0) {
-            Log.i(TAG, "conference id is 0");
+
+        currentUID = intent.getLongExtra("current_uid", 0);
+        if (currentUID == 0) {
+            Log.i(TAG, "current uid is 0");
             finish();
             return;
         }
-        Log.i(TAG, "conference id:" + conferenceID);
+
+        channelID = intent.getStringExtra("channel_id");
+        if (TextUtils.isEmpty(channelID)) {
+            Log.i(TAG, "channel id is empty");
+            finish();
+            return;
+        }
+        Log.i(TAG, "channel id:" + channelID);
 
         long[] partipants = intent.getLongArrayExtra("partipants");
         if (partipants == null) {
             Log.i(TAG, "partipants is null");
+            finish();
+            return;
+        }
+
+        String[] partipantNames = intent.getStringArrayExtra("partipant_names");
+        String[] partipantAvatars = intent.getStringArrayExtra("partipant_avatars");
+
+        if (partipantNames == null || partipantAvatars == null) {
+            Log.i(TAG, "partipant's name is null");
+            finish();
+            return;
+        }
+
+        if (partipants.length != partipantNames.length ||
+                partipants.length != partipantAvatars.length) {
+            Log.i(TAG, "partipants invalid");
             finish();
             return;
         }
@@ -233,7 +246,7 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
             return;
         }
 
-        boolean isInitiator = (initiator == Token.getInstance().uid);
+        boolean isInitiator = (initiator == currentUID);
 
 
         mReactRootView = new ReactRootView(this);
@@ -254,27 +267,20 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
                 .build();
 
         Bundle props = new Bundle();
-        props.putLong("conferenceID", conferenceID);
+        props.putString("channelID", channelID);
         props.putBoolean("isInitiator", isInitiator);
         props.putLong("initiator", initiator);
 
         ArrayList<Bundle> users = new ArrayList<Bundle>();
-        for (long p : partipants) {
-            UserDB userDB = UserDB.getInstance();
-            User u = userDB.loadUser(p);
-            if (u != null) {
-                Contact c = ContactDB.getInstance().loadContact(new PhoneNumber(u.zone, u.number));
-                if (c != null && !TextUtils.isEmpty(c.displayName)) {
-                    u.name = c.displayName;
-                } else {
-                    u.name = u.number;
-                }
-                Bundle bundle = new Bundle();
-                bundle.putLong("uid", u.uid);
-                bundle.putString("name", u.name);
-                bundle.putString("avatar", u.avatar);
-                users.add(bundle);
-            }
+        for (int i = 0; i < partipants.length; i++) {
+            long p = partipants[i];
+            String name = partipantNames[i];
+            String avatar = partipantAvatars[i];
+            Bundle bundle = new Bundle();
+            bundle.putLong("uid", p);
+            bundle.putString("name", name);
+            bundle.putString("avatar", avatar);
+            users.add(bundle);
         }
         props.putParcelableArrayList("partipants", users);
 
@@ -288,12 +294,11 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
 
         this.partipants = partipants;
         this.initiator = initiator;
-        this.conferenceID = conferenceID;
 
         if (isInitiator) {
             partipantStates = new HashMap<>();
             for (long p : partipants) {
-                if (p == Token.getInstance().uid) {
+                if (p == currentUID) {
                     continue;
                 }
 
@@ -347,12 +352,11 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        activityCount--;
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (mReactInstanceManager != null) {
             mReactInstanceManager.onHostDestroy();
         }
-
-        VOIPState.getInstance().state = VOIPState.VOIP_WAITING;
 
         IMService.getInstance().removeRTObserver(this);
 
@@ -384,21 +388,17 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
 
     private void sendRTMessage(String command, long to) {
         try {
-            JSONObject obj = new JSONObject();
-            obj.put("id", this.conferenceID);
-            obj.put("initiator", this.initiator);
-            obj.put("command", command);
-            JSONArray array = new JSONArray();
-            for (long p : this.partipants) {
-                array.put(p);
-            }
-            obj.put("partipants", array);
+            ConferenceCommand conferenceCommand = new ConferenceCommand();
+            conferenceCommand.command = command;
+            conferenceCommand.channelID = this.channelID;
+            conferenceCommand.initiator = this.initiator;
+            conferenceCommand.partipants = this.partipants;
 
             JSONObject json = new JSONObject();
-            json.put("conference", obj);
+            json.put("conference", conferenceCommand.getContent());
 
             RTMessage rt = new RTMessage();
-            rt.sender = Token.getInstance().uid;
+            rt.sender = currentUID;
             rt.receiver = to;
             rt.content = json.toString();
             IMService.getInstance().sendRTMessage(rt);
@@ -408,26 +408,26 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
     }
 
     private void sendRefuse() {
-        sendRTMessage(COMMAND_REFUSE, this.initiator);
+        sendRTMessage(ConferenceCommand.COMMAND_REFUSE, this.initiator);
     }
 
     private void sendAccept() {
-        sendRTMessage(COMMAND_ACCEPT, this.initiator);
+        sendRTMessage(ConferenceCommand.COMMAND_ACCEPT, this.initiator);
 
     }
 
     private void sendWait() {
-        sendRTMessage(COMMAND_WAIT, this.initiator);
+        sendRTMessage(ConferenceCommand.COMMAND_WAIT, this.initiator);
     }
 
     private void sendInvite(long to) {
-        sendRTMessage(COMMAND_INVITE, to);
+        sendRTMessage(ConferenceCommand.COMMAND_INVITE, to);
 
     }
 
     private void invite() {
         for (long p:this.partipants) {
-            if (p == Token.getInstance().uid) {
+            if (p == currentUID) {
                 continue;
             }
 
@@ -459,25 +459,22 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
             JSONObject json = new JSONObject(rt.content);
             JSONObject obj = json.getJSONObject("conference");
 
-            long id = obj.getLong("id");
-            obj.getJSONArray("partipants");
-            long initiator = obj.getLong("initiator");
-            String command = obj.getString("command");
-
-            boolean isInitiator = (this.initiator == Token.getInstance().uid);
+            ConferenceCommand confCommand = new ConferenceCommand(obj);
+            String command = confCommand.command;
+            boolean isInitiator = (this.initiator == currentUID);
             if (isInitiator) {
-                if (command.equals(COMMAND_ACCEPT)) {
+                if (command.equals(ConferenceCommand.COMMAND_ACCEPT)) {
                     partipantStates.put(rt.sender, STATE_ACCEPTED);
-                } else if (command.equals(COMMAND_REFUSE)) {
+                } else if (command.equals(ConferenceCommand.COMMAND_REFUSE)) {
                     partipantStates.put(rt.sender, STATE_REFUSED);
-                } else if (command.equals(COMMAND_WAIT)) {
+                } else if (command.equals(ConferenceCommand.COMMAND_WAIT)) {
 
                 }
 
                 boolean refused = true;
 
                 for (long p : this.partipants) {
-                    if (p == Token.getInstance().uid) {
+                    if (p == currentUID) {
                         continue;
                     }
                     int s = partipantStates.get(p);
@@ -496,7 +493,7 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
                     sendEvent(context, "onRemoteRefuse", p);
                 }
             } else {
-                if (command.equals(COMMAND_INVITE)) {
+                if (command.equals(ConferenceCommand.COMMAND_INVITE)) {
                     if (this.state == STATE_ACCEPTED) {
                         sendAccept();
                     } else if (this.state == STATE_REFUSED) {

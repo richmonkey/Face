@@ -7,7 +7,7 @@
 //
 
 #import "AppDelegate.h"
-#import <voipsession/VOIPService.h>
+#import "VOIPService.h"
 #import "Config.h"
 #import "Token.h"
 #import "MainTabBarController.h"

@@ -10,6 +10,9 @@
 #import "AppDelegate.h"
 #import "User.h"
 #import "UserDB.h"
+#import "UserPresent.h"
+#import "ContactDB.h"
+#import "Token.h"
 #import "UIImageView+Letters.h"
 #import "UIImageView+WebCache.h"
 #import "pinyin.h"
@@ -21,7 +24,7 @@
 #import "UIView+Toast.h"
 
 #import "DailCompView.h"
-#import <voipsession/VOIPService.h>
+#import "VOIPService.h"
 
 /*
  ----------
@@ -256,6 +259,17 @@ typedef enum {
         }
     }
 }
+
+-(NSString*)getUserName:(int64_t)uid {
+    User *u = [[UserDB instance] loadUser:uid];
+    ABContact *contact = [[ContactDB instance] loadContactWithNumber:u.phoneNumber];
+    NSString *name = contact.contactName;
+    if (name.length == 0) {
+        name = u.phoneNumber.number;
+    }
+    return name;
+}
+
 /**
  *  拨打电话
  *
@@ -266,13 +280,28 @@ typedef enum {
         switch (type) {
             case ConnectVideoType:
             {
-                VOIPVideoViewController*controller = [[VOIPVideoViewController alloc] initWithCalledUID:user.uid];
+                NSString *name = [self getUserName:user.uid];
+                
+                VOIPVideoViewController *controller = [[VOIPVideoViewController alloc] init];
+                controller.currentUID = [UserPresent instance].uid;
+                controller.peerUID = user.uid;
+                controller.peerName = name;
+                controller.token = [Token instance].accessToken;
+                controller.isCaller = YES;
+                
                 [self presentViewController:controller animated:YES completion:nil];
             }
                 break;
             case ConnectVoiceType:
             {
-                VOIPVoiceViewController *controller = [[VOIPVoiceViewController alloc] initWithCalledUID:user.uid];
+                NSString *name = [self getUserName:user.uid];
+                
+                VOIPVoiceViewController *controller = [[VOIPVoiceViewController alloc] init];
+                controller.currentUID = [UserPresent instance].uid;
+                controller.peerUID = user.uid;
+                controller.peerName = name;
+                controller.token = [Token instance].accessToken;
+                controller.isCaller = YES;
                 [self presentViewController:controller animated:YES completion:nil];
             }
                 break;

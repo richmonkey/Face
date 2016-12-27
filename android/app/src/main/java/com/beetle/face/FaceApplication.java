@@ -9,15 +9,17 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.beetle.face.activity.ConferenceActivity;
-import com.beetle.face.activity.ConferenceCreatorActivity;
-import com.beetle.face.activity.VOIPVideoActivity;
-import com.beetle.face.activity.VOIPVoiceActivity;
+import com.beetle.conference.ConferenceActivity;
+import com.beetle.conference.ConferenceCommand;
 import com.beetle.face.api.IMHttpFactory;
 import com.beetle.face.api.body.PostDeviceToken;
+import com.beetle.face.api.types.User;
+import com.beetle.face.model.Contact;
 import com.beetle.face.model.ContactDB;
 import com.beetle.face.model.HistoryDB;
+import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.SyncKeyHandler;
+import com.beetle.face.model.UserDB;
 import com.beetle.face.tools.event.BusProvider;
 import com.beetle.face.tools.event.DeviceTokenEvent;
 import com.beetle.face.tools.event.LoginSuccessEvent;
@@ -25,16 +27,16 @@ import com.beetle.im.IMService;
 import com.beetle.im.RTMessage;
 import com.beetle.im.RTMessageObserver;
 import com.beetle.im.SystemMessageObserver;
-import com.beetle.im.VOIPControl;
-import com.beetle.im.VOIPObserver;
+import com.beetle.voip.VOIPActivity;
 import com.beetle.voip.VOIPCommand;
 
+import com.beetle.voip.VOIPVideoActivity;
+import com.beetle.voip.VOIPVoiceActivity;
 import com.google.code.p.leveldb.LevelDB;
 import com.huawei.android.pushagent.api.PushManager;
 import com.squareup.otto.Subscribe;
 import com.xiaomi.mipush.sdk.MiPushClient;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -51,10 +53,12 @@ import rx.functions.Action1;
 /**
  * Created by houxh on 14-12-31.
  */
-public class FaceApplication  extends Application implements VOIPObserver, SystemMessageObserver, RTMessageObserver {
+public class FaceApplication  extends Application implements SystemMessageObserver, RTMessageObserver {
     private final static String TAG = "face";
 
-    private ArrayList<Long> conferenceIDs = new ArrayList<>();
+
+    private ArrayList<String> channelIDs = new ArrayList<>();
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -86,7 +90,6 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
         im.setDeviceID(androidID);
         im.registerConnectivityChangeReceiver(getApplicationContext());
 
-        im.pushVOIPObserver(this);
         im.addSystemObserver(this);
         im.addRTObserver(this);
 
@@ -150,7 +153,6 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
         IMService im =  IMService.getInstance();
         im.setToken(Token.getInstance().accessToken);
         im.start();
-        im.pushVOIPObserver(this);
         if (isHuaweiDevice()) {
             initHuaweiPush();
         } else {
@@ -170,31 +172,6 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
         }
     }
 
-    @Override
-    public void onVOIPControl(VOIPControl ctl) {
-        VOIPState state = VOIPState.getInstance();
-
-        VOIPCommand command = new VOIPCommand(ctl.content);
-        Log.i(TAG, "voip state:" + state.state + " command:" + command.cmd);
-        if (state.state == VOIPState.VOIP_WAITING) {
-            if (command.cmd == VOIPCommand.VOIP_COMMAND_DIAL) {
-                Intent intent = new Intent(this, VOIPVoiceActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra("peer_uid", ctl.sender);
-                intent.putExtra("is_caller", false);
-                state.state = VOIPState.VOIP_TALKING;
-                startActivity(intent);
-            } else if (command.cmd == VOIPCommand.VOIP_COMMAND_DIAL_VIDEO) {
-                Intent intent = new Intent(this, VOIPVideoActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra("peer_uid", ctl.sender);
-                intent.putExtra("is_caller", false);
-                state.state = VOIPState.VOIP_TALKING;
-                startActivity(intent);
-            }
-        }
-    }
-
     private int getNow() {
         Date now = new Date();
         return (int)(now.getTime()/1000);
@@ -202,51 +179,126 @@ public class FaceApplication  extends Application implements VOIPObserver, Syste
 
     @Override
     public void onSystemMessage(String sm) {
-
+        Log.i(TAG, "system message:" + sm);
     }
 
     @Override
     public void onRTMessage(RTMessage rt) {
-        VOIPState state = VOIPState.getInstance();
-
-        if (state.state != VOIPState.VOIP_WAITING) {
+        if (Token.getInstance().uid == 0) {
             return;
         }
 
+        if (Token.getInstance().uid != rt.receiver) {
+            return;
+        }
+
+        if (VOIPActivity.activityCount > 0) {
+            return;
+        }
+
+        if (ConferenceActivity.activityCount > 0) {
+            return;
+        }
+
+
         try {
             JSONObject json = new JSONObject(rt.content);
-            JSONObject obj = json.getJSONObject("conference");
+            if (json.has("conference")) {
+                JSONObject obj = json.getJSONObject("conference");
+                ConferenceCommand confCommand = new ConferenceCommand(obj);
 
-            long conferenceID = obj.getLong("id");
-            JSONArray array = obj.getJSONArray("partipants");
-            long[] partipants = new long[array.length()];
-            for (int i = 0; i < array.length(); i++) {
-                partipants[i] = array.getLong(i);
+                if (channelIDs.contains(confCommand.channelID)) {
+                    return;
+                }
+
+                if (confCommand.command.equals(ConferenceCommand.COMMAND_INVITE)) {
+                    channelIDs.add(confCommand.channelID);
+
+                    String[] partipantNames = new String[confCommand.partipants.length];
+                    String[] partipantAvatars = new String[confCommand.partipants.length];
+                    for (int i = 0; i < confCommand.partipants.length; i++) {
+                        String name = "";
+                        String avatar = "";
+                        User user = UserDB.getInstance().loadUser(confCommand.partipants[i]);
+                        if (user != null) {
+                            Contact c = ContactDB.getInstance().loadContact(new PhoneNumber(user.zone, user.number));
+                            if (c != null) {
+                                name = c.displayName != null ? user.name : "";
+                            }
+                            avatar = user.avatar != null ? user.avatar : "";
+                        }
+
+                        partipantNames[i] = name;
+                        partipantAvatars[i] = avatar;
+                    }
+
+                    Intent intent = new Intent(this, ConferenceActivity.class);
+                    intent.setFlags(intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("channel_id", confCommand.channelID);
+                    intent.putExtra("current_uid", Token.getInstance().uid);
+                    intent.putExtra("initiator", confCommand.initiator);
+                    intent.putExtra("partipants", confCommand.partipants);
+                    intent.putExtra("partipant_names", partipantNames);
+                    intent.putExtra("partipant_avatars", partipantAvatars);
+                    startActivity(intent);
+                }
+            } else if (json.has("voip")) {
+                JSONObject obj = json.getJSONObject("voip");
+                VOIPCommand command = new VOIPCommand(obj);
+
+                if (channelIDs.contains(command.channelID)) {
+                    return;
+                }
+                if (command.cmd == VOIPCommand.VOIP_COMMAND_DIAL) {
+                    channelIDs.add(command.channelID);
+
+                    String name = "";
+                    String avatar = "";
+                    User user = UserDB.getInstance().loadUser(rt.sender);
+                    if (user != null) {
+                        Contact c = ContactDB.getInstance().loadContact(new PhoneNumber(user.zone, user.number));
+                        if (c != null) {
+                            name = c.displayName != null ? user.name : "";
+                        }
+                        avatar = user.avatar != null ? user.avatar : "";
+                    }
+
+                    Intent intent = new Intent(this, VOIPVoiceActivity.class);
+                    intent.setFlags(intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("peer_uid", rt.sender);
+                    intent.putExtra("peer_name", name);
+                    intent.putExtra("peer_avatar", avatar);
+                    intent.putExtra("current_uid", Token.getInstance().uid);
+                    intent.putExtra("token", Token.getInstance().accessToken);
+                    intent.putExtra("is_caller", false);
+                    intent.putExtra("channel_id", command.channelID);
+                    startActivity(intent);
+                } else if (command.cmd == VOIPCommand.VOIP_COMMAND_DIAL_VIDEO) {
+                    channelIDs.add(command.channelID);
+
+                    String name = "";
+                    String avatar = "";
+                    User user = UserDB.getInstance().loadUser(rt.sender);
+                    if (user != null) {
+                        Contact c = ContactDB.getInstance().loadContact(new PhoneNumber(user.zone, user.number));
+                        if (c != null) {
+                            name = c.displayName != null ? user.name : "";
+                        }
+                        avatar = user.avatar != null ? user.avatar : "";
+                    }
+
+                    Intent intent = new Intent(this, VOIPVideoActivity.class);
+                    intent.setFlags(intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("peer_uid", rt.sender);
+                    intent.putExtra("peer_name", name);
+                    intent.putExtra("peer_avatar", avatar);
+                    intent.putExtra("current_uid", Token.getInstance().uid);
+                    intent.putExtra("token", Token.getInstance().accessToken);
+                    intent.putExtra("is_caller", false);
+                    intent.putExtra("channel_id", command.channelID);
+                    startActivity(intent);
+                }
             }
-            long initiator = obj.getLong("initiator");
-            String command = obj.getString("command");
-
-            if (!command.equals("invite")) {
-                return;
-            }
-            if (conferenceIDs.contains(conferenceID)) {
-                return;
-            }
-
-            conferenceIDs.add(conferenceID);
-            //留下100次呼叫记录
-            if (conferenceIDs.size() > 100) {
-                conferenceIDs.remove(0);
-            }
-
-            state.state = VOIPState.VOIP_TALKING;
-            Intent intent = new Intent(this, ConferenceActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.putExtra("conference_id", conferenceID);
-            intent.putExtra("initiator", initiator);
-            intent.putExtra("partipants", partipants);
-            startActivity(intent);
-
         } catch (JSONException e) {
             e.printStackTrace();
         }

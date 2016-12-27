@@ -11,18 +11,20 @@
 #import "ConversationHistoryViewController.h"
 #import "SettingViewController.h"
 #import "Token.h"
-#import <voipsession/VOIPService.h>
+#import "VOIPService.h"
 #import "UserPresent.h"
+#import "UserDB.h"
+#import "ContactDB.h"
 #import "APIRequest.h"
 #import "JSBadgeView.h"
 #import "Constants.h"
 #import "VOIPVoiceViewController.h"
 #import "VOIPVideoViewController.h"
 #import "UIView+Toast.h"
-#import <voipsession/voipcommand.h>
+#import "VOIPCommand.h"
 #import "APIRequest.h"
 #import "ConferenceViewController.h"
-
+#import "ConferenceCommand.h"
 #import "AppDelegate.h"
 
 
@@ -98,6 +100,8 @@
 
 //已经接听过的通话，不再重复接听
 @property(nonatomic) NSMutableArray *conferenceIDs;
+
+@property(nonatomic) NSMutableArray *channelIDs;
 @end
 
 @implementation MainTabBarController
@@ -123,6 +127,7 @@
     [super viewDidLoad];
 
     self.conferenceIDs = [NSMutableArray array];
+    self.channelIDs = [NSMutableArray array];
     
     ContactListTableViewController* contactViewController = [[ContactListTableViewController alloc] init];
     contactViewController.title = @"通讯录";
@@ -308,27 +313,21 @@
     dispatch_suspend(self.refreshTimer);
 }
 
-
-#pragma mark - VOIPObserver
--(void)onVOIPControl:(VOIPControl*)ctl {
-    VOIPCommand *command = [[VOIPCommand alloc] initWithContent:ctl.content];
-    NSLog(@"voip command:%d", command.cmd);
-    if (command.cmd == VOIP_COMMAND_DIAL) {
-        VOIPVoiceViewController *controller = [[VOIPVoiceViewController alloc] initWithCallerUID:ctl.sender];
-        [self presentViewController:controller animated:YES completion:nil];
-    } else if (command.cmd == VOIP_COMMAND_DIAL_VIDEO) {
-        VOIPVideoViewController *controller = [[VOIPVideoViewController alloc] initWithCallerUID:ctl.sender];
-        [self presentViewController:controller animated:YES completion:nil];
+-(User*)getUserName:(int64_t)uid {
+    User *u = [[UserDB instance] loadUser:uid];
+    ABContact *contact = [[ContactDB instance] loadContactWithNumber:u.phoneNumber];
+    NSString *name = contact.contactName;
+    if (name.length == 0) {
+        name = u.phoneNumber.number;
     }
+    u.name = name;
+    
+    return u;
 }
 
 
+#pragma mark RTMessageObserver
 -(void)onRTMessage:(RTMessage*)rt {
-    AppDelegate *app = [AppDelegate instance];
-    if (app.isTalking) {
-        return;
-    }
-    
     NSLog(@"rt message:%@", rt.content);
     const char *utf8 = [rt.content UTF8String];
     if (utf8 == nil) return;
@@ -337,41 +336,113 @@
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return;
     }
-    if (![dict objectForKey:@"conference"]) {
+    
+    if ([VOIPViewController controllerCount] > 0) {
+        return;
+    }
+
+    if ([ConferenceViewController controllerCount] > 0) {
         return;
     }
     
-    NSDictionary *c = [dict objectForKey:@"conference"];
+    if ([dict objectForKey:@"conference"]) {
+        NSDictionary *c = [dict objectForKey:@"conference"];
+        
+        ConferenceCommand *command = [[ConferenceCommand alloc] initWithDictionary:c];
+        
+        if (![command.command isEqualToString:CONFERENCE_COMMAND_INVITE]) {
+            return;
+        }
+        
 
-    int64_t cid = [[c objectForKey:@"id"] longLongValue];
-    int64_t initiator = [[c objectForKey:@"initiator"] longLongValue];
-    NSArray *partipants = [c objectForKey:@"partipants"];
-    NSString *command = [c objectForKey:@"command"];
-    NSLog(@"conference command:%@", command);
-    
-    if (![command isEqualToString:@"invite"]) {
+        if ([self.channelIDs containsObject:command.channelID]) {
+            NSLog(@"call already show");
+            return;
+        }
+        
+        [self.channelIDs addObject:command.channelID];
+        
+        //留下100次呼叫记录
+        if (self.conferenceIDs.count > 100) {
+            [self.conferenceIDs removeObjectAtIndex:0];
+        }
+
+        NSMutableArray *partipantNames = [NSMutableArray array];
+        NSMutableArray *partipantAvatars = [NSMutableArray array];
+        
+        for (NSNumber *p in command.partipants) {
+            User *u = [[UserDB instance] loadUser:[p longLongValue]];
+            ABContact *contact = [[ContactDB instance] loadContactWithNumber:u.phoneNumber];
+            
+            NSString *name = contact.contactName;
+            if (name.length == 0) {
+                name = u.phoneNumber.number;
+            }
+            
+            NSString *avatar = u.avatarURL ? u.avatarURL : @"";
+            [partipantNames addObject:name];
+            [partipantAvatars addObject:avatar];
+        }
+        
+        ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
+        ctrl.initiator = command.initiator;
+        ctrl.channelID = command.channelID;
+        ctrl.currentUID = [UserPresent instance].uid;
+        
+        ctrl.partipants = command.partipants;
+        ctrl.partipantNames = partipantNames;
+        ctrl.partipantAvatars = partipantAvatars;
+        
+        [self presentViewController:ctrl animated:YES completion:nil];
+        
         return;
-    }
-    
-    if ([self.conferenceIDs containsObject:[NSNumber numberWithLongLong:cid]]) {
-        NSLog(@"call already show");
-        return;
-    }
-    
-    [self.conferenceIDs addObject:[NSNumber numberWithLongLong:cid]];
+    } else if ([dict objectForKey:@"voip"]) {
+        NSDictionary *obj = [dict objectForKey:@"voip"];
+        VOIPCommand *command = [[VOIPCommand alloc] initWithContent:obj];
+        if ([self.channelIDs containsObject:command.channelID]) {
+            return;
+        }
+        
+        if (command.cmd == VOIP_COMMAND_DIAL) {
+            [self.channelIDs addObject:command.channelID];
+            //留下100次呼叫记录
+            if (self.conferenceIDs.count > 100) {
+                [self.conferenceIDs removeObjectAtIndex:0];
+            }
+            
+            User *user = [self getUserName:rt.sender];
+            VOIPVoiceViewController *controller = [[VOIPVoiceViewController alloc] init];
+            controller.currentUID = [UserPresent instance].uid;
+            controller.channelID = command.channelID;
+            controller.peerUID = rt.sender;
+            controller.peerName = user.name ? user.name : @"";
+            controller.peerAvatar = user.avatarURL ? user.avatarURL : @"";
+            controller.token = [Token instance].accessToken;
+            controller.isCaller = NO;
+            
+            [self presentViewController:controller animated:YES completion:nil];
+        } else if (command.cmd == VOIP_COMMAND_DIAL_VIDEO) {
+            [self.channelIDs addObject:command.channelID];
+            //留下100次呼叫记录
+            if (self.conferenceIDs.count > 100) {
+                [self.conferenceIDs removeObjectAtIndex:0];
+            }
 
-    //留下100次呼叫记录
-    if (self.conferenceIDs.count > 100) {
-        [self.conferenceIDs removeObjectAtIndex:0];
+            User *user = [self getUserName:rt.sender];
+            VOIPVideoViewController *controller = [[VOIPVideoViewController alloc] init];
+            controller.currentUID = [UserPresent instance].uid;
+            controller.channelID = command.channelID;
+            controller.peerUID = rt.sender;
+            controller.peerName = user.name ? user.name : @"";
+            controller.peerAvatar = user.avatarURL ? user.avatarURL : @"";
+            controller.token = [Token instance].accessToken;
+            controller.isCaller = NO;
+            
+            [self presentViewController:controller animated:YES completion:nil];
+        }
     }
-
-    app.talking = YES;
-    ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
-    ctrl.initiator = initiator;
-    ctrl.conferenceID = cid;
-    ctrl.partipants = partipants;
     
-    [self presentViewController:ctrl animated:YES completion:nil];
+ 
 }
 
 -(void)onSystemMessage:(NSString*)sm {

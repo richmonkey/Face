@@ -12,14 +12,18 @@
 #import "ContactDB.h"
 #import "UserDB.h"
 #import "User.h"
+#import "UserPresent.h"
+#import "Token.h"
 #import "PublicFunc.h"
 #import "HistoryTableViewCell.h"
 #import "VOIPViewController.h"
 #import "UIView+Toast.h"
-#import <voipsession/VOIPService.h>
 
 #import "VOIPVideoViewController.h"
 #import "VOIPVoiceViewController.h"
+
+#import "VOIPService.h"
+
 
 
 #define kGreenColor         RGBCOLOR(48,176,87)
@@ -218,6 +222,16 @@ static NSString *HISTORYSTR = @"historyCell";
     }
 }
 
+-(NSString*)getUserName:(int64_t)uid {
+    User *u = [[UserDB instance] loadUser:uid];
+    ABContact *contact = [[ContactDB instance] loadContactWithNumber:u.phoneNumber];
+    NSString *name = contact.contactName;
+    if (name.length == 0) {
+        name = u.phoneNumber.number;
+    }
+    return name;
+}
+
 #pragma mark - UIActionSheetDelegate
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -228,10 +242,26 @@ static NSString *HISTORYSTR = @"historyCell";
     
     if ([[VOIPService instance] connectState] == STATE_CONNECTED) {
         if(buttonIndex == 0){
-            VOIPVoiceViewController *controller = [[VOIPVoiceViewController alloc] initWithCalledUID:self.selectedUser.uid];
+            NSString *name = [self getUserName:self.selectedUser.uid];
+            
+            VOIPVoiceViewController *controller = [[VOIPVoiceViewController alloc] init];
+            controller.currentUID = [UserPresent instance].uid;
+            controller.peerUID = self.selectedUser.uid;
+            controller.peerName = name;
+            controller.token = [Token instance].accessToken;
+            controller.isCaller = YES;
+
             [self presentViewController:controller animated:YES completion:nil];
         }else if (buttonIndex == 1) {
-            VOIPVideoViewController *controller = [[VOIPVideoViewController alloc] initWithCalledUID:self.selectedUser.uid];
+            NSString *name = [self getUserName:self.selectedUser.uid];
+            
+            VOIPVideoViewController *controller = [[VOIPVideoViewController alloc] init];
+            controller.currentUID = [UserPresent instance].uid;
+            controller.peerUID = self.selectedUser.uid;
+            controller.peerName = name;
+            controller.token = [Token instance].accessToken;
+            controller.isCaller = YES;
+            
             [self presentViewController:controller animated:YES completion:nil];
         }
     }else if([[VOIPService instance] connectState] == STATE_CONNECTING){

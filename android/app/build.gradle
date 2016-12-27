@@ -63,7 +63,6 @@ dependencies {
     compile project(':react-native-webrtc')
     compile project(':react-native-toast')
     compile project(':react-native-sound')
-    compile project(':voipsession')
     compile project(':imsdk')
 
     compile files('src/main/jniLibs/HwPush_SDK_V2559.jar')

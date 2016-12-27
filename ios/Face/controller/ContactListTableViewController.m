@@ -108,8 +108,15 @@
     [self dismissViewControllerAnimated:NO completion:nil];
     ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
     ctrl.initiator = [UserPresent instance].uid;
-    ctrl.conferenceID = conferenceID;
+    ctrl.channelID = [[NSUUID UUID] UUIDString];
+    ctrl.currentUID = [UserPresent instance].uid;
+    
+    
     ctrl.partipants = partipants;
+    
+    for (NSNumber *p in partipants) {
+        
+    }
     
     [self presentViewController:ctrl animated:YES completion:nil];
 }

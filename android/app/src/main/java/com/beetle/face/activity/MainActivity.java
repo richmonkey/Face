@@ -48,6 +48,8 @@ import com.beetle.face.tools.Rom;
 import com.beetle.im.IMService;
 import com.beetle.im.Timer;
 
+import com.beetle.voip.VOIPVideoActivity;
+import com.beetle.voip.VOIPVoiceActivity;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -55,6 +57,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 import butterknife.ButterKnife;
 import rx.android.schedulers.AndroidSchedulers;
@@ -572,18 +575,52 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             public void onClick(DialogInterface dialog, int item) {
                 VOIPState state = VOIPState.getInstance();
                 if (item == 0) {
+                    String name = "";
+                    String avatar = "";
+                    User user = UserDB.getInstance().loadUser(calleeUID);
+                    if (user != null) {
+                        Contact c = ContactDB.getInstance().loadContact(new PhoneNumber(user.zone, user.number));
+                        if (c != null) {
+                            name = c.displayName != null ? user.name : "";
+                        }
+                        avatar = user.avatar != null ? user.avatar : "";
+                    }
+
+
                     Intent intent = new Intent(MainActivity.this, VOIPVoiceActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    intent.putExtra("peer_uid", calleeUID);
+
+                    intent.putExtra("current_uid", Token.getInstance().uid);
+                    intent.putExtra("channel_id", UUID.randomUUID().toString());
                     intent.putExtra("is_caller", true);
-                    state.state = VOIPState.VOIP_TALKING;
+                    intent.putExtra("token", Token.getInstance().accessToken);
+                    intent.putExtra("peer_name", name);
+                    intent.putExtra("peer_avatar", avatar);
+                    intent.putExtra("peer_uid", calleeUID);
+
                     startActivity(intent);
                 } else if (item == 1){
+                    String name = "";
+                    String avatar = "";
+                    User user = UserDB.getInstance().loadUser(calleeUID);
+                    if (user != null) {
+                        Contact c = ContactDB.getInstance().loadContact(new PhoneNumber(user.zone, user.number));
+                        if (c != null) {
+                            name = c.displayName != null ? user.name : "";
+                        }
+                        avatar = user.avatar != null ? user.avatar : "";
+                    }
+
                     Intent intent = new Intent(MainActivity.this, VOIPVideoActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    intent.putExtra("peer_uid", calleeUID);
+
+                    intent.putExtra("current_uid", Token.getInstance().uid);
+                    intent.putExtra("channel_id", UUID.randomUUID().toString());
                     intent.putExtra("is_caller", true);
-                    state.state = VOIPState.VOIP_TALKING;
+                    intent.putExtra("token", Token.getInstance().accessToken);
+                    intent.putExtra("peer_name", name);
+                    intent.putExtra("peer_avatar", avatar);
+                    intent.putExtra("peer_uid", calleeUID);
                     startActivity(intent);
                 }
             }

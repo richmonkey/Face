@@ -1,14 +1,4 @@
-/*
- *  Copyright 2014 The WebRTC Project Authors. All rights reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree. An additional intellectual property rights grant can be found
- *  in the file PATENTS.  All contributing project authors may
- *  be found in the AUTHORS file in the root of the source tree.
- */
-
-package com.beetle.face.activity;
+package com.beetle.voip;
 
 import android.content.Context;
 import android.os.Environment;
@@ -91,7 +81,6 @@ public class PeerConnectionClient {
     private final SDPObserver sdpObserver = new SDPObserver();
     private final ScheduledExecutorService executor;
 
-    private Context context;
     private PeerConnectionFactory factory;
     private PeerConnection peerConnection;
     PeerConnectionFactory.Options options = null;
@@ -106,7 +95,7 @@ public class PeerConnectionClient {
     private VideoRenderer.Callbacks localRender;
     private List<VideoRenderer.Callbacks> remoteRenders;
 
-    ArrayList<PeerConnection.IceServer> iceServers = new ArrayList<PeerConnection.IceServer>();
+    ArrayList<PeerConnection.IceServer> iceServers = new ArrayList<>();
 
     private MediaConstraints pcConstraints;
     private int videoWidth;
@@ -261,7 +250,6 @@ public class PeerConnectionClient {
         this.events = events;
         videoCallEnabled = peerConnectionParameters.videoCallEnabled;
         // Reset variables to initial states.
-        this.context = null;
         factory = null;
         peerConnection = null;
         preferIsac = false;
@@ -400,7 +388,6 @@ public class PeerConnectionClient {
         if (options != null) {
             Log.d(TAG, "Factory networkIgnoreMask option: " + options.networkIgnoreMask);
         }
-        this.context = context;
         factory = new PeerConnectionFactory(options);
         Log.d(TAG, "Peer connection factory created.");
     }
@@ -646,6 +633,35 @@ public class PeerConnectionClient {
                 }
                 if (remoteVideoTrack != null) {
                     remoteVideoTrack.setEnabled(renderVideo);
+                }
+            }
+        });
+    }
+
+
+
+    public void toogleVideo() {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                renderVideo = !renderVideo;
+                if (localVideoTrack != null) {
+                    localVideoTrack.setEnabled(renderVideo);
+                }
+                if (remoteVideoTrack != null) {
+                    remoteVideoTrack.setEnabled(renderVideo);
+                }
+            }
+        });
+    }
+
+    public void toogleAudio() {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                enableAudio = !enableAudio;
+                if (localAudioTrack != null) {
+                    localAudioTrack.setEnabled(enableAudio);
                 }
             }
         });
@@ -1002,7 +1018,7 @@ public class PeerConnectionClient {
             return;
         }
         Log.d(TAG, "changeCaptureFormat: " + width + "x" + height + "@" + framerate);
-        //videoSource.adaptOutputFormat(width, height, framerate);
+        videoSource.adaptOutputFormat(width, height, framerate);
     }
 
     // Implementation detail: observe ICE & stream changes and react accordingly.

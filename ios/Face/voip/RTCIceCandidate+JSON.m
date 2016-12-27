@@ -26,7 +26,7 @@ static NSString const *kRTCICECandidatesTypeKey = @"candidates";
   NSString *mid = dictionary[kRTCICECandidateMidKey];
   NSString *sdp = dictionary[kRTCICECandidateSdpKey];
   NSNumber *num = dictionary[kRTCICECandidateMLineIndexKey];
-  NSInteger mLineIndex = [num integerValue];
+  int mLineIndex = [num intValue];
   return [[RTCIceCandidate alloc] initWithSdp:sdp
                                 sdpMLineIndex:mLineIndex
                                        sdpMid:mid];
@@ -34,16 +34,9 @@ static NSString const *kRTCICECandidatesTypeKey = @"candidates";
 
 + (NSData *)JSONDataForIceCandidates:(NSArray<RTCIceCandidate *> *)candidates
                             withType:(NSString *)typeValue {
-  NSMutableArray *jsonCandidates =
-      [NSMutableArray arrayWithCapacity:candidates.count];
-  for (RTCIceCandidate *candidate in candidates) {
-    NSDictionary *jsonCandidate = [candidate JSONDictionary];
-    [jsonCandidates addObject:jsonCandidate];
-  }
-  NSDictionary *json = @{
-    kRTCICECandidateTypeKey : typeValue,
-    kRTCICECandidatesTypeKey : jsonCandidates
-  };
+    
+    
+  NSDictionary *json = [self JSONDictionaryForIceCandidates:candidates withType:typeValue];
   NSError *error = nil;
   NSData *data =
       [NSJSONSerialization dataWithJSONObject:json
@@ -54,6 +47,22 @@ static NSString const *kRTCICECandidatesTypeKey = @"candidates";
     return nil;
   }
   return data;
+}
+
++ (NSDictionary *)JSONDictionaryForIceCandidates:(NSArray<RTCIceCandidate *> *)candidates
+                                        withType:(NSString *)typeValue {
+    NSMutableArray *jsonCandidates =
+    [NSMutableArray arrayWithCapacity:candidates.count];
+    for (RTCIceCandidate *candidate in candidates) {
+        NSDictionary *jsonCandidate = [candidate JSONDictionary];
+        [jsonCandidates addObject:jsonCandidate];
+    }
+    NSDictionary *json = @{
+                           kRTCICECandidateTypeKey : typeValue,
+                           kRTCICECandidatesTypeKey : jsonCandidates
+                           };
+    
+    return json;
 }
 
 + (NSArray<RTCIceCandidate *> *)candidatesFromJSONDictionary:

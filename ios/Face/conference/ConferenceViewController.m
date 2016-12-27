@@ -13,37 +13,30 @@
 #import "RCTBridgeModule.h"
 #import "RCTBridge.h"
 #import "RCTEventDispatcher.h"
-
 #import <AVFoundation/AVFoundation.h>
-#import "UserDB.h"
-#import "UserPresent.h"
-#import "ContactDB.h"
-#import <voipsession/VOIPService.h>
+#import <imsdk/IMService.h>
 #import "AppDelegate.h"
+#import "ConferenceCommand.h"
 
 #define CONFERENCE_STATE_WAITING 1
 #define CONFERENCE_STATE_ACCEPTED 2
 #define CONFERENCE_STATE_REFUSED 3
 
 
+static int64_t g_controllerCount = 0;
+
 @interface ConferenceViewController ()<RCTBridgeModule, RTMessageObserver>
 @property(nonatomic) NSTimer *timer;
-
 //当前用户是主叫方， 表示被叫方接听的状态 接受/拒绝／等待应答
 @property(nonatomic) NSMutableDictionary *partipantStates;
-
 //当前用户是被叫方,接听的状态 接受/拒绝／等待应答
 @property(nonatomic) int state;
 
 @property(nonatomic, weak) RCTBridge *bridge;
 @end
 
-
 @implementation ConferenceViewController
-
-
 RCT_EXPORT_MODULE();
-
 
 RCT_EXPORT_METHOD(accept) {
     self.state = CONFERENCE_STATE_ACCEPTED;
@@ -55,13 +48,10 @@ RCT_EXPORT_METHOD(refuse) {
     [self sendRefuse];
 }
 
-RCT_EXPORT_METHOD(dismiss)
-{
-    [AppDelegate instance].talking = NO;
-    
+RCT_EXPORT_METHOD(dismiss) {
     [self.timer invalidate];
 
-    [[VOIPService instance] removeRTMessageObserver:self];
+    [[IMService instance] removeRTMessageObserver:self];
     
     [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
     
@@ -71,6 +61,9 @@ RCT_EXPORT_METHOD(dismiss)
 }
 
 
++(int64_t)controllerCount {
+    return g_controllerCount;
+}
 
 //http://stackoverflow.com/questions/24595579/how-to-redirect-audio-to-speakers-in-the-apprtc-ios-example
 - (void)didSessionRouteChange:(NSNotification *)notification
@@ -104,23 +97,25 @@ RCT_EXPORT_METHOD(dismiss)
 }
 
 
-- (dispatch_queue_t)methodQueue
-{
+- (dispatch_queue_t)methodQueue {
     return dispatch_get_main_queue();
 }
 
 
 -(void)dealloc {
+    g_controllerCount--;
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    g_controllerCount++;
+    
     RCTBridgeModuleProviderBlock provider = ^NSArray<id<RCTBridgeModule>> *{
         return @[self];
     };
     
-    NSLog(@"conference id:%lld", self.conferenceID);
+    NSLog(@"channel id:%@", self.channelID);
     
     NSURL *jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios"
                                                                            fallbackResource:nil];
@@ -133,26 +128,20 @@ RCT_EXPORT_METHOD(dismiss)
     NSMutableArray *users = [NSMutableArray array];
     for (int i = 0; i < self.partipants.count; i++) {
         NSNumber *uid = [self.partipants objectAtIndex:i];
-        
-        User *u = [[UserDB instance] loadUser:[uid longLongValue]];
-        ContactDB *cdb = [ContactDB instance];
-        if (u.phoneNumber.isValid) {
-            ABContact *contact = [cdb loadContactWithNumber:u.phoneNumber];
-            u.name = contact.contactName;
-        }
+        NSString *name = [self.partipantNames objectAtIndex:i];
+        NSString *avatar = [self.partipantAvatars objectAtIndex:i];
         
         NSDictionary *user = @{@"uid":uid,
-                               @"name":u.displayName,
-                               @"avatar":u.avatarURL?u.avatarURL:@""
-                               };
+                               @"name":name,
+                               @"avatar":avatar};
         [users addObject:user];
     }
     
-    BOOL isInitiator = ([UserPresent instance].uid == self.initiator);
+    BOOL isInitiator = (self.currentUID == self.initiator);
     
     NSDictionary *props = @{@"initiator":[NSNumber numberWithLongLong:self.initiator],
                             @"isInitiator":[NSNumber numberWithBool:isInitiator],
-                            @"conferenceID":[NSNumber numberWithLongLong:self.conferenceID],
+                            @"channelID":self.channelID,
                             @"partipants":users};
     
     RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"App" initialProperties:props];
@@ -165,7 +154,7 @@ RCT_EXPORT_METHOD(dismiss)
     self.view = rootView;
     self.bridge = bridge;
     
-    [[VOIPService instance] addRTMessageObserver:self];
+    [[IMService instance] addRTMessageObserver:self];
 
     [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
     
@@ -173,7 +162,7 @@ RCT_EXPORT_METHOD(dismiss)
         self.partipantStates = [NSMutableDictionary dictionary];
         for (int i = 0; i < self.partipants.count; i++) {
             NSNumber *uid = [self.partipants objectAtIndex:i];
-            if ([UserPresent instance].uid == [uid longLongValue]) {
+            if (self.currentUID == [uid longLongValue]) {
                 continue;
             }
             [self.partipantStates setObject:[NSNumber numberWithInt:CONFERENCE_STATE_WAITING] forKey:uid];
@@ -229,43 +218,47 @@ RCT_EXPORT_METHOD(dismiss)
 
 
 -(void)sendRTMessage:(NSString*)command to:(int64_t)to {
-    NSDictionary *dict = @{@"conference":@{@"id":[NSNumber numberWithLongLong:self.conferenceID],
-                                           @"partipants":self.partipants,
-                                           @"initiator":[NSNumber numberWithLongLong:self.initiator],
-                                           @"command":command}};
+    ConferenceCommand *c = [[ConferenceCommand alloc] init];
+    c.channelID = self.channelID;
+    c.partipants = self.partipants;
+    c.initiator = self.initiator;
+    c.command = command;
+    NSDictionary *dict = @{@"conference":[c jsonDictionary]};
+
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:0 error:nil];
     NSString* newStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     
     RTMessage *rt = [[RTMessage alloc] init];
-    rt.sender = [UserPresent instance].uid;
+    rt.sender = self.currentUID;
     rt.receiver = to;
     rt.content = newStr;
     
-    [[VOIPService instance] sendRTMessage:rt];
+    NSLog(@"send rt message:%@", rt.content);
+    
+    [[IMService instance] sendRTMessage:rt];
 }
-
 
 
 -(void)sendAccept {
-    [self sendRTMessage:@"accept" to:self.initiator];
+    [self sendRTMessage:CONFERENCE_COMMAND_ACCEPT to:self.initiator];
 }
 
 -(void)sendRefuse {
-    [self sendRTMessage:@"refuse" to:self.initiator];
+    [self sendRTMessage:CONFERENCE_COMMAND_REFUSE to:self.initiator];
 }
 
 -(void)sendWaiting {
-//    [self sendRTMessage:@"waiting" to:self.initiator];
+    [self sendRTMessage:CONFERENCE_COMMAND_WAIT to:self.initiator];
 }
 
 -(void)sendInvite:(int64_t)to {
-    [self sendRTMessage:@"invite" to:to];
+    [self sendRTMessage:CONFERENCE_COMMAND_INVITE to:to];
 }
 
 -(void)sendInvite {
-    for (int i = 0; i < self.partipantStates.count; i++) {
+    for (int i = 0; i < self.partipants.count; i++) {
         NSNumber *uid = [self.partipants objectAtIndex:i];
-        if ([uid longLongValue] == [UserPresent instance].uid) {
+        if ([uid longLongValue] == self.currentUID) {
             continue;
         }
 
@@ -282,9 +275,7 @@ RCT_EXPORT_METHOD(dismiss)
         return;
     }
     
-    const char *utf8 = [rt.content UTF8String];
-    if (utf8 == nil) return;
-    NSData *data = [NSData dataWithBytes:utf8 length:strlen(utf8)];
+    NSData *data = [rt.content dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return;
@@ -294,16 +285,18 @@ RCT_EXPORT_METHOD(dismiss)
     };
     
     NSDictionary *c = [dict objectForKey:@"conference"];
-    NSString *command = [c objectForKey:@"command"];
+
+    ConferenceCommand *confCommand = [[ConferenceCommand alloc] initWithDictionary:c];
+    NSString *command = confCommand.command;
     NSLog(@"conference command:%@", command);
-    BOOL isInitiator = ([UserPresent instance].uid == self.initiator);
+    BOOL isInitiator = (self.currentUID == self.initiator);
     
     if (isInitiator) {
-        if ([command isEqualToString:@"accept"]) {
+        if ([command isEqualToString:CONFERENCE_COMMAND_ACCEPT]) {
             [self.partipantStates setObject:[NSNumber numberWithInt:CONFERENCE_STATE_ACCEPTED] forKey:sender];
-        } else if ([command isEqualToString:@"refuse"]) {
+        } else if ([command isEqualToString:CONFERENCE_COMMAND_REFUSE]) {
             [self.partipantStates setObject:[NSNumber numberWithInt:CONFERENCE_STATE_REFUSED] forKey:sender];
-        } else if ([command isEqualToString:@"waiting"]) {
+        } else if ([command isEqualToString:CONFERENCE_COMMAND_WAIT]) {
             //等待用户接听
         }
 
@@ -311,7 +304,7 @@ RCT_EXPORT_METHOD(dismiss)
         BOOL refused = YES;
         for (int i = 0; i <self.partipants.count; i++) {
             NSNumber *uid = [self.partipants objectAtIndex:i];
-            if ([uid longLongValue] == [UserPresent instance].uid) {
+            if ([uid longLongValue] == self.currentUID) {
                 continue;
             }
             int s = [[self.partipantStates objectForKey:uid] intValue];
@@ -326,7 +319,7 @@ RCT_EXPORT_METHOD(dismiss)
                                                          body:nil];
         }
     } else {
-        if ([command isEqualToString:@"invite"]) {
+        if ([command isEqualToString:CONFERENCE_COMMAND_INVITE]) {
             if (self.state == CONFERENCE_STATE_WAITING) {
                 [self sendWaiting];
             } else if (self.state == CONFERENCE_STATE_ACCEPTED) {
@@ -342,15 +335,5 @@ RCT_EXPORT_METHOD(dismiss)
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end

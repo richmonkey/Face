@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import com.beetle.conference.ConferenceActivity;
 import com.beetle.face.BuildConfig;
 import com.beetle.face.Config;
 import com.beetle.face.Token;
@@ -37,6 +38,7 @@ import com.zmxv.RNSound.RNSoundPackage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 
 public class ConferenceCreatorActivity extends Activity implements DefaultHardwareBackBtnHandler {
@@ -68,14 +70,37 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
                 public void run() {
                     ConferenceCreatorActivity.this.finish();
                     Intent intent = new Intent(ConferenceCreatorActivity.this, ConferenceActivity.class);
-                    intent.putExtra("is_initiator", true);
+                    intent.setFlags(intent.FLAG_ACTIVITY_NEW_TASK);
+
                     intent.putExtra("initiator", Token.getInstance().uid);
-                    intent.putExtra("conference_id", (long)conferenceID);
+                    intent.putExtra("channel_id", UUID.randomUUID().toString());
+                    intent.putExtra("current_uid", Token.getInstance().uid);
+
                     long[] users = new long[partipants.size()];
+                    String[] partipantNames = new String[partipants.size()];
+                    String[] partipantAvatars = new String[partipants.size()];
                     for (int i = 0; i < users.length; i++) {
                         users[i] = (long)partipants.getDouble(i);
+
+                        String name = "";
+                        String avatar = "";
+                        User user = UserDB.getInstance().loadUser((long)partipants.getDouble(i));
+                        if (user != null) {
+                            Contact c = ContactDB.getInstance().loadContact(new PhoneNumber(user.zone, user.number));
+                            if (c != null) {
+                                name = c.displayName != null ? user.name : "";
+                            }
+                            avatar = user.avatar != null ? user.avatar : "";
+                        }
+
+                        partipantNames[i] = name;
+                        partipantAvatars[i] = avatar;
                     }
                     intent.putExtra("partipants", users);
+                    intent.putExtra("partipant_names", partipantNames);
+                    intent.putExtra("partipant_avatars", partipantAvatars);
+
+
                     startActivity(intent);
                 }
             };

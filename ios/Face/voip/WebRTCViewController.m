@@ -7,46 +7,30 @@
 //
 
 #import "WebRTCViewController.h"
-
-
-#import <voipsession/VOIPSession.h>
 #import <WebRTC/WebRTC.h>
 #import "ARDSDPUtils.h"
-
 #import "ARDSignalingMessage.h"
 
 
-
-static NSString * const kARDAppClientErrorDomain = @"ARDAppClient";
-static NSInteger const kARDAppClientErrorUnknown = -1;
-static NSInteger const kARDAppClientErrorRoomFull = -2;
-static NSInteger const kARDAppClientErrorCreateSDP = -3;
-static NSInteger const kARDAppClientErrorSetSDP = -4;
-static NSInteger const kARDAppClientErrorInvalidClient = -5;
-static NSInteger const kARDAppClientErrorInvalidRoom = -6;
 static NSString * const kARDMediaStreamId = @"ARDAMS";
 static NSString * const kARDAudioTrackId = @"ARDAMSa0";
 static NSString * const kARDVideoTrackId = @"ARDAMSv0";
 
 
-
 @interface WebRTCViewController ()<RTCPeerConnectionDelegate>
 @property(nonatomic) BOOL shouldUseLevelControl;
 @property(nonatomic) BOOL isLoopback;
-
 @end
 
 @implementation WebRTCViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
     self.factory = [[RTCPeerConnectionFactory alloc] init];
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 
@@ -86,12 +70,10 @@ static NSString * const kARDVideoTrackId = @"ARDAMSv0";
     RTCMediaConstraints *constraints = [self defaultPeerConnectionConstraints];
     RTCConfiguration *config = [[RTCConfiguration alloc] init];
     RTCIceServer *server = [[RTCIceServer alloc] initWithURLStrings:@[@"stun:stun.counterpath.net:3478"]];
+
     
-    int64_t appid = 1006;
-    int64_t uid = self.currentUID;
-    NSString *username = [NSString stringWithFormat:@"%lld_%lld", appid, uid];
-    NSString *credential = self.token;
-    
+    NSString *username = self.turnUserName;
+    NSString *credential = self.turnPassword;
     RTCIceServer *server2 = [[RTCIceServer alloc] initWithURLStrings:@[@"turn:turn.gobelieve.io:3478?transport=udp"]
                                                             username:username
                                                           credential:credential];
@@ -119,12 +101,13 @@ static NSString * const kARDVideoTrackId = @"ARDAMSv0";
 }
 
 
+
 -(void)stopStream {
     NSLog(@"stop stream");
     [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
+    
     [self.peerConnection close];
     self.peerConnection = nil;
-    RTCStopInternalCapture();
 }
 
 
@@ -225,25 +208,12 @@ static NSString * const kARDVideoTrackId = @"ARDAMSv0";
     return constraints;
 }
 
-
-
-
-
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
 didCreateSessionDescription:(RTCSessionDescription *)sdp
                  error:(NSError *)error {
     dispatch_async(dispatch_get_main_queue(), ^{
         if (error) {
             NSLog(@"Failed to create session description. Error: %@", error);
-            NSDictionary *userInfo = @{
-                                       NSLocalizedDescriptionKey: @"Failed to create session description.",
-                                       };
-            NSError *sdpError =
-            [[NSError alloc] initWithDomain:kARDAppClientErrorDomain
-                                       code:kARDAppClientErrorCreateSDP
-                                   userInfo:userInfo];
-            NSLog(@"sdp error:%@", sdpError);
-            //[_delegate appClient:self didError:sdpError];
             return;
         }
         // Prefer H264 if available.
@@ -264,16 +234,6 @@ didCreateSessionDescription:(RTCSessionDescription *)sdp
 }
 
 
--(void)onRTMessage:(RTMessage*)rt {
-    if (rt.sender != self.peerUID) {
-        return;
-    }
-    
-    ARDSignalingMessage *message = [ARDSignalingMessage messageFromJSONString:rt.content];
-    
-    NSLog(@"recv signal message:%@", rt.content);
-    [self processMessage:message];
-}
 
 - (void)processMessage:(ARDSignalingMessage*)message {
     if (message.type == kARDSignalingMessageTypeCandidate) {
@@ -330,25 +290,13 @@ didCreateSessionDescription:(RTCSessionDescription *)sdp
 
 
 - (void)sendSignalingMessage:(ARDSignalingMessage*)msg {
-    NSData *data = [msg JSONData];
-    
-    
-    NSString *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    
-    NSLog(@"send signal message:%@", str);
-    
-    RTMessage *rt = [[RTMessage alloc] init];
-    rt.sender = self.currentUID;
-    rt.receiver = self.peerUID;
-    rt.content = str;
-    [[VOIPService instance] sendRTMessage:rt];
+
 }
 
 
 #pragma mark - RTCPeerConnectionDelegate
 // Callbacks for this delegate occur on non-main thread and need to be
 // dispatched back to main queue as needed.
-
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
 didChangeSignalingState:(RTCSignalingState)stateChanged {
     NSLog(@"Signaling state changed: %ld", (long)stateChanged);
@@ -380,9 +328,6 @@ didChangeSignalingState:(RTCSignalingState)stateChanged {
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
 didChangeIceConnectionState:(RTCIceConnectionState)newState {
     NSLog(@"ICE state changed: %ld", (long)newState);
-    dispatch_async(dispatch_get_main_queue(), ^{
-        //        [_delegate appClient:self didChangeConnectionState:newState];
-    });
 }
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
@@ -411,12 +356,8 @@ didRemoveIceCandidates:(NSArray<RTCIceCandidate *> *)candidates {
 
 - (void)peerConnection:(RTCPeerConnection *)peerConnection
     didOpenDataChannel:(RTCDataChannel *)dataChannel {
+    NSLog(@"did open data channel");
 }
-
-
-
-
-
 @end
 
 
