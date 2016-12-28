@@ -115,7 +115,7 @@
 -(void)onConferenceCancel {
     [self dismissViewControllerAnimated:YES completion:nil];
 }
--(void)onConferenceCreated:(int64_t)conferenceID partipants:(NSArray*)partipants {
+-(void)onConferenceCreated:(NSString*)channelID partipants:(NSArray*)partipants {
     [self dismissViewControllerAnimated:NO completion:nil];
     NSMutableArray *partipantNames = [NSMutableArray array];
     NSMutableArray *partipantAvatars = [NSMutableArray array];
@@ -135,7 +135,7 @@
     
     ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
     ctrl.initiator = [UserPresent instance].uid;
-    ctrl.channelID = [[NSUUID UUID] UUIDString];
+    ctrl.channelID = channelID;
     ctrl.currentUID = [UserPresent instance].uid;
     
     ctrl.partipants = partipants;

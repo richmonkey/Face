@@ -18,7 +18,7 @@
 #import "Config.h"
 
 @interface ConferenceCreatorViewController ()<RCTBridgeModule>
-
+@property(nonatomic, copy) NSString *channelID;
 @end
 
 @implementation ConferenceCreatorViewController
@@ -31,11 +31,10 @@ RCT_EXPORT_METHOD(onCancel)
     [self.delegate onConferenceCancel];
 }
 
-RCT_EXPORT_METHOD(onCreate:(nonnull NSNumber*)conferenceID partipants:(NSArray*)partipants)
+RCT_EXPORT_METHOD(onCreate:(NSArray*)partipants)
 {
-    NSLog(@"on create:%@", conferenceID);
-    int64_t cid = [conferenceID longLongValue];
-    [self.delegate onConferenceCreated:cid partipants:partipants];
+    NSLog(@"on create:%@", partipants);
+    [self.delegate onConferenceCreated:self.channelID partipants:partipants];
 }
 
 - (dispatch_queue_t)methodQueue
@@ -48,6 +47,7 @@ RCT_EXPORT_METHOD(onCreate:(nonnull NSNumber*)conferenceID partipants:(NSArray*)
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
+    self.channelID = [[NSUUID UUID] UUIDString];
     
     RCTBridgeModuleProviderBlock provider = ^NSArray<id<RCTBridgeModule>> *{
         return @[self];
@@ -69,7 +69,8 @@ RCT_EXPORT_METHOD(onCreate:(nonnull NSNumber*)conferenceID partipants:(NSArray*)
     NSDictionary *props = @{@"uid":[NSNumber numberWithLongLong:profile.uid],
                             @"token":token.accessToken,
                             @"url":config.URL,
-                            @"users":users};
+                            @"users":users,
+                            @"channelID":self.channelID};
     RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"ConferenceCreator" initialProperties:props];
     
     // Set a background color which is in accord with the JavaScript and Android

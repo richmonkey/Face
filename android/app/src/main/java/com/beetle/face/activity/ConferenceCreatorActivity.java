@@ -49,6 +49,8 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
 
     private Handler mainHandler;
 
+    private String channelID = UUID.randomUUID().toString();
+
     public class ConferenceCreatorModule extends ReactContextBaseJavaModule {
         public ConferenceCreatorModule(ReactApplicationContext reactContext) {
             super(reactContext);
@@ -61,7 +63,7 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
 
 
         @ReactMethod
-        public void onCreate(final  float conferenceID, final ReadableArray partipants) {
+        public void onCreate(final ReadableArray partipants) {
             Log.i(TAG, "on create...");
 
 
@@ -73,7 +75,7 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
                     intent.setFlags(intent.FLAG_ACTIVITY_NEW_TASK);
 
                     intent.putExtra("initiator", Token.getInstance().uid);
-                    intent.putExtra("channel_id", UUID.randomUUID().toString());
+                    intent.putExtra("channel_id", channelID);
                     intent.putExtra("current_uid", Token.getInstance().uid);
 
                     long[] users = new long[partipants.size()];
@@ -188,6 +190,7 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
             }
         }
         props.putParcelableArrayList("users", users);
+        props.putString("channelID", channelID);
         mReactRootView.startReactApplication(mReactInstanceManager, "ConferenceCreator", props);
         setContentView(mReactRootView);
 

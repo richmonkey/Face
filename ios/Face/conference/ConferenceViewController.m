@@ -103,6 +103,7 @@ RCT_EXPORT_METHOD(dismiss) {
 
 
 -(void)dealloc {
+    NSLog(@"conference view controller dealloc");
     g_controllerCount--;
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
@@ -111,8 +112,9 @@ RCT_EXPORT_METHOD(dismiss) {
     [super viewDidLoad];
     g_controllerCount++;
     
+    __weak ConferenceViewController *wself = self;
     RCTBridgeModuleProviderBlock provider = ^NSArray<id<RCTBridgeModule>> *{
-        return @[self];
+        return @[wself];
     };
     
     NSLog(@"channel id:%@", self.channelID);

@@ -21,6 +21,10 @@ public class CallActivity extends VOIPActivity {
         super.onCreate(savedInstanceState);
         this.history.createTimestamp = getNow();
 
+        if (isCaller) {
+
+        }
+
     }
 
     @Override

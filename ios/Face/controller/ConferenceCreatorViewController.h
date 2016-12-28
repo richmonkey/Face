@@ -11,7 +11,7 @@
 @protocol ConferenceCreatorViewControllerDelegate <NSObject>
 
 -(void)onConferenceCancel;
--(void)onConferenceCreated:(int64_t)conferenceID partipants:(NSArray*)partipants;
+-(void)onConferenceCreated:(NSString*)channelID partipants:(NSArray*)partipants;
 
 @end
 @interface ConferenceCreatorViewController : UIViewController

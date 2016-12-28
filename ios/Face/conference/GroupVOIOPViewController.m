@@ -90,8 +90,9 @@ RCT_EXPORT_METHOD(dismiss) {
     [super viewDidLoad];
     g_controllerCount++;
     
+    __weak GroupVOIPViewController *wself = self;
     RCTBridgeModuleProviderBlock provider = ^NSArray<id<RCTBridgeModule>> *{
-        return @[self];
+        return @[wself];
     };
     
     NSLog(@"conference id:%@", self.channelID);

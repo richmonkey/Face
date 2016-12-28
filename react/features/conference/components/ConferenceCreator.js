@@ -59,7 +59,14 @@ class ConferenceCreator extends Component {
     createConference(userIDs) {
         
         var url = this.props.url + "/conferences";
+        var obj = {
+            "channel_id":this.props.channelID,
+            "partipants":userIDs
+        };
 
+        console.log("channelid:", this.props.channelID);
+        console.log("ttt:", JSON.stringify(obj));
+        
         this.showSpinner();
         fetch(url, {
             method:"POST",  
@@ -68,14 +75,14 @@ class ConferenceCreator extends Component {
                 'Content-Type': 'application/json',
                 "Authorization": "Bearer " + this.props.token,
             },
-            body:JSON.stringify(userIDs),
+            body:JSON.stringify(obj),
         }).then((response) => {
             console.log("status:", response.status);
             return response.json().then((responseJson)=>{
                 this.hideSpinner();
                 if (response.status == 200) {
                     console.log("response json:", responseJson);
-                    native.onCreate(responseJson.id, userIDs);
+                    native.onCreate(userIDs);
                 } else {
                     console.log("response error:", responseJson);
                     Toast.showLongBottom.bind(null, responseJson.meta.message);
