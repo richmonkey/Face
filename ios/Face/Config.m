@@ -32,11 +32,11 @@
 }
 #if 1
 -(NSString*)URL {
-    return @"http://face.gobelieve.io";
+    return @"https://face.gobelieve.io";
 }
 
 -(NSString*)sdkAPIURL {
-    return @"http://api.gobelieve.io";
+    return @"https://api.gobelieve.io";
 }
 
 -(NSString*)sdkHost {
