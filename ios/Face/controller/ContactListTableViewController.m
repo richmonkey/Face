@@ -75,7 +75,18 @@
     
     [[ContactDB instance] addObserver:self];
     [self loadData];
-    [self requestUsers];
+    
+    Token *token = [Token instance];
+    int now = (int)time(NULL);
+    if (now < token.expireTimestamp - 1) {
+        [self requestUsers];
+    } else {
+        //token正在刷新, 10s后更新用户信息
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self requestUsers];
+        });
+    }
+
     self.updateStateTimer = [NSTimer scheduledTimerWithTimeInterval:3600 target:self selector:@selector(updateUserState:) userInfo:nil repeats:YES];
     
     UIBarButtonItem *barButtonItemRight =[[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"conference_addicon"]
@@ -151,13 +162,7 @@
 }
 
 -(void)requestUsers {
-    LevelDB *db = [LevelDB defaultLevelDB];
-    NSString *key = @"request_timestamp";
-    int t = (int)[db intForKey:key];
-    if (time(NULL) - t < 24*3600) {
-      //  return;
-    }
-    IMLog(@"request users.....");
+    NSLog(@"request users.....");
     [APIRequest requestUsers:self.contacts
                      success:^(NSArray *resp) {
                          for (NSDictionary *dict in resp) {
@@ -175,13 +180,14 @@
                              }
                          }
                          LevelDB *db = [LevelDB defaultLevelDB];
+                         NSString *key = @"request_timestamp";
                          [db setInt:time(NULL) forKey:key];
                          [self loadData];
                          [self.tableView reloadData];
                          
                      }
                         fail:^{
-                            IMLog(@"request users fail");
+                            NSLog(@"request users fail");
                         }];
 }
 
