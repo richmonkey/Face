@@ -186,7 +186,6 @@
     [[self tabBar] setTintColor: RGBACOLOR(48,176,87, 1)];
     [[self tabBar] setBarTintColor: RGBACOLOR(245, 245, 246, 1)];
     
-    [[VOIPService instance] pushVOIPObserver:self];
     [[VOIPService instance] addSystemMessageObserver:self];
     [[VOIPService instance] addRTMessageObserver:self];
     
@@ -282,7 +281,7 @@
 
 -(void)prepareTimer {
     Token *token = [Token instance];
-    int now = time(NULL);
+    int now = (int)time(NULL);
     if (now >= token.expireTimestamp - 1) {
         dispatch_time_t w = dispatch_walltime(NULL, 0);
         dispatch_source_set_timer(self.refreshTimer, w, DISPATCH_TIME_FOREVER, 0);

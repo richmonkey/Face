@@ -117,17 +117,31 @@
 }
 -(void)onConferenceCreated:(int64_t)conferenceID partipants:(NSArray*)partipants {
     [self dismissViewControllerAnimated:NO completion:nil];
+    NSMutableArray *partipantNames = [NSMutableArray array];
+    NSMutableArray *partipantAvatars = [NSMutableArray array];
+    for (NSNumber *p in partipants) {
+        User *u = [[UserDB instance] loadUser:[p longLongValue]];
+        ABContact *contact = [[ContactDB instance] loadContactWithNumber:u.phoneNumber];
+        
+        NSString *name = contact.contactName;
+        if (name.length == 0) {
+            name = u.phoneNumber.number;
+        }
+        
+        NSString *avatar = u.avatarURL ? u.avatarURL : @"";
+        [partipantNames addObject:name];
+        [partipantAvatars addObject:avatar];
+    }
+    
     ConferenceViewController *ctrl = [[ConferenceViewController alloc] init];
     ctrl.initiator = [UserPresent instance].uid;
     ctrl.channelID = [[NSUUID UUID] UUIDString];
     ctrl.currentUID = [UserPresent instance].uid;
     
-    
     ctrl.partipants = partipants;
-    
-    for (NSNumber *p in partipants) {
-        
-    }
+    ctrl.partipantNames = partipantNames;
+    ctrl.partipantAvatars = partipantAvatars;
+
     
     [self presentViewController:ctrl animated:YES completion:nil];
 }

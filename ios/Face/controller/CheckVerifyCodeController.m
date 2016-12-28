@@ -94,7 +94,7 @@
     [foreWindow addSubview:backView];
     MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:backView animated:YES];
     
-    AppDelegate *delegate = [[UIApplication sharedApplication] delegate];
+    AppDelegate *delegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
     [APIRequest requestAuthToken:self.verifyCodeTextField.text zone:@"86" number:self.phoneNumberStr deviceToken:delegate.deviceToken
                          success:^(int64_t uid, NSString* accessToken, NSString *refreshToken, int expireTimestamp, NSString *state){
                              Token *token = [Token instance];
@@ -108,14 +108,14 @@
                              [UserPresent instance].phoneNumber = [[PhoneNumber alloc] initWithPhoneNumber:self.phoneNumberStr];
                              [UserPresent instance].state = state;
                              [[UserDB instance] addUser:[UserPresent instance]];
-                             [hud hide:NO];
+                             [hud hideAnimated:NO];
                              [backView removeFromSuperview];
                              [self verifySuccess];
                              IMLog(@"auth token success");
                          }
                             fail:^{
                                 IMLog(@"auth token fail");
-                                [hud hide:NO];
+                                [hud hideAnimated:NO];
                                 [backView removeFromSuperview];
                                 [self.view makeToast:@"验证码不正确!" duration:1.0f position:@"center"];
                                 
@@ -129,7 +129,7 @@
     UITabBarController *tabController = [[MainTabBarController alloc] init];
     UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:tabController];
     navCtl.navigationBarHidden = YES;
-    AppDelegate *delegate = [[UIApplication sharedApplication] delegate];
+    AppDelegate *delegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
     delegate.tabBarController = tabController;
     delegate.window.rootViewController = navCtl;
 }

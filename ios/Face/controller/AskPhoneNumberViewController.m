@@ -77,14 +77,14 @@
         MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:backView animated:YES];
         [APIRequest requestVerifyCode:@"86" number:number success:^(NSString *code){
             IMLog(@"code:%@", code);
-            [hud hide:YES];
+            [hud hideAnimated:YES];
             [backView removeFromSuperview];
             CheckVerifyCodeController * ctrl = [[CheckVerifyCodeController alloc] init];
             ctrl.phoneNumberStr = number;
             [self.navigationController pushViewController:ctrl animated: YES];
         } fail:^{
             IMLog(@"获取验证码失败");
-            [hud hide:NO];
+            [hud hideAnimated:NO];
             [backView removeFromSuperview];
             [self.view makeToast:@"获取验证码失败" duration:1.0f position:@"bottom"];
         }];

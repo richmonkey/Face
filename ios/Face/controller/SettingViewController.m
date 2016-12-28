@@ -85,7 +85,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
    
     UITableViewCell *cell = nil;
-    NSLog(@"%d,%d",indexPath.section,indexPath.row);
+    NSLog(@"%zd,%zd",indexPath.section,indexPath.row);
     if (indexPath.section != kClearAllConversationSection) {
         if(indexPath.section == kNetStatusSection && indexPath.row == kNetStatusRow){
             cell  = [tableView dequeueReusableCellWithIdentifier:@"statuscell"];
