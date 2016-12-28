@@ -7,8 +7,8 @@
 //
 
 #import "VOIPViewController.h"
-
-@interface VOIPVideoViewController : VOIPViewController
+#import "CallViewController.h"
+@interface VOIPVideoViewController : CallViewController
 @property(nonatomic, copy) NSString *peerName;
 @property(nonatomic, copy) NSString *peerAvatar;
 @end

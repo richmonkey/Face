@@ -98,6 +98,7 @@
 		6DFA637E1E12560500F954F6 /* ConferenceCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 6DFA63791E12560500F954F6 /* ConferenceCommand.m */; };
 		6DFA637F1E12560500F954F6 /* ConferenceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6DFA637B1E12560500F954F6 /* ConferenceViewController.m */; };
 		6DFA63801E12560500F954F6 /* GroupVOIOPViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6DFA637C1E12560500F954F6 /* GroupVOIOPViewController.m */; };
+		6DFA63831E12C44400F954F6 /* CallViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6DFA63821E12C44400F954F6 /* CallViewController.m */; };
 		FF2C36ED43B7D873029D7CD6 /* libPods-Face.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9707114F94A052FF4BAF416A /* libPods-Face.a */; };
 /* End PBXBuildFile section */
 
@@ -319,6 +320,8 @@
 		6DFA637B1E12560500F954F6 /* ConferenceViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConferenceViewController.m; sourceTree = "<group>"; };
 		6DFA637C1E12560500F954F6 /* GroupVOIOPViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GroupVOIOPViewController.m; sourceTree = "<group>"; };
 		6DFA637D1E12560500F954F6 /* GroupVOIPViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GroupVOIPViewController.h; sourceTree = "<group>"; };
+		6DFA63811E12C44400F954F6 /* CallViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CallViewController.h; sourceTree = "<group>"; };
+		6DFA63821E12C44400F954F6 /* CallViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CallViewController.m; sourceTree = "<group>"; };
 		9707114F94A052FF4BAF416A /* libPods-Face.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Face.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3C9B9A4E24CCD3935ADBDF1 /* Pods-Face.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Face.release.xcconfig"; path = "Pods/Target Support Files/Pods-Face/Pods-Face.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -678,6 +681,8 @@
 				6DFA635F1E12513B00F954F6 /* VOIPVoiceViewController.m */,
 				6DFA63601E12513B00F954F6 /* WebRTCViewController.h */,
 				6DFA63611E12513B00F954F6 /* WebRTCViewController.m */,
+				6DFA63811E12C44400F954F6 /* CallViewController.h */,
+				6DFA63821E12C44400F954F6 /* CallViewController.m */,
 			);
 			path = voip;
 			sourceTree = "<group>";
@@ -1022,6 +1027,7 @@
 				6DF39BB619ED01E3009B03C4 /* HistoryDB.m in Sources */,
 				6DF399EE19EBA31D009B03C4 /* LevelDB.mm in Sources */,
 				6DF399C519EBA30B009B03C4 /* IMContact.m in Sources */,
+				6DFA63831E12C44400F954F6 /* CallViewController.m in Sources */,
 				48C7A1431A06650D0020E7F6 /* HistoryTableViewCell.m in Sources */,
 				6DF399C719EBA30B009B03C4 /* pinyin.c in Sources */,
 				6DF399C319EBA30B009B03C4 /* ABContact.m in Sources */,

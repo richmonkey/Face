@@ -3,15 +3,15 @@ apply plugin: 'com.android.application'
 apply from: '../../node_modules/react-native/react.gradle'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.1"
 
     defaultConfig {
         applicationId "com.beetle.face"
         minSdkVersion 16
         targetSdkVersion 21
-        versionCode 16
-        versionName "1.6"
+        versionCode 17
+        versionName "1.7"
 
         ndk {
             abiFilters 'armeabi-v7a', 'x86'
@@ -50,7 +50,7 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.netflix.rxjava:rxjava-android:0.17.+'
     compile 'com.squareup.retrofit:retrofit:1.7.+'
     compile 'com.squareup.picasso:picasso:2.4.+'

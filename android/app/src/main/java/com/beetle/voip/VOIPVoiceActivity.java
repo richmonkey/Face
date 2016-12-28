@@ -34,7 +34,7 @@ import static android.os.SystemClock.uptimeMillis;
 /**
  * Created by houxh on 15/9/8.
  */
-public class VOIPVoiceActivity extends VOIPActivity {
+public class VOIPVoiceActivity extends CallActivity {
     private static final int PERMISSIONS_REQUEST_CAMERA = 1;
     private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 2;
 
