@@ -33,9 +33,6 @@ import org.webrtc.EglBase;
 import org.webrtc.RendererCommon;
 import org.webrtc.SurfaceViewRenderer;
 
-import java.util.UUID;
-
-
 
 import static android.os.SystemClock.uptimeMillis;
 
@@ -123,7 +120,6 @@ public class VOIPVideoActivity extends CallActivity  {
         setContentView(R.layout.activity_voip_video);
 
         getIntent().putExtra(EXTRA_VIDEO_CALL, true);
-        super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
 
@@ -158,8 +154,9 @@ public class VOIPVideoActivity extends CallActivity  {
         }
 
         channelID = intent.getStringExtra("channel_id");
-        if (channelID == null) {
-            channelID = "";
+        if (TextUtils.isEmpty(channelID)) {
+            Log.e(TAG, "channel id is empty");
+            return;
         }
         Log.i(TAG, "channel id:" + channelID);
 
@@ -168,6 +165,8 @@ public class VOIPVideoActivity extends CallActivity  {
 
         turnUserName = String.format("%d_%d", appid, uid);
         turnPassword = token;
+
+        super.onCreate(savedInstanceState);
 
         sHandler = new Handler();
         sHandler.post(mHideRunnable);
@@ -237,9 +236,6 @@ public class VOIPVideoActivity extends CallActivity  {
 
         requestPermission();
         if (isCaller) {
-            if (TextUtils.isEmpty(this.channelID)) {
-                this.channelID = UUID.randomUUID().toString();
-            }
             this.dialVideo();
         }
     }
