@@ -250,6 +250,7 @@ static NSString *HISTORYSTR = @"historyCell";
             controller.peerName = name;
             controller.token = [Token instance].accessToken;
             controller.isCaller = YES;
+            controller.channelID = [[NSUUID UUID] UUIDString];
 
             [self presentViewController:controller animated:YES completion:nil];
         }else if (buttonIndex == 1) {
@@ -261,6 +262,7 @@ static NSString *HISTORYSTR = @"historyCell";
             controller.peerName = name;
             controller.token = [Token instance].accessToken;
             controller.isCaller = YES;
+            controller.channelID = [[NSUUID UUID] UUIDString];
             
             [self presentViewController:controller animated:YES completion:nil];
         }

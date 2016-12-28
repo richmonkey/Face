@@ -9,6 +9,7 @@
 #import "CallViewController.h"
 #import "History.h"
 #import "HistoryDB.h"
+#import "APIRequest.h"
 
 @interface CallViewController()
 @property(nonatomic) History *history;
@@ -23,6 +24,14 @@
         self.history.flag = FLAG_OUT;
     }
     self.history.createTimestamp = time(NULL);
+    
+    if (self.isCaller) {
+        [APIRequest requestCall:self.channelID peer:self.peerUID success:^{
+            NSLog(@"post call success");
+        } fail:^{
+            NSLog(@"post call fail");
+        }];
+    }
 }
 
 -(void)dismiss {

@@ -157,11 +157,6 @@
     }
     
     if (self.isCaller) {
-        if (self.channelID.length == 0){
-            //todo 异步从服务器接口获取
-            self.channelID = [[NSUUID UUID] UUIDString];
-
-        }
         [self dialVideo];
     }
     

@@ -310,6 +310,33 @@
     [[NSOperationQueue mainQueue] addOperation:request];
     return request;
 }
-
++(TAHttpOperation*)requestCall:(NSString*)channelID peer:(int64_t)peer success:(void (^)())success fail:(void (^)())fail {
+    TAHttpOperation *request = [TAHttpOperation httpOperationWithTimeoutInterval:60];
+    request.targetURL = [[Config instance].URL stringByAppendingString:@"/calls"];
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    [dict setObject:channelID forKey:@"channel_id"];
+    [dict setObject:[NSNumber numberWithLongLong:peer] forKey:@"peer_uid"];
+    NSMutableDictionary *headers = [NSMutableDictionary dictionaryWithObject:@"application/json" forKey:@"Content-Type"];
+    NSString *auth = [NSString stringWithFormat:@"Bearer %@", [Token instance].accessToken];
+    [headers setObject:auth forKey:@"Authorization"];
+    
+    request.headers = headers;
+    NSData *data = [NSJSONSerialization dataWithJSONObject:dict options:0 error:nil];
+    request.postBody = data;
+    request.method = @"POST";
+    request.successCB = ^(TAHttpOperation*commObj, NSURLResponse *response, NSData *data) {
+        NSInteger statusCode = [(NSHTTPURLResponse*)response statusCode];
+        if (statusCode != 200) {
+            fail();
+            return;
+        }
+        success();
+    };
+    request.failCB = ^(TAHttpOperation*commObj, TAHttpOperationError error) {
+        fail();
+    };
+    [[NSOperationQueue mainQueue] addOperation:request];
+    return request;
+}
 
 @end

@@ -288,6 +288,7 @@ typedef enum {
                 controller.peerName = name;
                 controller.token = [Token instance].accessToken;
                 controller.isCaller = YES;
+                controller.channelID = [[NSUUID UUID] UUIDString];
                 
                 [self presentViewController:controller animated:YES completion:nil];
             }
@@ -302,6 +303,7 @@ typedef enum {
                 controller.peerName = name;
                 controller.token = [Token instance].accessToken;
                 controller.isCaller = YES;
+                controller.channelID = [[NSUUID UUID] UUIDString];
                 [self presentViewController:controller animated:YES completion:nil];
             }
                 break;

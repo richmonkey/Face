@@ -1,6 +1,7 @@
 package com.beetle.face.api;
 
 import com.beetle.face.Token;
+import com.beetle.face.api.body.Call;
 import com.beetle.face.api.body.PostAuthRefreshToken;
 import com.beetle.face.api.body.PostAuthToken;
 import com.beetle.face.api.body.PostDeviceToken;
@@ -65,5 +66,9 @@ public interface IMHttp {
 
     @POST("/device/unbind")
     Observable<Object> unBindDeviceToken(@Body PostDeviceToken token);
+
+
+    @POST("/calls")
+    Observable<Object> postCall(@Body Call call);
 
 }

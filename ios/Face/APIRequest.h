@@ -35,4 +35,5 @@
 
 +(NSOperation*)bindDeviceToken:(NSString*)deviceToken success:(void (^)())success fail:(void (^)())fail;
 
++(TAHttpOperation*)requestCall:(NSString*)channelID peer:(int64_t)peer success:(void (^)())success fail:(void (^)())fail;
 @end
