@@ -1234,8 +1234,8 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_ENTITLEMENTS = Face/Face.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer: Zhifeng Zhou (PV548P44SL)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Zhifeng Zhou (PV548P44SL)";
+				CODE_SIGN_IDENTITY = "iPhone Distribution: Zhifeng Zhou (HB5A8TLKYL)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Zhifeng Zhou (HB5A8TLKYL)";
 				DEVELOPMENT_TEAM = HB5A8TLKYL;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1281,7 +1281,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.beetle.face;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "aaebac94-51a0-4a13-86ea-f341c46beb99";
+				PROVISIONING_PROFILE = "692fd1f3-7169-439e-a24b-63ae90e6b20d";
 				USER_HEADER_SEARCH_PATHS = Face/backend/;
 				VALID_ARCHS = "armv7 arm64 armv7s";
 				WRAPPER_EXTENSION = app;
