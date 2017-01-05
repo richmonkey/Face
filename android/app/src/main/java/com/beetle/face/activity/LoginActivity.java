@@ -152,7 +152,7 @@ public class LoginActivity extends AccountActivity implements TextView.OnEditorA
             @Override
             protected void fire() {
                 long now = getNow();
-                if (now - beginQuery >= 2) {
+                if (now - beginQuery >= 10) {
                     Log.i(TAG, "read verify code from sms timeout");
                     dialog.dismiss();
                     queryTimer.suspend();
