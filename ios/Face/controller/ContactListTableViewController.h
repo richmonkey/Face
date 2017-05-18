@@ -11,7 +11,6 @@
 #import "ContactDB.h"
 
 @interface ContactListTableViewController : UIViewController <UITableViewDelegate, UITableViewDataSource,
-                                                        UISearchBarDelegate,
                                                         ContactDBObserver> {
 
 }

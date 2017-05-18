@@ -76,6 +76,7 @@ typedef enum {
     [super viewDidLoad];
     
     self.title = @"详细资料";
+    self.navigationController.navigationBar.translucent = YES;
     
 //    [self.view setBackgroundColor:[UIColor whiteColor]];
     
