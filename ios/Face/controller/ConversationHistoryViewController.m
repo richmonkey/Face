@@ -110,14 +110,14 @@ static NSString *HISTORYSTR = @"historyCell";
     NSString *creatTimeStr = [PublicFunc getConversationTimeString: createDate];
     [cell.timeLabel setText:creatTimeStr];
     
-    int callDuration = history.endTimestamp - history.beginTimestamp;
+    int callDuration = (int)(history.endTimestamp - history.beginTimestamp);
     NSString *durationStr = [NSString stringWithFormat:@"%@",[PublicFunc getTimeStrFromSeconds:callDuration]];
     [cell.durationLabel setText:durationStr];
     
     User *theUser =  [[UserDB instance] loadUser:history.peerUID];
     if (!theUser) {
         [cell.nameLabel setText:@"未知用户"];
-    }else{
+    } else{
         ABContact *c = [[ContactDB instance] loadContactWithNumber:theUser.phoneNumber];
         theUser.name = c.contactName;
         [cell.nameLabel setText:theUser.displayName];
@@ -127,35 +127,34 @@ static NSString *HISTORYSTR = @"historyCell";
     bool isCancel       = history.flag&FLAG_CANCELED;
     bool isRefused      = history.flag&FLAG_REFUSED;
     bool isAccepted     = history.flag&FLAG_ACCEPTED;
-    bool isUnreceived   = history.flag&FLAG_UNRECEIVED;
-    
+
     if (isOut) {
         [cell.iconView setImage:[UIImage imageNamed:@"callOutIcon"]];
-        if(isCancel) {
+        if (isCancel) {
             [cell.statusLabel setTextColor:[UIColor grayColor]];
             [cell.statusLabel setText:@"通话被取消"];
-        }else if(isRefused) {
+        } else if(isRefused) {
             [cell.statusLabel setTextColor:kRedColor];
             [cell.statusLabel setText:@"通话被拒绝"];
-        }else if(isAccepted){
+        } else if(isAccepted){
             [cell.statusLabel setTextColor:kGreenColor];
             [cell.statusLabel setText:@"通话成功"];
-        }else if(isUnreceived){
+        } else {
             [cell.statusLabel setTextColor:kRedColor];
             [cell.statusLabel setText:@"对方未接听"];
         }
-    }else{
-         [cell.iconView setImage:[UIImage imageNamed:@"callInIcon"]];
+    } else {
+        [cell.iconView setImage:[UIImage imageNamed:@"callInIcon"]];
         if(isCancel) {
             [cell.statusLabel setTextColor:[UIColor grayColor]];
             [cell.statusLabel setText:@"已取消"];
-        }else if(isRefused) {
+        } else if(isRefused) {
             [cell.statusLabel setTextColor:kRedColor];
             [cell.statusLabel setText:@"已拒绝"];
-        }else if(isAccepted){
+        } else if(isAccepted){
             [cell.statusLabel setTextColor:kGreenColor];
             [cell.statusLabel setText:@"通话成功"];
-        }else if(isUnreceived){
+        } else {
             [cell.statusLabel setTextColor:[UIColor blueColor]];
             [cell.iconView setImage:[UIImage imageNamed:@"callInNotAnswerIcon"]];
             [cell.statusLabel setText:@"未接听"];
