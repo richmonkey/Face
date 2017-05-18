@@ -33,6 +33,8 @@ import org.webrtc.EglBase;
 import org.webrtc.RendererCommon;
 import org.webrtc.SurfaceViewRenderer;
 
+import java.util.UUID;
+
 
 import static android.os.SystemClock.uptimeMillis;
 
@@ -264,7 +266,7 @@ public class VOIPVideoActivity extends CallActivity  {
 
             if (recordPermission != PackageManager.PERMISSION_GRANTED) {
                 try {
-                    this.requestPermissions(new String[]{Manifest.permission.CAMERA}, PERMISSIONS_REQUEST_CAMERA);
+                    this.requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_REQUEST_RECORD_AUDIO);
                 } catch (IllegalStateException e) {
                     e.printStackTrace();
                 }

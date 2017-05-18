@@ -18,6 +18,7 @@ import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnection.IceConnectionState;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.RtpParameters;
+import org.webrtc.RtpReceiver;
 import org.webrtc.RtpSender;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
@@ -1017,8 +1018,8 @@ public class PeerConnectionClient {
                     "Failed to change capture format. Video: " + videoCallEnabled + ". Error : " + isError);
             return;
         }
-        Log.d(TAG, "changeCaptureFormat: " + width + "x" + height + "@" + framerate);
-        videoSource.adaptOutputFormat(width, height, framerate);
+        //Log.d(TAG, "changeCaptureFormat: " + width + "x" + height + "@" + framerate);
+        //videoSource.adaptOutputFormat(width, height, framerate);
     }
 
     // Implementation detail: observe ICE & stream changes and react accordingly.
@@ -1118,6 +1119,7 @@ public class PeerConnectionClient {
             // No need to do anything; AppRTC follows a pre-agreed-upon
             // signaling/negotiation protocol.
         }
+
     }
 
     // Implementation detail: handle offer creation/signaling and answer setting,

@@ -18,13 +18,14 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.beetle.face.R;
 import com.beetle.im.Timer;
 import com.squareup.picasso.Picasso;
 
 import org.webrtc.EglBase;
 
 import java.util.UUID;
+
+import com.beetle.face.R;
 
 import static android.os.SystemClock.uptimeMillis;
 
@@ -188,7 +189,7 @@ public class VOIPVoiceActivity extends CallActivity {
 
             if (recordPermission != PackageManager.PERMISSION_GRANTED) {
                 try {
-                    this.requestPermissions(new String[]{Manifest.permission.CAMERA}, PERMISSIONS_REQUEST_CAMERA);
+                    this.requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_REQUEST_RECORD_AUDIO);
                 } catch (IllegalStateException e) {
                     e.printStackTrace();
                 }

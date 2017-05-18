@@ -138,14 +138,15 @@ static NSString * const kARDVideoTrackId = @"ARDAMSv0";
 }
 
 - (RTCRtpSender *)createAudioSender {
-    RTCMediaConstraints *constraints = [self defaultMediaAudioConstraints];
-    RTCAudioSource *source = [self.factory audioSourceWithConstraints:constraints];
-    RTCAudioTrack *track = [self.factory audioTrackWithSource:source
-                                                      trackId:kARDAudioTrackId];
+    //RTCMediaConstraints *constraints = [self defaultMediaAudioConstraints];
+    //RTCAudioSource *source = [self.factory audioSourceWithConstraints:constraints];
+    //RTCAudioTrack *track = [self.factory audioTrackWithSource:source
+    //                                                  trackId:kARDAudioTrackId];
+    
     RTCRtpSender *sender =
     [self.peerConnection senderWithKind:kRTCMediaStreamTrackKindAudio
                                streamId:kARDMediaStreamId];
-    sender.track = track;
+    //sender.track = track;
     return sender;
 }
 
@@ -199,9 +200,8 @@ static NSString * const kARDVideoTrackId = @"ARDAMSv0";
 
 
 - (RTCMediaConstraints *)defaultMediaAudioConstraints {
-    NSString *valueLevelControl = _shouldUseLevelControl ?
-    kRTCMediaConstraintsValueTrue : kRTCMediaConstraintsValueFalse;
-    NSDictionary *mandatoryConstraints = @{ kRTCMediaConstraintsLevelControl : valueLevelControl };
+    NSString *valueLevelControl = _shouldUseLevelControl ? @"true" : @"false";
+    NSDictionary *mandatoryConstraints = @{ @"levelControl" : valueLevelControl };
     RTCMediaConstraints *constraints =
     [[RTCMediaConstraints alloc] initWithMandatoryConstraints:mandatoryConstraints
                                           optionalConstraints:nil];

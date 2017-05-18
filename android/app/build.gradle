@@ -50,7 +50,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.netflix.rxjava:rxjava-android:0.17.+'
     compile 'com.squareup.retrofit:retrofit:1.7.+'
     compile 'com.squareup.picasso:picasso:2.4.+'
