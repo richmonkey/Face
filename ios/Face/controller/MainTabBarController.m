@@ -182,6 +182,9 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillResignActive) name:UIApplicationWillResignActiveNotification object:nil];
+    
 
     [[self tabBar] setTintColor: RGBACOLOR(48,176,87, 1)];
     [[self tabBar] setBarTintColor: RGBACOLOR(245, 245, 246, 1)];
@@ -250,6 +253,11 @@
 -(void)appWillEnterForeground {
     [[VOIPService instance] enterForeground];
 }
+
+- (void)appWillResignActive {
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
+}
+
 
 
 -(void)refreshAccessToken {
