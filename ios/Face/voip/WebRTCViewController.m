@@ -138,15 +138,12 @@ static NSString * const kARDVideoTrackId = @"ARDAMSv0";
 }
 
 - (RTCRtpSender *)createAudioSender {
-    //RTCMediaConstraints *constraints = [self defaultMediaAudioConstraints];
-    //RTCAudioSource *source = [self.factory audioSourceWithConstraints:constraints];
-    //RTCAudioTrack *track = [self.factory audioTrackWithSource:source
-    //                                                  trackId:kARDAudioTrackId];
+    RTCAudioTrack *track = [self.factory audioTrackWithTrackId:kARDAudioTrackId];
     
     RTCRtpSender *sender =
     [self.peerConnection senderWithKind:kRTCMediaStreamTrackKindAudio
                                streamId:kARDMediaStreamId];
-    //sender.track = track;
+    sender.track = track;
     return sender;
 }
 
