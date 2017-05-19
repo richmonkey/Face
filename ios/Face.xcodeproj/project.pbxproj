@@ -113,6 +113,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		6D5525271ECEC882005BE656 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6D7DD9401ECB0153000A89C5 /* React.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 83CBBA2D1A601D0E00E9B192;
+			remoteInfo = React;
+		};
 		6D7DD9501ECB0154000A89C5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6D7DD9401ECB0153000A89C5 /* React.xcodeproj */;
@@ -511,6 +518,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D7DD9AA1ECB0216000A89C5 /* libReact.a in Frameworks */,
 				6D7DD9B11ECB0256000A89C5 /* libyoga.a in Frameworks */,
 				6D7DD9B01ECB0248000A89C5 /* libRCTNetwork.a in Frameworks */,
 				6D7DD9AF1ECB023B000A89C5 /* libRCTSettings.a in Frameworks */,
@@ -518,7 +526,6 @@
 				6D7DD9AD1ECB0231000A89C5 /* libRCTAnimation.a in Frameworks */,
 				6D7DD9AC1ECB022B000A89C5 /* libRCTWebSocket.a in Frameworks */,
 				6D7DD9AB1ECB0227000A89C5 /* libRCTText.a in Frameworks */,
-				6D7DD9AA1ECB0216000A89C5 /* libReact.a in Frameworks */,
 				6D7DD9A91ECB020F000A89C5 /* libRCTLinking.a in Frameworks */,
 				6D7DD9A81ECB0209000A89C5 /* libART.a in Frameworks */,
 				6DFA63761E12556F00F954F6 /* libimsdk.a in Frameworks */,
@@ -1022,6 +1029,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				6D5525281ECEC882005BE656 /* PBXTargetDependency */,
 			);
 			name = Face;
 			productName = Face;
@@ -1531,6 +1539,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		6D5525281ECEC882005BE656 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = React;
+			targetProxy = 6D5525271ECEC882005BE656 /* PBXContainerItemProxy */;
+		};
 		6DF3998E19EB9AAE009B03C4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6DF3996319EB9AAE009B03C4 /* Face */;
@@ -1690,7 +1703,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Face/backend/leveldb",
-					"$(PROJECT_DIR)/Face/third_party/leveldb",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
@@ -1700,6 +1712,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.beetle.face;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "aaebac94-51a0-4a13-86ea-f341c46beb99";
+				PROVISIONING_PROFILE_SPECIFIER = face_development;
 				USER_HEADER_SEARCH_PATHS = Face/backend/;
 				VALID_ARCHS = "armv7 arm64 armv7s";
 				WRAPPER_EXTENSION = app;
@@ -1752,7 +1765,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Face/backend/leveldb",
-					"$(PROJECT_DIR)/Face/third_party/leveldb",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
@@ -1762,6 +1774,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.beetle.face;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "692fd1f3-7169-439e-a24b-63ae90e6b20d";
+				PROVISIONING_PROFILE_SPECIFIER = face_distribution;
 				USER_HEADER_SEARCH_PATHS = Face/backend/;
 				VALID_ARCHS = "armv7 arm64 armv7s";
 				WRAPPER_EXTENSION = app;

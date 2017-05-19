@@ -10,8 +10,8 @@ android {
         applicationId "com.beetle.face"
         minSdkVersion 16
         targetSdkVersion 21
-        versionCode 17
-        versionName "1.7"
+        versionCode 18
+        versionName "1.8"
 
         ndk {
             abiFilters 'armeabi-v7a', 'x86'
@@ -45,6 +45,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.app
         }
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
     }
 }
 
