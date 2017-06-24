@@ -1,10 +1,12 @@
 package com.beetle.face;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
@@ -53,7 +55,7 @@ import rx.functions.Action1;
 /**
  * Created by houxh on 14-12-31.
  */
-public class FaceApplication  extends Application implements SystemMessageObserver, RTMessageObserver {
+public class FaceApplication  extends Application implements SystemMessageObserver, RTMessageObserver, Application.ActivityLifecycleCallbacks {
     private final static String TAG = "face";
 
 
@@ -95,6 +97,7 @@ public class FaceApplication  extends Application implements SystemMessageObserv
         im.addRTObserver(this);
 
         BusProvider.getInstance().register(this);
+        registerActivityLifecycleCallbacks(this);
 
         //already login
         if (Token.getInstance().uid > 0) {
@@ -350,6 +353,48 @@ public class FaceApplication  extends Application implements SystemMessageObserv
                         Log.i("im", "bind fail");
                     }
                 });
+    }
+
+    private int started = 0;
+    private int stopped = 0;
+
+    public void onActivityCreated(Activity activity, Bundle bundle) {
+        Log.i("","onActivityCreated:" + activity.getLocalClassName());
+    }
+
+    public void onActivityDestroyed(Activity activity) {
+        Log.i("","onActivityDestroyed:" + activity.getLocalClassName());
+    }
+
+    public void onActivityPaused(Activity activity) {
+        Log.i("","onActivityPaused:" + activity.getLocalClassName());
+    }
+
+    public void onActivityResumed(Activity activity) {
+        Log.i("","onActivityResumed:" + activity.getLocalClassName());
+    }
+
+    public void onActivitySaveInstanceState(Activity activity,
+                                            Bundle outState) {
+        Log.i("","onActivitySaveInstanceState:" + activity.getLocalClassName());
+    }
+
+    public void onActivityStarted(Activity activity) {
+        Log.i("","onActivityStarted:" + activity.getLocalClassName());
+        ++started;
+
+        if (started - stopped == 1 ) {
+            Log.i(TAG, "app enter foreground ");
+            IMService.getInstance().sendHeartbeat();
+        }
+    }
+
+    public void onActivityStopped(Activity activity) {
+        Log.i("","onActivityStopped:" + activity.getLocalClassName());
+        ++stopped;
+        if (stopped == started) {
+            Log.i(TAG, "app enter background ");
+        }
     }
 
 }
