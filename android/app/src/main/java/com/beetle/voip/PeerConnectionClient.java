@@ -1120,6 +1120,11 @@ public class PeerConnectionClient {
             // signaling/negotiation protocol.
         }
 
+        @Override
+        public void onAddTrack(RtpReceiver var1, MediaStream[] var2) {
+
+        }
+
     }
 
     // Implementation detail: handle offer creation/signaling and answer setting,

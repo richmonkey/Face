@@ -56,7 +56,8 @@ RCT_EXPORT_METHOD(dismiss) {
     [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
     
     RCTRootView *rootView = (RCTRootView*)self.view;
-    [rootView.bridge invalidate];
+    RCTBridge *bridge = rootView.bridge;
+    [bridge invalidate];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -143,10 +144,11 @@ RCT_EXPORT_METHOD(dismiss) {
     
     NSDictionary *props = @{@"initiator":[NSNumber numberWithLongLong:self.initiator],
                             @"isInitiator":[NSNumber numberWithBool:isInitiator],
+                            @"uid":[NSNumber numberWithLongLong:self.currentUID],
                             @"channelID":self.channelID,
                             @"partipants":users};
     
-    RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"App" initialProperties:props];
+    RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"Conference" initialProperties:props];
     
     // Set a background color which is in accord with the JavaScript and Android
     // parts of the application and causes less perceived visual flicker than the
@@ -302,6 +304,11 @@ RCT_EXPORT_METHOD(dismiss) {
             //等待用户接听
         }
 
+        
+        if ([command isEqualToString:CONFERENCE_COMMAND_ACCEPT]) {
+            [self.bridge.eventDispatcher sendAppEventWithName:@"onRemoteAccept"
+                                                         body:nil];
+        }
         //所有人都拒绝
         BOOL refused = YES;
         for (int i = 0; i <self.partipants.count; i++) {
@@ -317,7 +324,7 @@ RCT_EXPORT_METHOD(dismiss) {
         }
         
         if (refused) {
-            [self.bridge.eventDispatcher sendAppEventWithName:@"onRemoteRefuse"
+            [self.bridge.eventDispatcher sendAppEventWithName:@"onAllRemoteRefuse"
                                                          body:nil];
         }
     } else {

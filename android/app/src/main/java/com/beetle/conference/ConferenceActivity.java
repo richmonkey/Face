@@ -269,6 +269,7 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
         Bundle props = new Bundle();
         props.putString("channelID", channelID);
         props.putBoolean("isInitiator", isInitiator);
+        props.putLong("uid", this.currentUID);
         props.putLong("initiator", initiator);
 
         ArrayList<Bundle> users = new ArrayList<Bundle>();
@@ -284,7 +285,7 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
         }
         props.putParcelableArrayList("partipants", users);
 
-        mReactRootView.startReactApplication(mReactInstanceManager, "App", props);
+        mReactRootView.startReactApplication(mReactInstanceManager, "Conference", props);
         setContentView(mReactRootView);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -471,8 +472,17 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
 
                 }
 
-                boolean refused = true;
+                if (command.equals(ConferenceCommand.COMMAND_ACCEPT)) {
+                    ReactContext context = mReactInstanceManager.getCurrentReactContext();
+                    if (context == null) {
+                        return;
+                    }
+                    WritableMap p = Arguments.createMap();
+                    sendEvent(context, "onRemoteAccept", p);
+                }
 
+                //判断是否所有的人都拒绝接听
+                boolean refused = true;
                 for (long p : this.partipants) {
                     if (p == currentUID) {
                         continue;
@@ -490,7 +500,7 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
                         return;
                     }
                     WritableMap p = Arguments.createMap();
-                    sendEvent(context, "onRemoteRefuse", p);
+                    sendEvent(context, "onAllRemoteRefuse", p);
                 }
             } else {
                 if (command.equals(ConferenceCommand.COMMAND_INVITE)) {

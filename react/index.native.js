@@ -1,9 +1,6 @@
 import { AppRegistry } from 'react-native';
-import { App } from './features/app';
-import { ConferenceCreator } from './features/conference';
+import  ConferenceCreator  from './ConferenceCreator.js';
+import  Conference  from './Conference.js'
 
-// Register the main Component.
-AppRegistry.registerComponent('App', () => App);
-
-// Register the main Component.
+AppRegistry.registerComponent('Conference', () => Conference);
 AppRegistry.registerComponent('ConferenceCreator', () => ConferenceCreator);
