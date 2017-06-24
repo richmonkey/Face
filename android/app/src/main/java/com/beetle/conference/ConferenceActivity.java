@@ -36,7 +36,6 @@ import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.react.uimanager.ViewManager;
 import com.joshblour.reactnativepermissions.ReactNativePermissionsPackage;
-import com.oblador.vectoricons.VectorIconsPackage;
 import com.oney.WebRTCModule.WebRTCModulePackage;
 import com.remobile.toast.RCTToastPackage;
 import com.zmxv.RNSound.RNSoundPackage;
@@ -257,7 +256,6 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
                 .setJSMainModuleName("index.android")
                 .addPackage(new MainReactPackage())
                 .addPackage(new ConferencePackage())
-                .addPackage(new VectorIconsPackage())
                 .addPackage(new WebRTCModulePackage())
                 .addPackage(new ReactNativePermissionsPackage())
                 .addPackage(new RCTToastPackage())

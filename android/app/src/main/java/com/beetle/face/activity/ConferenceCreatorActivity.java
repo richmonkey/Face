@@ -30,7 +30,6 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.react.uimanager.ViewManager;
 import com.joshblour.reactnativepermissions.ReactNativePermissionsPackage;
-import com.oblador.vectoricons.VectorIconsPackage;
 import com.oney.WebRTCModule.WebRTCModulePackage;
 import com.remobile.toast.RCTToastPackage;
 import com.zmxv.RNSound.RNSoundPackage;
@@ -152,7 +151,6 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
                 .setJSMainModuleName("index.android")
                 .addPackage(new MainReactPackage())
                 .addPackage(new ConferenceCreatorPackage())
-                .addPackage(new VectorIconsPackage())
                 .addPackage(new WebRTCModulePackage())
                 .addPackage(new ReactNativePermissionsPackage())
                 .addPackage(new RCTToastPackage())

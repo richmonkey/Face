@@ -63,7 +63,6 @@ dependencies {
     compile 'com.facebook.react:react-native:+'
 
     compile project(':react-native-permissions')
-    compile project(':react-native-vector-icons')
     compile project(':react-native-webrtc')
     compile project(':react-native-toast')
     compile project(':react-native-sound')
@@ -72,4 +71,3 @@ dependencies {
     compile files('src/main/jniLibs/HwPush_SDK_V2559.jar')
     compile files('src/main/jniLibs/MiPush_SDK_Client_3_1_2.jar')
 }
-apply from: '../../node_modules/react-native-vector-icons/fonts.gradle'
