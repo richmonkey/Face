@@ -8,7 +8,8 @@ import {
     Image,
     Platform,
     Dimensions,
-    StyleSheet    
+    StyleSheet,
+    TouchableWithoutFeedback
 } from 'react-native';
 
 import {
@@ -50,6 +51,7 @@ class GroupCall extends Component {
         this._toggleAudio = this._toggleAudio.bind(this);
         this._toggleVideo = this._toggleVideo.bind(this);
         this._onHangUp = this._onHangUp.bind(this);
+        this._switchCamera = this._switchCamera.bind(this);
         
         this.onmessage = this.onmessage.bind(this);
         this.ping = this.ping.bind(this);
@@ -148,21 +150,44 @@ class GroupCall extends Component {
                 var participant2 = participants[i+1];
                 var videoURL1 = participant1.videoURL;
                 var videoURL2 = participant2.videoURL;
-                remoteViews.push((
-                    <View style={{height:h, flex:1, flexDirection:"row"}} key={i} >
-                        <RTCView style={{height:h, width:w}} objectFit="cover" streamURL={videoURL1}/>
-                        <RTCView style={{height:h, width:w}} objectFit="cover" streamURL={videoURL2}/>
-                    </View>
-                ));
+                if (i == 0) {
+                    remoteViews.push((
+                        <View style={{height:h, width:ScreenWidth, flexDirection:"row"}} key={i} >
+                            <TouchableWithoutFeedback onPress={this._switchCamera}
+                                                      style={{height:h, width:w}}>
+                                <RTCView style={{height:h, width:w}} objectFit="cover" streamURL={videoURL1}/>
+                            </TouchableWithoutFeedback>
+                            <RTCView style={{height:h, width:w}} objectFit="cover" streamURL={videoURL2}/>
+                        </View>
+                    ));
+                } else {
+                    remoteViews.push((
+                        <View style={{height:h, width:ScreenWidth, flexDirection:"row"}} key={i} >
+                            <RTCView style={{height:h, width:w}} objectFit="cover" streamURL={videoURL1}/>
+                            <RTCView style={{height:h, width:w}} objectFit="cover" streamURL={videoURL2}/>
+                        </View>
+                    ));
+                }
             } else {
                 var participant = participants[i];
                 var videoURL = participant.videoURL;
-                
-                remoteViews.push((
-                    <View style={{height:h, flex:1, flexDirection:"row", justifyContent:"center"}} key={i}>
-                        <RTCView style={{height:h, width:w}} objectFit="cover" streamURL={videoURL}/>
-                    </View>
-                ))
+
+                if (i == 0) {
+                    remoteViews.push((
+                        <View style={{height:h, width:ScreenWidth, flexDirection:"row", justifyContent:"center"}} key={i}>
+                            <TouchableWithoutFeedback onPress={this._switchCamera}
+                                                      style={{height:h, width:w}}>
+                                <RTCView style={{height:h, width:w}} objectFit="cover" streamURL={videoURL}/>
+                            </TouchableWithoutFeedback>
+                        </View>
+                    ));
+                } else {
+                    remoteViews.push((
+                        <View style={{height:h, width:ScreenWidth, flexDirection:"row", justifyContent:"center"}} key={i}>
+                            <RTCView style={{height:h, width:w}} objectFit="cover" streamURL={videoURL}/>
+                        </View>
+                    ));
+                }
             }
         }
 
@@ -226,7 +251,27 @@ class GroupCall extends Component {
             </View>
         );
     }
- 
+
+    _switchCamera() {
+        console.log("switch camera...");
+
+        var name = this.name;
+        var participants = this.state.participants;
+        var participant = participants.find(function(p) {
+            return p.name == name;
+        });
+
+        if (!participant) {
+            return;
+        }
+
+        var localStream = participant.rtcPeer.getLocalStream();
+        var tracks = localStream.getVideoTracks();
+        if (tracks && tracks.length > 0) {
+            tracks[0]._switchCamera();
+        }
+    }
+    
     _toggleAudio() {
         console.log("toggle audio");
         var name = this.name;
