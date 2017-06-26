@@ -8,7 +8,7 @@ import {
     Platform,
     NativeModules,
     NativeAppEventEmitter,
-    BackAndroid
+    BackHandler
 } from 'react-native';
 
 import Permissions from 'react-native-permissions';
@@ -66,7 +66,7 @@ export default class Conference extends GroupCall {
             }
         );
 
-        BackAndroid.addEventListener('hardwareBackPress', this._handleBack);
+        BackHandler.addEventListener('hardwareBackPress', this._handleBack);
         
         if (!this.props.isInitiator) {
             this.play("call.mp3");
@@ -136,7 +136,7 @@ export default class Conference extends GroupCall {
         this.acceptSubscription.remove();
         this.subscription.remove();
 
-        BackAndroid.removeEventListener('hardwareBackPress', this._handleBack)
+        BackHandler.removeEventListener('hardwareBackPress', this._handleBack)
 
     }
 
@@ -316,7 +316,7 @@ export default class Conference extends GroupCall {
         }
         
         if (this.state.sessionState == SESSION_DIAL) {
-            this.setState({sessionState:SESSION_CONNECTED});            
+            this.setState({sessionState:SESSION_CONNECTED});
             this.start();
         }
     }

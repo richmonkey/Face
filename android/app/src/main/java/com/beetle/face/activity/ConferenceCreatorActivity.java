@@ -17,6 +17,10 @@ import com.beetle.face.model.ContactDB;
 import com.beetle.face.model.PhoneNumber;
 import com.beetle.face.model.UserDB;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeArray;
+import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.common.LifecycleState;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactPackage;
@@ -163,7 +167,8 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
         props.putLong("uid", Token.getInstance().uid);
         props.putString("token", Token.getInstance().accessToken);
         props.putString("url", Config.API_URL);
-        ArrayList<Bundle> users = new ArrayList<Bundle>();
+
+        ArrayList<Bundle> users = new ArrayList<>();
         ContactDB db = ContactDB.getInstance();
         final ArrayList<Contact> contacts = db.getContacts();
         for (int i = 0; i < contacts.size(); i++) {
@@ -179,15 +184,17 @@ public class ConferenceCreatorActivity extends Activity implements DefaultHardwa
                 User u = userDB.loadUser(number);
                 if (u != null) {
                     u.name = c.displayName;
-
-                    Bundle bundle = new Bundle();
-                    bundle.putLong("uid", u.uid);
-                    bundle.putString("name", u.name);
-                    users.add(bundle);
+                    Bundle user = new Bundle();
+                    user.putLong("uid", u.uid);
+                    user.putString("name", u.name);
+                    users.add(user);
                 }
             }
         }
-        props.putParcelableArrayList("users", users);
+
+        Bundle[] userBundles = new Bundle[users.size()];
+        users.toArray(userBundles);
+        props.putParcelableArray("users", userBundles);
         props.putString("channelID", channelID);
         mReactRootView.startReactApplication(mReactInstanceManager, "ConferenceCreator", props);
         setContentView(mReactRootView);

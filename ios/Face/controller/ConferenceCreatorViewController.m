@@ -49,7 +49,7 @@ RCT_EXPORT_METHOD(onCreate:(NSArray*)partipants)
     
     self.channelID = [[NSUUID UUID] UUIDString];
     
-    RCTBridgeModuleProviderBlock provider = ^NSArray<id<RCTBridgeModule>> *{
+    RCTBridgeModuleListProvider provider = ^NSArray<id<RCTBridgeModule>> *{
         return @[self];
     };
     

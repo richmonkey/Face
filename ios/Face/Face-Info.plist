@@ -24,6 +24,19 @@
 	<string>1.9.2</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+		  <key>localhost</key>
+                  <dict>
+                    <key>NSTemporaryExceptionAllowsInsecureHTTPSLoads</key>
+                    <true/>            
+                  </dict>
+		</dict>
+	</dict>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>This app requires access to bluetooth.</string>
 	<key>NSCalendarsUsageDescription</key>

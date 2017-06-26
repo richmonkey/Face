@@ -322,6 +322,27 @@
 			remoteGlobalIDString = 6DF3996319EB9AAE009B03C4;
 			remoteInfo = Face;
 		};
+		6DF918B51EFFAED300E99BC4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6D7DD9631ECB017D000A89C5 /* ART.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 323A12871E5F266B004975B8;
+			remoteInfo = "ART-tvOS";
+		};
+		6DF918D31EFFAED300E99BC4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6D7DD9401ECB0153000A89C5 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 139D7ECE1E25DB7D00323FB7;
+			remoteInfo = "third-party";
+		};
+		6DF918D51EFFAED300E99BC4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6D7DD9401ECB0153000A89C5 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 139D7E881E25C6D100323FB7;
+			remoteInfo = "double-conversion";
+		};
 		6DFA63721E12555200F954F6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6DFA636C1E12555200F954F6 /* imsdk.xcodeproj */;
@@ -628,6 +649,8 @@
 				6D7DD95B1ECB0154000A89C5 /* libcxxreact.a */,
 				6D7DD95D1ECB0154000A89C5 /* libjschelpers.a */,
 				6D7DD95F1ECB0154000A89C5 /* libjschelpers.a */,
+				6DF918D41EFFAED300E99BC4 /* libthird-party.a */,
+				6DF918D61EFFAED300E99BC4 /* libdouble-conversion.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -636,6 +659,7 @@
 			isa = PBXGroup;
 			children = (
 				6D7DD9681ECB017D000A89C5 /* libART.a */,
+				6DF918B61EFFAED300E99BC4 /* libART-tvOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -662,7 +686,7 @@
 			isa = PBXGroup;
 			children = (
 				6D7DD9811ECB01A3000A89C5 /* libRCTAnimation.a */,
-				6D7DD9831ECB01A3000A89C5 /* libRCTAnimation-tvOS.a */,
+				6D7DD9831ECB01A3000A89C5 /* libRCTAnimation.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1257,10 +1281,10 @@
 			remoteRef = 6D7DD9801ECB01A3000A89C5 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		6D7DD9831ECB01A3000A89C5 /* libRCTAnimation-tvOS.a */ = {
+		6D7DD9831ECB01A3000A89C5 /* libRCTAnimation.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = "libRCTAnimation-tvOS.a";
+			path = libRCTAnimation.a;
 			remoteRef = 6D7DD9821ECB01A3000A89C5 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -1353,6 +1377,27 @@
 			fileType = archive.ar;
 			path = libRCTToast.a;
 			remoteRef = 6DCC5E491EFE569600E5397E /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6DF918B61EFFAED300E99BC4 /* libART-tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libART-tvOS.a";
+			remoteRef = 6DF918B51EFFAED300E99BC4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6DF918D41EFFAED300E99BC4 /* libthird-party.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libthird-party.a";
+			remoteRef = 6DF918D31EFFAED300E99BC4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6DF918D61EFFAED300E99BC4 /* libdouble-conversion.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libdouble-conversion.a";
+			remoteRef = 6DF918D51EFFAED300E99BC4 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		6DFA63731E12555200F954F6 /* libimsdk.a */ = {
@@ -1728,8 +1773,8 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_ENTITLEMENTS = Face/Face.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: Zhifeng Zhou (HB5A8TLKYL)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Zhifeng Zhou (HB5A8TLKYL)";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Zhifeng Zhou (PV548P44SL)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Zhifeng Zhou (PV548P44SL)";
 				DEVELOPMENT_TEAM = HB5A8TLKYL;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1773,8 +1818,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.beetle.face;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "692fd1f3-7169-439e-a24b-63ae90e6b20d";
-				PROVISIONING_PROFILE_SPECIFIER = face_distribution;
+				PROVISIONING_PROFILE = "aaebac94-51a0-4a13-86ea-f341c46beb99";
+				PROVISIONING_PROFILE_SPECIFIER = face_development;
 				USER_HEADER_SEARCH_PATHS = Face/backend/;
 				VALID_ARCHS = "armv7 arm64 armv7s";
 				WRAPPER_EXTENSION = app;

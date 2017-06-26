@@ -281,7 +281,9 @@ public class ConferenceActivity extends Activity implements DefaultHardwareBackB
             bundle.putString("avatar", avatar);
             users.add(bundle);
         }
-        props.putParcelableArrayList("partipants", users);
+        Bundle[] userBundles = new Bundle[users.size()];
+        users.toArray(userBundles);
+        props.putParcelableArray("partipants", userBundles);
 
         mReactRootView.startReactApplication(mReactInstanceManager, "Conference", props);
         setContentView(mReactRootView);
