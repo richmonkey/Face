@@ -37,10 +37,10 @@
 		6D7DD9AF1ECB023B000A89C5 /* libRCTSettings.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D7DD9A51ECB01D8000A89C5 /* libRCTSettings.a */; };
 		6D7DD9B01ECB0248000A89C5 /* libRCTNetwork.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D7DD9931ECB01C1000A89C5 /* libRCTNetwork.a */; };
 		6D7DD9B11ECB0256000A89C5 /* libyoga.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D7DD9551ECB0154000A89C5 /* libyoga.a */; };
+		6DA02A261F03330700F3BA96 /* WebRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DA02A251F03330700F3BA96 /* WebRTC.framework */; };
+		6DA02A271F0333C600F3BA96 /* WebRTC.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6DA02A251F03330700F3BA96 /* WebRTC.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6DAD3F261DF7CA0600C70602 /* jitsi.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6DAD3F251DF7CA0200C70602 /* jitsi.ttf */; };
 		6DC861811DFBB76500A8AF24 /* ConferenceCreatorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6DC861801DFBB76500A8AF24 /* ConferenceCreatorViewController.m */; };
-		6DC861BA1DFC2F2A00A8AF24 /* WebRTC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DC861B91DFC2F2A00A8AF24 /* WebRTC.framework */; };
-		6DC861C21DFC2FCB00A8AF24 /* WebRTC.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6DC861B91DFC2F2A00A8AF24 /* WebRTC.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6DC861CB1DFC310400A8AF24 /* FontAwesome.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6DC861CA1DFC310400A8AF24 /* FontAwesome.ttf */; };
 		6DC861CD1DFC317100A8AF24 /* libRNSound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DC861A41DFC2EE400A8AF24 /* libRNSound.a */; };
 		6DC861CE1DFC317700A8AF24 /* libReactNativePermissions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DC8619E1DFC2EDE00A8AF24 /* libReactNativePermissions.a */; };
@@ -366,7 +366,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				6DC861C21DFC2FCB00A8AF24 /* WebRTC.framework in Embed Frameworks */,
+				6DA02A271F0333C600F3BA96 /* WebRTC.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -415,6 +415,7 @@
 		6D7DD98D1ECB01C1000A89C5 /* RCTNetwork.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTNetwork.xcodeproj; path = "../node_modules/react-native/Libraries/Network/RCTNetwork.xcodeproj"; sourceTree = "<group>"; };
 		6D7DD9961ECB01D0000A89C5 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
 		6D7DD99F1ECB01D8000A89C5 /* RCTSettings.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTSettings.xcodeproj; path = "../node_modules/react-native/Libraries/Settings/RCTSettings.xcodeproj"; sourceTree = "<group>"; };
+		6DA02A251F03330700F3BA96 /* WebRTC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebRTC.framework; path = "../node_modules/react-native-webrtc/ios/WebRTC.framework"; sourceTree = "<group>"; };
 		6DAD3F251DF7CA0200C70602 /* jitsi.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = jitsi.ttf; path = Face/jitsi.ttf; sourceTree = "<group>"; };
 		6DC8617F1DFBB76500A8AF24 /* ConferenceCreatorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConferenceCreatorViewController.h; sourceTree = "<group>"; };
 		6DC861801DFBB76500A8AF24 /* ConferenceCreatorViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConferenceCreatorViewController.m; sourceTree = "<group>"; };
@@ -423,7 +424,6 @@
 		6DC8619F1DFC2EE400A8AF24 /* RNSound.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNSound.xcodeproj; path = "../node_modules/react-native-sound/RNSound.xcodeproj"; sourceTree = "<group>"; };
 		6DC861AB1DFC2EF300A8AF24 /* RNVectorIcons.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNVectorIcons.xcodeproj; path = "../node_modules/react-native-vector-icons/RNVectorIcons.xcodeproj"; sourceTree = "<group>"; };
 		6DC861B11DFC2EFC00A8AF24 /* RCTWebRTC.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTWebRTC.xcodeproj; path = "../node_modules/react-native-webrtc/ios/RCTWebRTC.xcodeproj"; sourceTree = "<group>"; };
-		6DC861B91DFC2F2A00A8AF24 /* WebRTC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebRTC.framework; path = "../node_modules/react-native-webrtc/ios/WebRTC.framework"; sourceTree = "<group>"; };
 		6DC861CA1DFC310400A8AF24 /* FontAwesome.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
 		6DCC5E451EFE569500E5397E /* RCTToast.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTToast.xcodeproj; path = "../node_modules/@remobile/react-native-toast/ios/RCTToast.xcodeproj"; sourceTree = "<group>"; };
 		6DCC5E4B1EFE68D600E5397E /* libToast.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libToast.a; path = "../../../../Library/Developer/Xcode/DerivedData/Face-ebtqcdfbdgyvzxgcsnvfujqezpri/Build/Products/Debug-iphoneos/Toast/libToast.a"; sourceTree = "<group>"; };
@@ -562,9 +562,9 @@
 				6DF3996819EB9AAE009B03C4 /* Foundation.framework in Frameworks */,
 				6DF39B2D19EBB649009B03C4 /* AVFoundation.framework in Frameworks */,
 				6DF3996A19EB9AAE009B03C4 /* CoreGraphics.framework in Frameworks */,
+				6DA02A261F03330700F3BA96 /* WebRTC.framework in Frameworks */,
 				6DF39B2B19EBB617009B03C4 /* AudioToolbox.framework in Frameworks */,
 				6DF39B2919EBB607009B03C4 /* CoreMedia.framework in Frameworks */,
-				6DC861BA1DFC2F2A00A8AF24 /* WebRTC.framework in Frameworks */,
 				FF2C36ED43B7D873029D7CD6 /* libPods-Face.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -805,7 +805,7 @@
 				6DC8618E1DFBEEBD00A8AF24 /* libToast.a */,
 				6D2E3FB81C7B6C4400707C00 /* libimsdk.a */,
 				6DF39BC819ED72D7009B03C4 /* libsqlite3.dylib */,
-				6DC861B91DFC2F2A00A8AF24 /* WebRTC.framework */,
+				6DA02A251F03330700F3BA96 /* WebRTC.framework */,
 				6D4D55E01BA4033800247208 /* VideoToolbox.framework */,
 				6D401BCA1AAC7BAB0041ABC6 /* GLKit.framework */,
 				6DF39B2C19EBB649009B03C4 /* AVFoundation.framework */,
@@ -1743,7 +1743,7 @@
 					"\"${PODS_ROOT}/Headers/Public/leveldb-library\"",
 				);
 				INFOPLIST_FILE = "Face/Face-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1756,7 +1756,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.beetle.face;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "aaebac94-51a0-4a13-86ea-f341c46beb99";
+				PROVISIONING_PROFILE = "692fd1f3-7169-439e-a24b-63ae90e6b20d";
 				PROVISIONING_PROFILE_SPECIFIER = face_development;
 				USER_HEADER_SEARCH_PATHS = Face/backend/;
 				VALID_ARCHS = "armv7 arm64 armv7s";
@@ -1773,8 +1773,8 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_ENTITLEMENTS = Face/Face.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer: Zhifeng Zhou (PV548P44SL)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Zhifeng Zhou (PV548P44SL)";
+				CODE_SIGN_IDENTITY = "iPhone Distribution: Zhifeng Zhou (HB5A8TLKYL)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Zhifeng Zhou (HB5A8TLKYL)";
 				DEVELOPMENT_TEAM = HB5A8TLKYL;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1805,7 +1805,7 @@
 					"\"${PODS_ROOT}/Headers/Public/leveldb-library\"",
 				);
 				INFOPLIST_FILE = "Face/Face-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1818,8 +1818,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.beetle.face;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "aaebac94-51a0-4a13-86ea-f341c46beb99";
-				PROVISIONING_PROFILE_SPECIFIER = face_development;
+				PROVISIONING_PROFILE = "692fd1f3-7169-439e-a24b-63ae90e6b20d";
+				PROVISIONING_PROFILE_SPECIFIER = face_distribution;
 				USER_HEADER_SEARCH_PATHS = Face/backend/;
 				VALID_ARCHS = "armv7 arm64 armv7s";
 				WRAPPER_EXTENSION = app;
